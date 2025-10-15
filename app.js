@@ -8,6 +8,9 @@ const dotenv = require('dotenv');
 const authRoutes = require("./routes/auth"); 
 const indexRouter = require('./routes/index');
 const usersRouter = require('./routes/users');
+const swaggerUi = require('swagger-ui-express');
+const YAML = require('yamljs');
+const swaggerDocument = YAML.load('./auth.yaml');
 
 var app = express();
 
@@ -34,6 +37,8 @@ app.use('/', indexRouter);
 app.use('/users', usersRouter);
 //Register/Login logic
 app.use("/api/auth", authRoutes);
+//Open API implementation for testing and documentation
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
