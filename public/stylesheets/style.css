@@ -1,8 +1,292 @@
-body {
-  padding: 50px;
-  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+:root {
+  /* DARK MODE */
+  --col-base-dark: #1a1525;
+  --col-dark-dark: #2a2438;
+  --col-accent-dark: #8a6de6;
+  --col-neutral-dark: #f0e9ff;
+  --col-contrast-dark: #3a324c;
+  --col-highlight-dark: #d4c5e0;
+
+  /* LIGHT MODE */
+  --col-base-light: #f8f4ff;
+  --col-dark-light: #e8dfff;
+  --col-accent-light: #7a5cd6;
+  --col-neutral-light: #241e35;
+  --col-contrast-light: #d4c8f0;
+  --col-highlight-light: #ede2ff;
+
+  /* Aktywne kolory – start od dark */
+  --col-base: var(--col-base-dark);
+  --col-dark: var(--col-dark-dark);
+  --col-accent: var(--col-accent-dark);
+  --col-neutral: var(--col-neutral-dark);
+  --col-contrast: var(--col-contrast-dark);
+  --col-highlight: var(--col-highlight-dark);
+
+  /* Kolory przyciskow zaloguj i zarejestruj */
+  --col-auth-btn-dark: #6d58a0;
+  --col-auth-btn-hover-dark: #7b67b0;
+  --col-reg-btn-dark: #a86da6;
+  --col-reg-btn-hover-dark: #b87cb5;
+
+  --col-auth-btn-light: #7b67b0;
+  --col-auth-btn-hover-light: #8a76bf;
+  --col-reg-btn-light: #b87cb5;
+  --col-reg-btn-hover-light: #c88bc5;
+
+  --text-light: var(--col-neutral);
+  --text-dark: var(--col-neutral-light);
+
+  transition: all 0.3s ease;
 }
 
+/* Body */
+body {
+  background-color: var(--col-base);
+  color: var(--text-light);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+/* Navbar */
+.navbar {
+  background-color: var(--col-dark) !important;
+  padding: 0.7rem 1.5rem;
+  border-bottom: 2px solid var(--col-accent);
+  border-radius: 0 0 12px 12px;
+  transition: background-color 0.3s;
+}
+.navbar .navbar-brand {
+  font-weight: 700;
+  font-size: 1.5rem;
+  color: var(--text-light);
+}
+.navbar-nav .nav-link {
+  margin: 0 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  color: var(--text-light);
+  font-weight: 600;
+  transition: all 0.3s;
+}
+.navbar-nav .nav-link:hover {
+  background-color: var(--col-highlight);
+  color: var(--text-dark);
+  box-shadow: 0 0 12px 3px var(--col-accent);
+}
+
+/* Zaloguj */
+.navbar #authBtn {
+  background-color: var(--col-auth-btn-dark);
+  color: var(--text-light);
+  border: 1px solid var(--col-auth-btn-dark);
+  transition: all 0.3s;
+}
+.navbar #authBtn:hover {
+  background-color: var(--col-auth-btn-hover-dark);
+  color: var(--text-dark);
+  border-color: var(--col-auth-btn-hover-dark);
+}
+
+/* Rejestracja */
+.navbar #regBtn {
+  background-color: var(--col-reg-btn-dark);
+  color: var(--text-light);
+  border: 1px solid var(--col-reg-btn-dark);
+  transition: all 0.3s;
+}
+.navbar #regBtn:hover {
+  background-color: var(--col-reg-btn-hover-dark);
+  color: var(--text-dark);
+  border-color: var(--col-reg-btn-hover-dark);
+}
+
+
+/* Buttons */
+.btn-primary {
+  background-color: var(--col-accent);
+  border-color: var(--col-accent);
+  color: var(--text-light);
+  transition: all 0.3s;
+}
+.btn-primary:hover, .btn-primary:focus {
+  background-color: var(--col-highlight);
+  border-color: var(--col-highlight);
+  color: var(--text-dark);
+}
+
+.btn-secondary {
+  background-color: var(--col-contrast);
+  border-color: var(--col-contrast);
+  color: var(--text-light);
+  transition: all 0.3s;
+}
+.btn-secondary:hover, .btn-secondary:focus {
+  background-color: var(--col-accent);
+  border-color: var(--col-accent);
+  color: var(--text-light);
+}
+
+.btn-outline-light {
+  background-color: transparent;
+  border: 2px solid var(--text-light);
+  color: var(--text-light);
+  transition: all 0.3s;
+}
+.btn-outline-light:hover, .btn-outline-light:focus {
+  background-color: var(--col-accent);
+  border-color: var(--col-accent);
+  color: var(--text-dark);
+}
+
+/* Toggle Dark/Light button */
+#toggleTheme {
+  background-color: var(--col-accent);
+  color: var(--text-light);
+  border: 1px solid var(--col-accent);
+  transition: all 0.3s;
+}
+#toggleTheme:hover {
+  background-color: var(--col-highlight);
+  color: var(--text-dark);
+  border-color: var(--col-highlight);
+}
+
+/* Karty */
+.card {
+  background-color: var(--col-dark);
+  border: 1px solid var(--col-accent);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  transition: all 0.3s;
+}
+.card .card-body {
+  color: var(--text-light);
+}
+.card:hover {
+  transform: scale(1.02);
+  box-shadow: 0 0 18px 4px var(--col-accent);
+  border-color: var(--col-highlight);
+}
+
+/* Listy odpowiedzi */
+/* Zaznaczona odpowiedź */
+.list-group-item.active,
+.list-group-item.active:hover,
+.list-group-item.active:focus {
+  background-color: var(--col-accent);
+  color: var(--text-light);
+  border-color: var(--col-accent);
+  box-shadow: 0 0 20px 4px var(--col-accent);
+  transform: scale(1.03);
+}
+
+/* W trybie jasnym */
+body.light-mode .list-group-item.active,
+body.light-mode .list-group-item.active:hover,
+body.light-mode .list-group-item.active:focus {
+  background-color: var(--col-accent-light);
+  color: var(--col-neutral-light);
+  border-color: var(--col-accent-light);
+  box-shadow: 0 0 15px 3px var(--col-accent-light);
+  transform: scale(1.03);
+}
+
+
+.list-group-item {
+  background-color: var(--col-base);
+  color: var(--text-light);
+  border: 1px solid var(--col-contrast);
+  border-radius: 8px;
+  transition: all 0.2s ease-in-out;
+}
+.list-group-item:hover {
+  background-color: var(--col-highlight);
+  color: var(--text-dark);
+  box-shadow: 0 0 15px 3px var(--col-accent);
+  transform: scale(1.03);
+}
+
+/* Linki */
 a {
-  color: #00B7FF;
+  color: var(--text-light);
+  text-decoration: none;
+}
+a:hover {
+  color: var(--col-accent);
+  text-decoration: none;
+}
+
+/* Progress */
+.progress, .progress-bar {
+  background-color: var(--col-contrast);
+  border-radius: 8px;
+}
+.progress-bar {
+  background-color: var(--col-accent);
+}
+
+/* Wyjaśnienia */
+.explain {
+  font-size: .95rem;
+  color: var(--text-light);
+  background-color: rgba(70, 55, 90, 0.3);
+  padding: 6px 10px;
+  border-radius: 6px;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+/* DARK/LIGHT TOGGLE */
+body.light-mode {
+  --col-base: var(--col-base-light);
+  --col-dark: var(--col-dark-light);
+  --col-accent: var(--col-accent-light);
+  --col-neutral: var(--col-neutral-light);
+  --col-contrast: var(--col-contrast-light);
+  --col-highlight: var(--col-highlight-light);
+
+  --text-light: var(--col-neutral-light);
+  --text-dark: var(--col-neutral-light);
+}
+
+/* Minimalne ulepszenia hover w light mode */
+body.light-mode .navbar-nav .nav-link:hover {
+  background-color: var(--col-contrast);
+  color: var(--text-light);
+}
+body.light-mode .btn-primary:hover, body.light-mode .btn-primary:focus {
+  background-color: var(--col-contrast);
+  border-color: var(--col-contrast);
+  color: var(--text-light);
+}
+body.light-mode .card:hover {
+  box-shadow: 0 0 20px 5px var(--col-accent);
+  border-color: var(--col-accent);
+}
+body.light-mode .list-group-item:hover {
+  background-color: var(--col-accent);
+  color: var(--text-light);
+  box-shadow: 0 0 12px 3px var(--col-accent);
+}
+
+body.light-mode .navbar #authBtn {
+  background-color: var(--col-auth-btn-light);
+  color: white; /* Zmiana na biały tekst dla lepszej czytelności */
+  border: 1px solid var(--col-auth-btn-light);
+}
+body.light-mode .navbar #authBtn:hover {
+  background-color: var(--col-auth-btn-hover-light);
+  color: white; /* Biały tekst również w hover */
+  border-color: var(--col-auth-btn-hover-light);
+}
+
+body.light-mode .navbar #regBtn {
+  background-color: var(--col-reg-btn-light);
+  color: white; /* Zmiana na biały tekst dla lepszej czytelności */
+  border: 1px solid var(--col-reg-btn-light);
+}
+body.light-mode .navbar #regBtn:hover {
+  background-color: var(--col-reg-btn-hover-light);
+  color: white; /* Biały tekst również w hover */
+  border-color: var(--col-reg-btn-hover-light);
 }
