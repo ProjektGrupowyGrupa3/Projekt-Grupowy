@@ -5,15 +5,10 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Logowanie — LearnIt</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-<link rel="stylesheet" href="../public/stylesheets/style.css">
+<link rel="stylesheet" href="static/stylesheets/style.css">
 </head>
 <body>
-<nav class="navbar navbar-expand-lg">
-  <div class="container-fluid">
-    <a class="navbar-brand" href="index.html">LearnIt</a>
-    <button id="toggleTheme" class="btn btn-outline-light ms-auto">Toggle Dark/Light</button>
-  </div>
-</nav>
+
 
 <main class="container py-5">
   <div class="row">
@@ -42,7 +37,7 @@
   </div>
 </main>
 
-<script src="scripts/scrypt.js"></script>
+<script src="static/javascripts/script.js"></script>
 <script>
   setupThemeToggle('toggleTheme');
 
@@ -60,7 +55,7 @@
       if(res.ok){
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data.user));
-        window.location.href = 'index.html';
+        window.location.href = '/';
       } else {
         alert(data.message || 'Błąd logowania');
       }
