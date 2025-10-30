@@ -15,7 +15,7 @@ const usersRouter = require('./routes/users');
 const swaggerUi = require('swagger-ui-express');
 const YAML = require('yamljs');
 const swaggerDocument = YAML.load('./auth.yaml');
-
+const questionsRouter = require('./routes/questions')
 var app = express();
 
 // 🔹 Load environment variables
@@ -50,6 +50,7 @@ app.use('/login', loginRouter);
 //Quiz Pages
 app.use('/quiz/learn', quizLearnRouter);
 app.use('/quiz/test', quizTestRouter);
+app.use('/api/questions',questionsRouter)
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   next(createError(404));

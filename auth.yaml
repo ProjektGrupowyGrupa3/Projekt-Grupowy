@@ -121,3 +121,105 @@ paths:
           description: Invalid credentials
         '500':
           description: Server error
+  /questions/tags:
+    get:
+      summary: Get unique tags from a questions collection
+      tags:
+        - Questions
+      parameters:
+        - in: query
+          name: language
+          schema:
+            type: string
+            enum: [eng, pol]
+          required: true
+          description: Specify which question collection to use (English or Polish)
+      responses:
+        '200':
+          description: List of unique tags
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  language:
+                    type: string
+                    example: eng
+                  tags:
+                    type: array
+                    items:
+                      type: string
+                    example: ["Loops", "Arrays", "Pointers"]
+        '400':
+          description: Missing or invalid language parameter
+        '500':
+          description: Server error
+  /questions/random:
+    post:
+      summary: Get random questions by tag
+      tags:
+        - Questions
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - language
+                - tag
+                - amount
+              properties:
+                language:
+                  type: string
+                  enum: [eng, pol]
+                  example: eng
+                tag:
+                  type: string
+                  example: Loops
+                amount:
+                  type: integer
+                  example: 5
+      responses:
+        '200':
+          description: Returns random questions from the specified tag
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  language:
+                    type: string
+                    example: eng
+                  tag:
+                    type: string
+                    example: Loops
+                  count:
+                    type: integer
+                    example: 5
+                  questions:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        q:
+                          type: string
+                          example: What is a for loop used for?
+                        options:
+                          type: array
+                          items:
+                            type: string
+                          example: ["Repeating code", "Condition checking"]
+                        answer:
+                          type: integer
+                          example: 0
+                        explain:
+                          type: string
+                          example: A for loop is used to repeat a block of code a known number of times.
+                        tag:
+                          type: string
+                          example: Loops
+        '400':
+          description: Missing or invalid parameters
+        '500':
+          description: Server error

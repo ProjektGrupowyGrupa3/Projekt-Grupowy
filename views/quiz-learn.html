@@ -18,11 +18,9 @@
 
         <div class="card p-4">
           <div class="mb-3">
-            <label class="form-label fw-semibold">Przedmiot</label>
-            <select id="subject" class="form-select">
-              <option value="math">Matematyka</option>
-              <option value="cs">Programowanie</option>
-              <option value="sec">Bezpieczeństwo</option>
+            <label class="form-label fw-semibold" for="tagSelect">Przedmiot</label>
+            <select id="tagSelect" class="form-select">
+              <option disabled selected>Wczytywanie...</option>
             </select>
           </div>
 
@@ -53,44 +51,60 @@
     </div>
   </main>
 
-<script src="/static/javascripts/script.js"></script>
+  <script src="/static/javascripts/script.js"></script>
   <script>
     setupThemeToggle('toggleTheme');
-    const SAMPLE = {
-      math: [
-        { id: 1, q: '2+2=?', options: ['3', '4', '5', '22'], answer: 1, explain: '2+2=4' },
-        { id: 2, q: 'Ile to 5*6?', options: ['30', '11', '56', '28'], answer: 0, explain: '5*6 = 30' }
-      ],
-      cs: [
-        { id: 10, q: 'Co robi HTML?', options: ['Styluje', 'Strukturyzuje', 'Programuje', 'Nic'], answer: 1, explain: 'HTML definiuje strukturę dokumentu.' },
-        { id: 11, q: 'JS jest językiem:', options: ['Statycznym', 'Skryptowym', 'Bajtowym', 'Natywnym'], answer: 1, explain: 'JavaScript jest językiem skryptowym.' }
-      ],
-      sec: [
-        { id: 20, q: 'Co to XSS?', options: ['Atak', 'Protokoł', 'Narzędzie', 'Błąd'], answer: 0, explain: 'XSS = Cross-site scripting — atak.' }
-      ]
-    };
 
     let queue = [];
     let answered = false;
     let correct = false;
 
-    async function loadQuestions(subj) {
+    // 🔹 Load tags from backend and fill <select>
+    async function loadTags() {
+      try {
+        const res = await fetch('/api/questions/tags?language=pol');
+        const data = await res.json();
+        console.log(data)
+        const tagSelect = document.getElementById('tagSelect');
+        tagSelect.innerHTML = '';
+        data.tags.forEach(tag => {
+          const opt = document.createElement('option');
+          opt.value = tag; // original value for backend
+          opt.textContent = tag.replace(/_/g, ' '); // display prettier name
+          tagSelect.appendChild(opt);
+        });
+      } catch (err) {
+        console.error('Failed to load tags:', err);
+      }
+    }
+
+    // 🔹 Load random questions by tag
+    async function loadQuestions(tag) {
       try {
         const token = localStorage.getItem('token');
         const headers = { 'Content-Type': 'application/json' };
         if (token) headers['Authorization'] = 'Bearer ' + token;
-        const res = await fetch(`/api/questions?subject=${encodeURIComponent(subj)}`, { headers });
+
+        const body = { language: 'pol', tag, amount: 5 };
+        const res = await fetch('/api/questions/random', {
+          method: 'POST',
+          headers,
+          body: JSON.stringify(body)
+        });
+
         if (res.ok) {
           const data = await res.json();
-          return data;
+          return data.questions || [];
         }
-      } catch (e) { }
-      return SAMPLE[subj] || [];
+      } catch (e) {
+        console.error(e);
+      }
+      return [];
     }
 
     async function startLearning() {
-      const subj = document.getElementById('subject').value;
-      const qs = await loadQuestions(subj);
+      const tag = document.getElementById('tagSelect').value;
+      const qs = await loadQuestions(tag);
       queue = qs.map(x => Object.assign({}, x));
       document.getElementById('rem').textContent = queue.length;
       document.getElementById('cardArea').classList.remove('d-none');
@@ -125,21 +139,19 @@
         b.className = 'list-group-item list-group-item-action';
         b.textContent = o;
         b.onclick = () => {
-          if (answered) return; // nie pozwól kliknąć więcej niż raz
+          if (answered) return;
           answered = true;
           correct = (i === (q.answer ?? q.correctIndex));
 
           if (correct) {
             b.classList.add('list-group-item-success');
             explain.textContent = '✅ Dobrze!';
-            explain.classList.remove('d-none');
           } else {
             b.classList.add('list-group-item-danger');
             explain.textContent = q.explain || q.explanation || 'Poprawna odpowiedź została zapisana.';
-            explain.classList.remove('d-none');
           }
 
-          // odblokuj przycisk "Następne"
+          explain.classList.remove('d-none');
           nextBtn.disabled = false;
         };
         opts.appendChild(b);
@@ -149,16 +161,16 @@
     document.getElementById('start').addEventListener('click', startLearning);
 
     document.getElementById('next').addEventListener('click', () => {
-      if (!answered) return; // nic nie rób, jeśli user jeszcze nie odpowiedział
+      if (!answered) return;
       const q = queue.shift();
-      if (!correct) queue.push(q); // błędne wraca na koniec kolejki
+      if (!correct) queue.push(q);
       document.getElementById('rem').textContent = queue.length;
       render();
     });
 
+    // Load tags immediately when page loads
+    loadTags();
   </script>
-
-  <!-- Theme script -->
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
