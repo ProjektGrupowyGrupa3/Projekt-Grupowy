@@ -14,34 +14,35 @@
     <div class="col-md-6 mx-auto">
       <div class="card shadow-sm">
         <div class="card-body">
-          <h5 class="card-title mb-3">Zarejestruj się</h5>
+          <h5 class="card-title mb-3" data-translate="title">Zarejestruj się</h5>
           <form id="regForm">
             <div class="mb-3">
-              <label class="form-label">Imię</label>
+              <label class="form-label" data-translate="name">Imię</label>
               <input id="name" class="form-control" required>
             </div>
             <div class="mb-3">
-              <label class="form-label">Email</label>
+              <label class="form-label" data-translate="Email">Email</label>
               <input id="email" type="email" class="form-control" required>
             </div>
             <div class="mb-3">
-              <label class="form-label">Hasło</label>
+              <label class="form-label" data-translate="password">Hasło</label>
               <input id="password" type="password" class="form-control" required>
             </div>
             <div class="d-grid">
-              <button class="btn btn-primary" type="submit">Zarejestruj</button>
+              <button class="btn btn-primary" type="submit" data-translate="registerButton">Zarejestruj</button>
             </div>
             <small class="text-muted mt-2 d-block">Rejestracja używa endpointu backendu (jeśli działa)</small>
           </form>
         </div>
       </div>
       <p class="text-center mt-3">
-        <a href="/login">Masz konto? Zaloguj</a>
+        <a href="/login" data-translate="loginLink">Masz konto? Zaloguj</a>
       </p>
     </div>
   </div>
 </main>
 
+<script src="static/javascripts/translations.js"></script>
 <script src="static/javascripts/script.js"></script>
 <script>
   // Uruchom przełącznik motywu

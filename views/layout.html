@@ -15,13 +15,17 @@
     <div class="collapse navbar-collapse" id="nav">
       <ul class="navbar-nav me-auto mb-2 mb-lg-0">
         <li class="nav-item"><a class="nav-link" href="/quiz/test">Test</a></li>
-        <li class="nav-item"><a class="nav-link" href="/quiz/learn">Tryb nauki</a></li>
+        <li class="nav-item"><a class="nav-link" href="/quiz/learn" data-translate="learnMode">Tryb nauki</a></li>
       </ul>
       <div class="d-flex align-items-center">
         <button id="toggleTheme" class="btn btn-outline-light me-2">Toggle Dark/Light</button>
         <span id="userEmail" class="me-3"></span>
-        <a id="authBtn" class="btn btn-outline-light me-2" href="/login">Zaloguj</a>
-        <a id="regBtn" class="btn btn-secondary" href="/register">Rejestracja</a>
+        <a id="authBtn" class="btn btn-outline-light me-2" href="/login" data-translate="login">Zaloguj</a>
+        <a id="regBtn" class="btn btn-secondary" href="/register" data-translate="register">Rejestracja</a>
+      </div>
+      <div class="language-switcher">
+        <button onclick="changeLanguage('pl')" class="btn btn-link">PL</button>
+        <button onclick="changeLanguage('en')" class="btn btn-link">EN</button>
       </div>
     </div>
   </div>

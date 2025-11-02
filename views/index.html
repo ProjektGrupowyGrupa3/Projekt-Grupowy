@@ -13,11 +13,11 @@
 <main class="container py-5">
   <div class="row">
     <div class="col-md-8 mx-auto text-center">
-      <h1 class="display-5">Witamy w LearnIt</h1>
-      <p class="lead">Szkielet strony do nauki — responsywny, z logowaniem i dwoma trybami quizów.</p>
+      <h1 class="display-5" data-translate="welcome">Witamy w LearnIt</h1>
+      <p class="lead" data-translate="description">Szkielet strony do nauki — responsywny, z logowaniem i dwoma trybami quizów.</p>
       <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
-        <a href="quiz-test.html" class="btn btn-primary btn-lg">Rozpocznij test</a>
-        <a href="quiz-learn.html" class="btn btn-secondary btn-lg">Tryb nauki</a>
+        <a href="/quiz/test" class="btn btn-primary btn-lg" data-translate="testMode">Rozpocznij test</a>
+        <a href="/quiz/learn" class="btn btn-secondary btn-lg" data-translate="learnMode">Tryb nauki</a>
       </div>
     </div>
   </div>
@@ -44,5 +44,6 @@
   }
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="static/javascripts/translations.js"></script>
 </body>
 </html>

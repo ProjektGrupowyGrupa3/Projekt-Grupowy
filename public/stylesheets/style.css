@@ -288,3 +288,5 @@ body.light-mode .navbar #regBtn:hover {
   color: white; /* Biały tekst również w hover */
   border-color: var(--col-reg-btn-hover-light);
 }
+
+

@@ -51,6 +51,9 @@ app.use('/login', loginRouter);
 app.use('/quiz/learn', quizLearnRouter);
 app.use('/quiz/test', quizTestRouter);
 app.use('/api/questions',questionsRouter)
+//Reset Password Page
+const resetPasswordRouter = require('./routes/reset-password');
+app.use('/reset-password', resetPasswordRouter);
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   next(createError(404));
