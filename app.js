@@ -11,7 +11,9 @@ const loginRouter = require('./routes/login');
 const registerRouter = require('./routes/register');
 const quizTestRouter = require('./routes/quiz-test');
 const quizLearnRouter = require('./routes/quiz-learn');
+const subjectsRouter = require('./routes/subjects');
 const usersRouter = require('./routes/users');
+const userProgressRouter = require('./routes/userProgress');
 const swaggerUi = require('swagger-ui-express');
 const YAML = require('yamljs');
 const swaggerDocument = YAML.load('./auth.yaml');
@@ -51,6 +53,10 @@ app.use('/login', loginRouter);
 app.use('/quiz/learn', quizLearnRouter);
 app.use('/quiz/test', quizTestRouter);
 app.use('/api/questions',questionsRouter)
+app.use('/api/subjects', subjectsRouter);
+//User Progress
+app.use('/api/user-progress', userProgressRouter);
+
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   next(createError(404));
