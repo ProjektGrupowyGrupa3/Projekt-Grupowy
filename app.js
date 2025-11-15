@@ -16,6 +16,8 @@ const swaggerUi = require('swagger-ui-express');
 const YAML = require('yamljs');
 const swaggerDocument = YAML.load('./auth.yaml');
 const questionsRouter = require('./routes/questions')
+const resetPasswordRouter = require('./routes/reset-password');
+const setPasswordRouter = require('./routes/set-password');
 var app = express();
 
 // 🔹 Load environment variables
@@ -52,8 +54,8 @@ app.use('/quiz/learn', quizLearnRouter);
 app.use('/quiz/test', quizTestRouter);
 app.use('/api/questions',questionsRouter)
 //Reset Password Page
-const resetPasswordRouter = require('./routes/reset-password');
 app.use('/reset-password', resetPasswordRouter);
+app.use('/set-password/:id',setPasswordRouter)
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   next(createError(404));
