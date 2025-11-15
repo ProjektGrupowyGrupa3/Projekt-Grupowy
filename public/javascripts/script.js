@@ -34,9 +34,9 @@ function updatePageContent(lang) {
   const path = window.location.pathname;
   let currentPage = 'index';
 
-  if (path.includes('quiz-learn')) {
+  if (path.includes('quiz/learn')) {
     currentPage = 'quizLearn';
-  } else if (path.includes('quiz-test')) {
+  } else if (path.includes('quiz/test')) {
     currentPage = 'quizTest';
   } else if (path.includes('login')) {
     currentPage = 'login';
