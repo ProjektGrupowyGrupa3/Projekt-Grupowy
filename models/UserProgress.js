@@ -9,7 +9,7 @@ const userAnswerSchema = new mongoose.Schema({
 }, 
 { timestamps: true });
 
-// 🔹 Zapobiega duplikowaniu odpowiedzi dla tego samego pytania i użytkownika
+// Zapobiega duplikowaniu odpowiedzi dla tego samego pytania i użytkownika
 userAnswerSchema.index({ userId: 1, questionId: 1 }, { unique: true });
 
 module.exports = mongoose.model("UserProgress", userAnswerSchema, "userProgress");

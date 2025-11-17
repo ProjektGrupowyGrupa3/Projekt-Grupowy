@@ -18,9 +18,7 @@ const questionSchema = new mongoose.Schema({
   answers: { type: [answerSchema], required: true },
   difficulty: { type: String, enum: ["easy", "medium", "hard"], default: "medium" },
   tags: [String],
-
-  // 🆕 Stały numer pytania (unikalny, przypisany w pliku JSON)
-  number: { type: Number, required: true, unique: true }
+  number: { type: Number, required: true, unique: true }  // Numer pytania w kolekcji
 
 }, { timestamps: true });
 

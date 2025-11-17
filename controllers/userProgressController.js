@@ -18,7 +18,7 @@ exports.saveAnswer = async (req, res) => {
   }
 
   try {
-    // ✅ Aktualizuj lub wstaw nowy wpis (atomicznie)
+    // Aktualizuj lub wstaw nowy wpis
     await UserAnswer.findOneAndUpdate(
       { userId, questionId },
       {

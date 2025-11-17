@@ -8,7 +8,7 @@ const UserAnswer = require('../models/UserProgress');
  *  - unanswered: pytania bez odpowiedzi
  *  - incorrect: błędne odpowiedzi
  *  - saved: zapamiętane przez użytkownika
- *  - all: wszystkie (sortowane wg zasad)
+ *  - all: wszystkie (sortowane wg zasad: bez odpowiedzi -> najmniejsza ilosc odp. -> najstarsze)
  *  - random: losowo
  */
 
@@ -17,32 +17,31 @@ exports.getQuestions = async (req, res) => {
   const userId = req.user?._id;
 
   try {
-    // ✅ Walidacja i konwersja subject
     if (!subject || !mongoose.Types.ObjectId.isValid(subject)) {
       return res.status(400).json({ message: 'Niepoprawny identyfikator przedmiotu.' });
     }
     const subjectId = new mongoose.Types.ObjectId(subject);
 
-    // ✅ Liczba wszystkich pytań
+    
     const totalCount = await Question.countDocuments({ subject: subjectId });
 
-    // ✅ Pobierz pytania z danego przedmiotu
+    
     const allQuestions = await Question.find({ subject: subjectId })
       .populate('subject', `name.${lang}`)
       .sort({ number: 1 })
       .lean();
 
-    // ✅ Pobierz odpowiedzi użytkownika
+    
     const userAnswers = userId ? await UserAnswer.find({ userId }).lean() : [];
     const answersMap = new Map(userAnswers.map(a => [a.questionId.toString(), a]));
 
-    // 🔹 Pomocnicze funkcje
+    
     const byIds = ids => allQuestions.filter(q => ids.includes(q._id.toString()));
     const unanswered = allQuestions.filter(q => !answersMap.has(q._id.toString()));
 
     let questions = [];
 
-    // 🔹 Logika trybów
+    // Logika trybów
     switch (mode) {
       case 'unanswered':
         questions = unanswered;
@@ -83,10 +82,9 @@ exports.getQuestions = async (req, res) => {
         break;
     }
 
-    // 🔹 Przytnij wynik
     questions = questions.slice(0, limit);
 
-    // 🔹 Mapowanie dla frontu
+    // Mapowanie dla frontu
     const localized = questions.map(q => ({
       _id: q._id,
       number: q.number,
@@ -102,7 +100,6 @@ exports.getQuestions = async (req, res) => {
       }))
     }));
 
-    // ✅ Odpowiedź
     res.json({ totalCount, questions: localized });
   } catch (err) {
     console.error('❌ Błąd getQuestions:', err);

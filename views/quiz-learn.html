@@ -89,9 +89,8 @@ async function initQuizPage() {
   let answeredCount = 0;
   let totalQuestions = 0;
 
-  // ========================
-  // 🟢 1️⃣ Pobierz listę przedmiotów
-  // ========================
+
+  
   try {
     const res = await fetch('/api/subjects?lang=pl');
     const subjects = await res.json();
@@ -113,9 +112,6 @@ async function initQuizPage() {
     subjectSelect.innerHTML = '<option value="">Błąd ładowania danych</option>';
   }
 
-  // ========================
-  // 🟢 2️⃣ Funkcje pomocnicze
-  // ========================
 
   function getAuthHeaders() {
     const token = localStorage.getItem('token');
@@ -143,7 +139,7 @@ async function initQuizPage() {
     const token = localStorage.getItem('token');
     if (!token) return;
     try {
-      await fetch('/api/user-answers/save', {
+      await fetch('/api/user-progress/save', {
         method: 'POST',
         headers: getAuthHeaders(),
         body: JSON.stringify({ questionId, correct: isCorrect })
@@ -153,9 +149,6 @@ async function initQuizPage() {
     }
   }
 
-  // ========================
-  // 🟢 3️⃣ Logika renderowania
-  // ========================
 
   function renderProgress(currentNumber) {
     const total = totalQuestions || 0;
@@ -239,7 +232,7 @@ async function initQuizPage() {
     saveBtn.onclick = async () => {
       const token = localStorage.getItem('token');
       if (!token) return;
-      const res = await fetch('/api/user-answers/toggle-save', {
+      const res = await fetch('/api/user-progress/toggle-save', {
         method: 'POST',
         headers: getAuthHeaders(),
         body: JSON.stringify({ questionId: q._id })
@@ -256,9 +249,7 @@ async function initQuizPage() {
     return saveBtn;
   }
 
-  // ========================
-  // 🟢 4️⃣ Obsługa przycisków
-  // ========================
+  
 
   startBtn.addEventListener('click', async () => {
     const subj = subjectSelect.value;

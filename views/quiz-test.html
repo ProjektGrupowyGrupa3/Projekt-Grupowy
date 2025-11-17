@@ -71,7 +71,8 @@ async function initQuizTest() {
     timeLeft: 0
   };
 
-  // 🟢 Pobieranie listy przedmiotów
+
+
   try {
     const res = await fetch('/api/subjects?lang=pl');
     const subjects = await res.json();
@@ -92,7 +93,7 @@ async function initQuizTest() {
     subjectSelect.innerHTML = '<option value="">Błąd ładowania danych</option>';
   }
 
-  // 🟢 Start testu
+  
   startBtn.addEventListener('click', async () => {
     const subj = subjectSelect.value;
     const cnt = parseInt(document.getElementById('count').value) || 5;
@@ -123,7 +124,7 @@ async function initQuizTest() {
       return;
     }
 
-    // 🟢 Ustawienie stanu
+
     state.questions = pool;
     state.answers = Array(pool.length).fill(null);
     state.cur = 0;
@@ -146,7 +147,7 @@ async function initQuizTest() {
     updateTimer(state);
   });
 
-  // 🟢 Poprzednie pytanie
+  
   prevBtn.addEventListener('click', () => {
     if (state.cur > 0) {
       state.cur--;
@@ -155,7 +156,7 @@ async function initQuizTest() {
     }
   });
 
-  // 🟢 Następne pytanie
+  
   nextBtn.addEventListener('click', () => {
     if (state.cur < state.questions.length - 1) {
       state.cur++;
@@ -167,14 +168,14 @@ async function initQuizTest() {
   });
 }
 
-// 🔸 Aktualizacja timera
+
 function updateTimer(state) {
   const m = Math.floor(state.timeLeft / 60).toString().padStart(2, '0');
   const s = (state.timeLeft % 60).toString().padStart(2, '0');
   document.getElementById('timer').textContent = `${m}:${s}`;
 }
 
-// 🔸 Renderowanie pytania
+
 function renderQuestion(state) {
   const q = state.questions[state.cur];
   document.getElementById('questionText').textContent = q.question || 'Brak pytania';
@@ -197,14 +198,14 @@ function renderQuestion(state) {
   document.getElementById('curIdx').textContent = state.cur + 1;
 }
 
-// 🔸 Podświetlenie zaznaczonej odpowiedzi
+
 function highlightSelected(state) {
   const selected = state.answers[state.cur];
   const btns = document.getElementById('answers').children;
   if (selected !== null && btns[selected]) btns[selected].classList.add('active');
 }
 
-// 🔸 Zakończenie testu
+
 function finishTest(state) {
   if (state.timer) clearInterval(state.timer);
 
