@@ -10,21 +10,18 @@ servers:
     description: Local development server
 
 paths:
+
   /auth/register:
     post:
       summary: Register a new user
-      tags:
-        - Authentication
+      tags: [Authentication]
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required:
-                - name
-                - email
-                - password
+              required: [name, email, password]
               properties:
                 name:
                   type: string
@@ -37,6 +34,8 @@ paths:
                   type: string
                   format: password
                   example: StrongPassword123
+                  description: Must be at least 8 characters long, contain at least one letter and one number
+                  pattern: "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{8,}$"
       responses:
         '201':
           description: User registered successfully
@@ -51,37 +50,26 @@ paths:
                   user:
                     type: object
                     properties:
-                      id:
-                        type: string
-                        example: 671ba88e2c7a6d76c4a6f123
-                      name:
-                        type: string
-                        example: Alice Doe
-                      email:
-                        type: string
-                        example: alice@example.com
+                      id: { type: string, example: 671ba88e2c7a6d76c4a6f123 }
+                      name: { type: string, example: Alice Doe }
+                      email: { type: string, example: alice@example.com }
                   token:
                     type: string
                     example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-        '400':
-          description: Invalid input or user already exists
-        '500':
-          description: Server error
+        '400': { description: Invalid input or user already exists }
+        '500': { description: Server error }
 
   /auth/login:
     post:
       summary: Log in an existing user
-      tags:
-        - Authentication
+      tags: [Authentication]
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required:
-                - email
-                - password
+              required: [email, password]
               properties:
                 email:
                   type: string
@@ -99,33 +87,94 @@ paths:
               schema:
                 type: object
                 properties:
-                  message:
-                    type: string
-                    example: Login successful
+                  message: { type: string, example: Login successful }
                   user:
                     type: object
                     properties:
-                      id:
-                        type: string
-                        example: 671ba88e2c7a6d76c4a6f123
-                      name:
-                        type: string
-                        example: Alice Doe
-                      email:
-                        type: string
-                        example: alice@example.com
+                      id: { type: string, example: 671ba88e2c7a6d76c4a6f123 }
+                      name: { type: string, example: Alice Doe }
+                      email: { type: string, example: alice@example.com }
                   token:
                     type: string
                     example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-        '400':
-          description: Invalid credentials
+        '400': { description: Invalid credentials }
+        '500': { description: Server error }
+
+  /auth/reset-password:
+    post:
+      summary: Request a password reset link
+      tags: [Authentication]
+      description: Creates a reset token in database, TTL 1h, and sends an email containing the reset link
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: alice@example.com
+      responses:
+        '200':
+          description: Reset email sent successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Reset link has been sent to your email address
+        '404':
+          description: No user found with that email
         '500':
           description: Server error
+
+  /auth/reset-password-confirm:
+    post:
+      summary: Confirm password reset and set new password
+      tags: [Authentication]
+      description: Validates reset token, updates user's password and removes used token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token, newPassword]
+              properties:
+                token:
+                  type: string
+                  example: 678abc1299eece42f19fa321
+                newPassword:
+                  type: string
+                  format: password
+                  example: NewSecurePass1
+                  description: Must be at least 8 characters long, contain at least one letter and one number
+                  pattern: "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{8,}$"
+      responses:
+        '200':
+          description: Password successfully updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Password has been reset successfully
+        '400':
+          description: Invalid or expired token / weak password
+        '500':
+          description: Server error
+
   /questions/tags:
     get:
       summary: Get unique tags from a questions collection
-      tags:
-        - Questions
+      tags: [Questions]
       parameters:
         - in: query
           name: language
@@ -150,25 +199,20 @@ paths:
                     items:
                       type: string
                     example: ["Loops", "Arrays", "Pointers"]
-        '400':
-          description: Missing or invalid language parameter
-        '500':
-          description: Server error
+        '400': { description: Missing or invalid language parameter }
+        '500': { description: Server error }
+
   /questions/random:
     post:
       summary: Get random questions by tag
-      tags:
-        - Questions
+      tags: [Questions]
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required:
-                - language
-                - tag
-                - amount
+              required: [language, tag, amount]
               properties:
                 language:
                   type: string
@@ -182,44 +226,18 @@ paths:
                   example: 5
       responses:
         '200':
-          description: Returns random questions from the specified tag
+          description: Returns random questions
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  language:
-                    type: string
-                    example: eng
-                  tag:
-                    type: string
-                    example: Loops
-                  count:
-                    type: integer
-                    example: 5
+                  language: { type: string, example: eng }
+                  tag: { type: string, example: Loops }
+                  count: { type: integer, example: 5 }
                   questions:
                     type: array
                     items:
                       type: object
-                      properties:
-                        q:
-                          type: string
-                          example: What is a for loop used for?
-                        options:
-                          type: array
-                          items:
-                            type: string
-                          example: ["Repeating code", "Condition checking"]
-                        answer:
-                          type: integer
-                          example: 0
-                        explain:
-                          type: string
-                          example: A for loop is used to repeat a block of code a known number of times.
-                        tag:
-                          type: string
-                          example: Loops
-        '400':
-          description: Missing or invalid parameters
-        '500':
-          description: Server error
+        '400': { description: Missing or invalid parameters }
+        '500': { description: Server error }

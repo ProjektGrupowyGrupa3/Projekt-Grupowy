@@ -18,6 +18,8 @@ const swaggerUi = require('swagger-ui-express');
 const YAML = require('yamljs');
 const swaggerDocument = YAML.load('./auth.yaml');
 const questionsRouter = require('./routes/questions')
+const resetPasswordRouter = require('./routes/reset-password');
+const setPasswordRouter = require('./routes/set-password');
 var app = express();
 
 // 🔹 Load environment variables
@@ -57,6 +59,9 @@ app.use('/api/subjects', subjectsRouter);
 //User Progress
 app.use('/api/user-progress', userProgressRouter);
 
+//Reset Password Page
+app.use('/reset-password', resetPasswordRouter);
+app.use('/set-password/:id',setPasswordRouter)
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   next(createError(404));
