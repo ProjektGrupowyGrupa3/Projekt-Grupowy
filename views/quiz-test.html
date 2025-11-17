@@ -14,9 +14,8 @@
       <h3 data-translate="title">Tryb testowy</h3>
       <form id="settingsForm" class="row g-3">
         <div class="col-md-4">
-          <label class="form-label">Tag</label>
-          <select id="tagSelect" class="form-select">
-            <option disabled selected data-translate="loading">Wczytywanie tagów...</option>
+          <label class="form-label">Przedmiot</label>
+          <select id="subject" class="form-select">
           </select>
         </div>
         <div class="col-md-4">
@@ -57,148 +56,184 @@
 <script src="/static/javascripts/translations.js"></script>
 <script src="/static/javascripts/script.js"></script>
 <script>
-  setupThemeToggle('toggleTheme');
+document.addEventListener('DOMContentLoaded', initQuizTest);
 
-  let state = {questions:[], answers:[], cur:0, timer:null, timeLeft:0};
+async function initQuizTest() {
+  const subjectSelect = document.getElementById('subject');
+  const startBtn = document.getElementById('startBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const prevBtn = document.getElementById('prevBtn');
 
-  async function loadTags() {
-    try {
-      var PolEng = "pol";
-      if(localStorage.getItem('language')=="en"){
-        PolEng = "eng"
-      }
-      const res = await fetch(`/api/questions/tags?language=${PolEng}`);
-      const data = await res.json();
-      const tagSelect = document.getElementById('tagSelect');
-      tagSelect.innerHTML = '';
-      data.tags.forEach(tag => {
+  const state = {
+    questions: [],
+    answers: [],
+    cur: 0,
+    timer: null,
+    timeLeft: 0
+  };
+
+
+
+  try {
+    const res = await fetch('/api/subjects?lang=pl');
+    const subjects = await res.json();
+    subjectSelect.innerHTML = '';
+
+    if (!subjects.length) {
+      subjectSelect.innerHTML = '<option value="">Brak przedmiotów w bazie</option>';
+    } else {
+      subjects.forEach(subj => {
         const opt = document.createElement('option');
-        opt.value = tag; 
-        opt.textContent = tag.replace(/_/g,' ');
-        tagSelect.appendChild(opt);
+        opt.value = subj._id;
+        opt.textContent = `${subj.name} (sem. ${subj.semester})`;
+        subjectSelect.appendChild(opt);
       });
-    } catch (err) {
-      console.error('Nie udało się wczytać tagów:', err);
     }
+  } catch (err) {
+    console.error('Błąd ładowania przedmiotów:', err);
+    subjectSelect.innerHTML = '<option value="">Błąd ładowania danych</option>';
   }
 
-  async function loadQuestions(tag, amount) {
+  
+  startBtn.addEventListener('click', async () => {
+    const subj = subjectSelect.value;
+    const cnt = parseInt(document.getElementById('count').value) || 5;
+    const mins = parseInt(document.getElementById('time').value) || 10;
+
+    if (!subj) {
+      alert('❗ Wybierz przedmiot.');
+      return;
+    }
+
+    let pool = [];
     try {
       var PolEng = "pol";
       if(localStorage.getItem('language')=="en"){
         PolEng = "eng"
       }
       const token = localStorage.getItem('token');
-      const headers = {'Content-Type':'application/json'};
-      if(token) headers['Authorization'] = 'Bearer '+token;
+      const headers = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = 'Bearer ' + token;
 
-      const res = await fetch('/api/questions/random', {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({ language:PolEng, tag, amount })
-      });
-      if(res.ok){
-        const data = await res.json();
-        return data.questions || [];
-      }
-    } catch(err){
-      console.error(err);
+      const res = await fetch(`/api/questions?subject=${encodeURIComponent(subj)}&mode=random&limit=${cnt}`, { headers });
+      if (!res.ok) throw new Error(`Błąd HTTP ${res.status}`);
+      const { questions } = await res.json();
+      pool = questions;
+    } catch (err) {
+      console.warn(' Błąd pobierania z API, używam przykładowych danych:', err);
+      pool = [];
     }
-    return [];
-  }
 
-  document.getElementById('startBtn').addEventListener('click', async ()=>{
-    const tag = document.getElementById('tagSelect').value;
-    const cnt = parseInt(document.getElementById('count').value)||5;
-    const mins = parseInt(document.getElementById('time').value)||10;
+    if (!pool.length) {
+      alert('Brak pytań dla wybranego przedmiotu.');
+      return;
+    }
 
-    const pool = await loadQuestions(tag, cnt);
-    console.log(pool)
+
     state.questions = pool;
     state.answers = Array(pool.length).fill(null);
     state.cur = 0;
-    state.timeLeft = mins*60;
+    state.timeLeft = mins * 60;
 
-    //document.getElementById('total').textContent = pool.length;
-    document.getElementById('curIdx').textContent = 1;
     document.getElementById('quizArea').classList.remove('d-none');
     document.getElementById('resultArea').classList.add('d-none');
+    document.getElementById('total').textContent = pool.length;
+    renderQuestion(state);
 
-    renderQuestion();
-
-    if(state.timer) clearInterval(state.timer);
-    state.timer = setInterval(()=>{
+    if (state.timer) clearInterval(state.timer);
+    state.timer = setInterval(() => {
       state.timeLeft--;
-      updateTimer();
-      if(state.timeLeft<=0){
+      updateTimer(state);
+      if (state.timeLeft <= 0) {
         clearInterval(state.timer);
-        finishTest();
+        finishTest(state);
       }
-    },1000);
-    updateTimer();
+    }, 1000);
+    updateTimer(state);
   });
 
-  function updateTimer(){
-    const m = Math.floor(state.timeLeft/60).toString().padStart(2,'0');
-    const s = (state.timeLeft%60).toString().padStart(2,'0');
-    document.getElementById('timer').textContent = m+':'+s;
-  }
-
-  function renderQuestion(){
-    const q = state.questions[state.cur];
-    document.getElementById('questionText').textContent = q.q || 'Brak pytania';
-    const answers = document.getElementById('answers');
-    answers.innerHTML = '';
-    const opts = q.options || [];
-    opts.forEach((opt,i)=>{
-      const btn = document.createElement('button');
-      btn.className = 'list-group-item list-group-item-action';
-      btn.textContent = opt;
-      btn.onclick = ()=> {
-        state.answers[state.cur] = i;
-        [...answers.children].forEach(b=>b.classList.remove('active'));
-        btn.classList.add('active');
-      };
-      answers.appendChild(btn);
-    });
-    document.getElementById('curIdx').textContent = state.cur+1;
-  }
-
-  document.getElementById('prevBtn').addEventListener('click', ()=>{
-    if(state.cur>0){ state.cur--; renderQuestion(); highlightSelected(); }
+  
+  prevBtn.addEventListener('click', () => {
+    if (state.cur > 0) {
+      state.cur--;
+      renderQuestion(state);
+      highlightSelected(state);
+    }
   });
 
-  document.getElementById('nextBtn').addEventListener('click', ()=>{
-    if(state.cur < state.questions.length-1){
+  
+  nextBtn.addEventListener('click', () => {
+    if (state.cur < state.questions.length - 1) {
       state.cur++;
-      renderQuestion();
-      highlightSelected();
-    } else finishTest();
+      renderQuestion(state);
+      highlightSelected(state);
+    } else {
+      finishTest(state);
+    }
+  });
+}
+
+
+function updateTimer(state) {
+  const m = Math.floor(state.timeLeft / 60).toString().padStart(2, '0');
+  const s = (state.timeLeft % 60).toString().padStart(2, '0');
+  document.getElementById('timer').textContent = `${m}:${s}`;
+}
+
+
+function renderQuestion(state) {
+  const q = state.questions[state.cur];
+  document.getElementById('questionText').textContent = q.question || 'Brak pytania';
+  const answers = document.getElementById('answers');
+  answers.innerHTML = '';
+
+  const opts = q.answers?.map(a => a.text) || [];
+  opts.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'list-group-item list-group-item-action';
+    btn.textContent = opt;
+    btn.onclick = () => {
+      state.answers[state.cur] = i;
+      [...answers.children].forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    };
+    answers.appendChild(btn);
   });
 
-  function highlightSelected(){
-    const selected = state.answers[state.cur];
-    const btns = document.getElementById('answers').children;
-    if(selected!==null && btns[selected]) btns[selected].classList.add('active');
-  }
+  document.getElementById('curIdx').textContent = state.cur + 1;
+}
 
-  function finishTest(){
-    if(state.timer) clearInterval(state.timer);
-    let correct = 0;
-    state.questions.forEach((q,i)=>{
-      const ans = state.answers[i];
-      const right = q.answer ?? q.correctIndex;
-      if(ans===right) correct++;
-    });
-    const res = document.getElementById('resultArea');
-    res.classList.remove('d-none');
-    res.innerHTML = `<div class="alert alert-info">Wynik: ${correct}/${state.questions.length}</div>`;
-    document.getElementById('quizArea').classList.add('d-none');
-  }
 
-  // Load tags immediately
-  loadTags();
+function highlightSelected(state) {
+  const selected = state.answers[state.cur];
+  const btns = document.getElementById('answers').children;
+  if (selected !== null && btns[selected]) btns[selected].classList.add('active');
+}
 
+
+function finishTest(state) {
+  if (state.timer) clearInterval(state.timer);
+
+  let correct = 0;
+  state.questions.forEach((q, i) => {
+    const ans = state.answers[i];
+    const correctIndex = q.answers?.findIndex(a => a.isCorrect);
+    if (ans === correctIndex) correct++;
+  });
+
+  const percent = Math.round((correct / state.questions.length) * 100);
+  const res = document.getElementById('resultArea');
+  res.classList.remove('d-none');
+  res.innerHTML = `
+    <div class="alert alert-info text-center">
+      <h4>🎓 Wynik testu</h4>
+      <p>Poprawne odpowiedzi: <strong>${correct}</strong> / ${state.questions.length}</p>
+      <p>Wynik procentowy: <strong>${percent}%</strong></p>
+    </div>
+  `;
+
+  document.getElementById('quizArea').classList.add('d-none');
+}
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
