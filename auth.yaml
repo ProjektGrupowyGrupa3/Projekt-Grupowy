@@ -1,243 +1,305 @@
 openapi: 3.0.3
 info:
-  title: Authentication API
+  title: Admin Panel API
   version: 1.0.0
-  description: |
-    Simple JWT-based authentication API built with Express, MongoDB, and JSON Web Tokens.
+  description: API for managing users, questions, and subjects with JWT authentication.
 
 servers:
   - url: http://localhost:5000/api
     description: Local development server
 
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
 paths:
 
-  /auth/register:
-    post:
-      summary: Register a new user
-      tags: [Authentication]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [name, email, password]
-              properties:
-                name:
-                  type: string
-                  example: Alice Doe
-                email:
-                  type: string
-                  format: email
-                  example: alice@example.com
-                password:
-                  type: string
-                  format: password
-                  example: StrongPassword123
-                  description: Must be at least 8 characters long, contain at least one letter and one number
-                  pattern: "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{8,}$"
-      responses:
-        '201':
-          description: User registered successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: User registered successfully
-                  user:
-                    type: object
-                    properties:
-                      id: { type: string, example: 671ba88e2c7a6d76c4a6f123 }
-                      name: { type: string, example: Alice Doe }
-                      email: { type: string, example: alice@example.com }
-                  token:
-                    type: string
-                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-        '400': { description: Invalid input or user already exists }
-        '500': { description: Server error }
+  ############################################################
+  # ADMIN USER MANAGEMENT
+  ############################################################
 
-  /auth/login:
-    post:
-      summary: Log in an existing user
-      tags: [Authentication]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [email, password]
-              properties:
-                email:
-                  type: string
-                  format: email
-                  example: alice@example.com
-                password:
-                  type: string
-                  format: password
-                  example: StrongPassword123
-      responses:
-        '200':
-          description: Login successful
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message: { type: string, example: Login successful }
-                  user:
-                    type: object
-                    properties:
-                      id: { type: string, example: 671ba88e2c7a6d76c4a6f123 }
-                      name: { type: string, example: Alice Doe }
-                      email: { type: string, example: alice@example.com }
-                  token:
-                    type: string
-                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-        '400': { description: Invalid credentials }
-        '500': { description: Server error }
-
-  /auth/reset-password:
-    post:
-      summary: Request a password reset link
-      tags: [Authentication]
-      description: Creates a reset token in database, TTL 1h, and sends an email containing the reset link
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [email]
-              properties:
-                email:
-                  type: string
-                  format: email
-                  example: alice@example.com
-      responses:
-        '200':
-          description: Reset email sent successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Reset link has been sent to your email address
-        '404':
-          description: No user found with that email
-        '500':
-          description: Server error
-
-  /auth/reset-password-confirm:
-    post:
-      summary: Confirm password reset and set new password
-      tags: [Authentication]
-      description: Validates reset token, updates user's password and removes used token
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [token, newPassword]
-              properties:
-                token:
-                  type: string
-                  example: 678abc1299eece42f19fa321
-                newPassword:
-                  type: string
-                  format: password
-                  example: NewSecurePass1
-                  description: Must be at least 8 characters long, contain at least one letter and one number
-                  pattern: "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{8,}$"
-      responses:
-        '200':
-          description: Password successfully updated
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Password has been reset successfully
-        '400':
-          description: Invalid or expired token / weak password
-        '500':
-          description: Server error
-
-  /questions/tags:
+  /adminPanel/users:
     get:
-      summary: Get unique tags from a questions collection
-      tags: [Questions]
+      summary: Search users by partial name or email
+      tags: [Admin - Users]
+      security:
+        - bearerAuth: []
       parameters:
         - in: query
-          name: language
+          name: q
           schema:
             type: string
-            enum: [eng, pol]
-          required: true
-          description: Specify which question collection to use (English or Polish)
+          required: false
+          description: Search term (partial match). Leave empty to return all users.
       responses:
-        '200':
-          description: List of unique tags
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  language:
-                    type: string
-                    example: eng
-                  tags:
-                    type: array
-                    items:
-                      type: string
-                    example: ["Loops", "Arrays", "Pointers"]
-        '400': { description: Missing or invalid language parameter }
+        '200': { description: List of matching users }
         '500': { description: Server error }
 
-  /questions/random:
-    post:
-      summary: Get random questions by tag
-      tags: [Questions]
+  /adminPanel/users/{id}:
+    get:
+      summary: Get user by ID
+      tags: [Admin - Users]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { description: User data }
+        '404': { description: User not found }
+        '500': { description: Server error }
+
+    put:
+      summary: Edit user (name, email, accessLvl)
+      tags: [Admin - Users]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required: [language, tag, amount]
               properties:
-                language:
-                  type: string
-                  enum: [eng, pol]
-                  example: eng
-                tag:
-                  type: string
-                  example: Loops
-                amount:
-                  type: integer
-                  example: 5
+                name: { type: string }
+                email: { type: string }
+                accessLvl: { type: integer }
       responses:
-        '200':
-          description: Returns random questions
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  language: { type: string, example: eng }
-                  tag: { type: string, example: Loops }
-                  count: { type: integer, example: 5 }
-                  questions:
-                    type: array
-                    items:
-                      type: object
-        '400': { description: Missing or invalid parameters }
+        '200': { description: User updated }
+        '404': { description: User not found }
+        '500': { description: Server error }
+
+  /adminPanel/users/{id}/ban:
+    post:
+      summary: Ban a user and send email notification
+      tags: [Admin - Users]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                note:
+                  type: string
+                  example: Violation of rules
+      responses:
+        '200': { description: User banned & email sent }
+        '404': { description: User not found }
+        '500': { description: Server error }
+
+  /adminPanel/users/{id}/delete:
+    post:
+      summary: Delete user (requires admin accessLvl > 2) and send email with note
+      tags: [Admin - Users]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                note:
+                  type: string
+                  example: Violation of terms
+      responses:
+        '200': { description: User deleted & email sent }
+        '403': { description: Insufficient permissions }
+        '404': { description: User not found }
+        '500': { description: Server error }
+
+  ############################################################
+  # QUESTIONS
+  ############################################################
+
+  /adminPanel/questions/search:
+    get:
+      summary: Search questions (optional query)
+      tags: [Questions]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: q
+          required: false
+          schema: { type: string }
+          description: Search term. Leave empty to return all questions.
+      responses:
+        '200': { description: List of matching questions }
+        '500': { description: Server error }
+
+  /adminPanel/questions/{id}:
+    get:
+      summary: Get question by ID
+      tags: [Questions]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { description: Question data }
+        '404': { description: Question not found }
+        '500': { description: Server error }
+
+    put:
+      summary: Edit question
+      tags: [Questions]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object }
+      responses:
+        '200': { description: Question updated }
+        '404': { description: Question not found }
+        '500': { description: Server error }
+
+    delete:
+      summary: Delete question
+      tags: [Questions]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { description: Question deleted }
+        '404': { description: Question not found }
+        '500': { description: Server error }
+
+  /adminPanel/questions:
+    post:
+      summary: Create a new question
+      tags: [Questions]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object }
+      responses:
+        '201': { description: Question created }
+        '500': { description: Server error }
+
+  ############################################################
+  # SUBJECTS
+  ############################################################
+
+  /adminPanel/subjects/search:
+    get:
+      summary: Search subjects (optional query)
+      tags: [Subjects]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: q
+          required: false
+          schema: { type: string }
+          description: Search term. Leave empty to return all subjects.
+      responses:
+        '200': { description: List of matching subjects }
+        '500': { description: Server error }
+
+  /adminPanel/subjects/{id}:
+    get:
+      summary: Get subject by ID
+      tags: [Subjects]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { description: Subject data }
+        '404': { description: Subject not found }
+        '500': { description: Server error }
+
+    put:
+      summary: Edit subject
+      tags: [Subjects]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object }
+      responses:
+        '200': { description: Subject updated }
+        '404': { description: Subject not found }
+        '500': { description: Server error }
+
+    delete:
+      summary: Delete subject
+      tags: [Subjects]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { description: Subject deleted }
+        '404': { description: Subject not found }
+        '500': { description: Server error }
+
+  /adminPanel/subjects:
+    post:
+      summary: Create a new subject
+      tags: [Subjects]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object }
+      responses:
+        '201': { description: Subject created }
         '500': { description: Server error }
