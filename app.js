@@ -20,6 +20,7 @@ const swaggerDocument = YAML.load('./auth.yaml');
 const questionsRouter = require('./routes/questions')
 const resetPasswordRouter = require('./routes/reset-password');
 const setPasswordRouter = require('./routes/set-password');
+const flashcardsRouter = require('./routes/flashcards');
 var app = express();
 
 // 🔹 Load environment variables
@@ -58,6 +59,8 @@ app.use('/api/questions',questionsRouter)
 app.use('/api/subjects', subjectsRouter);
 //User Progress
 app.use('/api/user-progress', userProgressRouter);
+//Flashcards Page
+app.use('/flashcards', flashcardsRouter);
 
 //Reset Password Page
 app.use('/reset-password', resetPasswordRouter);

@@ -48,6 +48,8 @@ function updatePageContent(lang) {
     currentPage = 'resetPassword';
   } else if (path.includes('index')) {
     currentPage = 'index';
+  } else if (path.includes('flashcards')) {
+    currentPage = 'flashcards';
   }
 
   const pageTranslations = (translations[lang] && translations[lang][currentPage]) || {};

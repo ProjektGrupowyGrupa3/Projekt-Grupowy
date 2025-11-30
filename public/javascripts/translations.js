@@ -55,7 +55,36 @@ const translations = {
     layout:{
         login:"Logowanie",
         register:"Rejestracja",
-        learnMode:"Tryb nauki"
+        learnMode:"Tryb nauki",
+        flashcards:"Fiszki"
+    },
+    flashcards: {
+      title: "Fiszki — nauka",
+      subtitle: "Twórz pytania i odpowiedzi, potem ucz się w sesjach.",
+      shuffleBtn: "Przemieszaj",
+      startBtn: "Start nauki",
+      addBtn: "Dodaj fiszkę",
+      clearAllBtn: "Usuń wszystkie",
+      yourFlashcards: "Twoje fiszki",
+      studyMode: "Tryb nauki",
+      instruction: "Kliknij kartę żeby odsłonić odpowiedź; następnie oznacz \"Zapamiętałem\" lub \"Powtórz\".",
+      questionLabel: "Pytanie",
+      answerLabel: "Odpowiedź",
+      noCardsMessage: "Brak aktywnej sesji. Dodaj fiszki lub naciśnij Start.",
+      noFlashcardsList: "Brak fiszek — dodaj pierwszą!",
+      rememberBtn: "Zapamiętałem",
+      repeatBtn: "Powtórz",
+      sessionSummary: "Sesja zakończona — zapamiętane: {remembered}, powtórki: {repeated}.",
+      currentStats: "Zapamiętane: {remembered}, Powtórki: {repeated}.",
+      confirmDeleteAll: "Usunąć wszystkie fiszki?",
+      confirmDeleteOne: "Usunąć tę fiszkę?",
+      fillFields: "Wypełnij pytanie i odpowiedź",
+      promptNewQuestion: "Nowe pytanie",
+      promptNewAnswer: "Nowa odpowiedź",
+      noStudyCards: "Brak kart do nauki",
+      stateInfo: "{n} kart(y) w tej sesji",
+      editBtn: "Edytuj",
+      deleteBtn: "Usuń"
     }
   },
   en: {
@@ -114,7 +143,36 @@ const translations = {
     layout: {
         login:"Login",
         register:"Register",
-        learnMode:"Learning Mode"
+        learnMode:"Learning Mode",
+        flashcards:"Flashcards"
+    },
+    flashcards: {
+      title: "Flashcards — learning",
+      subtitle: "Create questions and answers, then study them in sessions.",
+      shuffleBtn: "Shuffle",
+      startBtn: "Start learning",
+      addBtn: "Add flashcard",
+      clearAllBtn: "Delete all",
+      yourFlashcards: "Your flashcards",
+      studyMode: "Study mode",
+      instruction: "Click the card to reveal the answer; then mark 'I remembered' or 'Repeat'.",
+      questionLabel: "Question",
+      answerLabel: "Answer",
+      noCardsMessage: "No active session. Add flashcards or press Start.",
+      noFlashcardsList: "No flashcards — add the first one!",
+      rememberBtn: "I remembered",
+      repeatBtn: "Repeat",
+      sessionSummary: "Session finished — remembered: {remembered}, repeats: {repeated}.",
+      currentStats: "Remembered: {remembered}, Repeats: {repeated}.",
+      confirmDeleteAll: "Are you sure you want to delete all flashcards?",
+      confirmDeleteOne: "Delete this flashcard?",
+      fillFields: "Fill question and answer",
+      promptNewQuestion: "New question",
+      promptNewAnswer: "New answer",
+      noStudyCards: "No cards to study",
+      stateInfo: "{n} card(s) in this session",
+      editBtn: "Edit",
+      deleteBtn: "Delete"
     }
   }
 };
