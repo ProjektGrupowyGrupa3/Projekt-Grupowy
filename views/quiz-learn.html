@@ -92,7 +92,12 @@ async function initQuizPage() {
 
   
   try {
-    const res = await fetch('/api/subjects?lang=pl');
+  
+    var PolEng = "pl";
+      if(localStorage.getItem('language')=="en"){
+        PolEng = "en"
+      }
+    const res = await fetch(`/api/subjects?lang=${PolEng}`);
     const subjects = await res.json();
 
     subjectSelect.innerHTML = '';
@@ -122,7 +127,11 @@ async function initQuizPage() {
 
   async function loadQuestions(subjectId, mode = 'all', lang = 'pl') {
     try {
-      const res = await fetch(`/api/questions?subject=${encodeURIComponent(subjectId)}&mode=${mode}&lang=${lang}`, {
+      var PolEng = "pl";
+      if(localStorage.getItem('language')=="en"){
+        PolEng = "en"
+      }
+      const res = await fetch(`/api/questions?subject=${encodeURIComponent(subjectId)}&mode=${mode}&lang=${PolEng}`, {
         headers: getAuthHeaders()
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
