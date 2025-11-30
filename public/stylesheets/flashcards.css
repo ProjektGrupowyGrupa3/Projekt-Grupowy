@@ -1,0 +1,121 @@
+/* flashcards: kontrastowe kolory dopasowane do głównej palety (automatycznie adaptuje się do light/dark) */
+
+:root {
+  --fc-border-strong: rgba(0,0,0,0.12);
+  --fc-text-muted-alpha: 0.72;
+}
+
+/* główny wrapper / karta widoku */
+.card.shadow-sm {
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.02));
+  border-radius: 12px;
+  border: 1px solid var(--col-contrast);
+  color: var(--text-light);
+}
+
+/* formularz i panele -> używają globalnych zmiennych, by pasować do trybu */
+#addForm.card, .card.p-3 {
+  background-color: color-mix(in srgb, var(--col-dark) 88%, transparent);
+  border: 1px solid color-mix(in srgb, var(--col-contrast) 85%, transparent);
+  color: var(--text-light);
+}
+
+/* pojedyncza karta w liście fiszek - wyraźna ramka i czytelny tekst */
+#cardsList .card {
+  padding: .65rem;
+  background-color: color-mix(in srgb, var(--col-base) 92%, transparent);
+  border: 1px solid color-mix(in srgb, var(--col-highlight) 30%, var(--col-contrast) 70%);
+  border-radius: 8px;
+  color: var(--text-light);
+}
+
+/* pytanie/odpowiedź podczas nauki */
+#currentCard {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--col-dark) 94%, transparent),
+                                        color-mix(in srgb, var(--col-base) 98%, transparent));
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--col-accent) 20%, var(--col-contrast) 80%);
+  color: var(--text-light);
+}
+
+/* Wyraźne, czytelne pytanie */
+#questionArea,
+#currentCard .h5 {
+  color: var(--text-light);
+  font-weight: 700;
+  font-size: 1.25rem;
+  line-height: 1.3;
+  text-shadow: 0 1px 0 rgba(0,0,0,0.45);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* odpowiedź i pomocnicze teksty — jaśniejsze, żeby były czytelne w trybie ciemnym */
+#answerArea {
+  color: color-mix(in srgb, var(--text-light) 92%, white 8%);
+  font-weight: 500;
+  opacity: 0.98;
+  transition: color .15s ease, opacity .15s ease;
+}
+
+/* poprawiamy widoczność drobnych tekstów (meta/zmiana stanu) */
+.small.text-muted {
+  color: color-mix(in srgb, var(--text-light) 86%, white 14%);
+  opacity: var(--fc-text-muted-alpha);
+}
+
+/* poprawiony styl dla przycisków outline, lepsza widoczność na obu trybach */
+.btn-outline-secondary {
+  border-color: color-mix(in srgb, var(--col-contrast) 80%, transparent);
+  color: var(--text-light);
+  background: transparent;
+}
+.btn-outline-secondary:hover {
+  background: color-mix(in srgb, var(--col-accent) 10%, transparent);
+  color: var(--text-dark);
+}
+
+/* wyraźniejsze 'usun wszystko' / danger przyciski */
+.btn-danger {
+  background-color: color-mix(in srgb, #ff5252 85%, var(--col-accent) 15%);
+  border-color: color-mix(in srgb, #ff5252 85%, var(--col-accent) 15%);
+  color: white;
+}
+
+/* dodatkowe poprawki kontrastu w liście kart */
+#cardsList .fw-semibold { color: var(--text-light); }
+#cardsList .small.text-muted { color: var(--text-light); opacity: 0.88; }
+
+/* responsywność */
+@media (max-width: 768px) {
+  .card.shadow-sm { padding: .5rem; }
+  #cardsList .card { font-size: .95rem; }
+  #questionArea, #currentCard .h5 { font-size: 1.05rem; }
+}
+
+.card-body .text-muted,
+.card-body .small.text-muted {
+  color: var(--text-light) !important;
+  opacity: 0.92;
+}
+
+/* TRYB JASNY (nadpisania) */
+body.light-mode #questionArea,
+body.light-mode #currentCard .h5 {
+  color: var(--text-dark);
+  text-shadow: none;
+}
+body.light-mode #answerArea,
+body.light-mode .small.text-muted,
+body.light-mode #cardsList .fw-semibold,
+body.light-mode #cardsList .small.text-muted {
+  color: var(--text-dark);
+  opacity: 1;
+}
+
+/* drobne kontrastowe usprawnienia - zapewniają czytelne krawędzie na jasnym tle */
+body.light-mode #cardsList .card {
+  border-color: color-mix(in srgb, var(--col-accent-light) 25%, var(--col-contrast-light) 75%);
+}
+body.light-mode #currentCard {
+  border-color: color-mix(in srgb, var(--col-accent-light) 28%, var(--col-contrast-light) 72%);
+}
