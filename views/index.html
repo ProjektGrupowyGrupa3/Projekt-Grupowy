@@ -31,8 +31,9 @@
   // Pokazanie użytkownika jeśli zalogowany
   const user = JSON.parse(localStorage.getItem('user') || 'null');
   if(user){
-    document.getElementById('userEmail').textContent = user.email;
+    document.getElementById('userEmail').textContent = user.name;
     const btn = document.getElementById('authBtn');
+    btn.setAttribute('data-translate', 'logout');
     btn.textContent = 'Wyloguj';
     btn.href = '#';
     btn.addEventListener('click', ()=> {
