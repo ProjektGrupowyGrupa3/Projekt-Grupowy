@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const Question = require('../models/Question');
 const UserAnswer = require('../models/UserProgress');
 
+
 /**
  * GET /api/questions
  * Zwraca pytania dla danego przedmiotu w określonym trybie:

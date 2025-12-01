@@ -6,8 +6,7 @@ const bcrypt = require("bcryptjs");
 const crypto = require('crypto');
 const ResetToken = require('../models/ResetToken');
 const nodemailer = require('nodemailer');
-
-
+const { addPoints } = require("../services/pointsService");
 
 // @route   POST /api/auth/register
 // @desc    Register a new user
@@ -79,6 +78,9 @@ router.post('/login', async (req, res) => {
     if (!isMatch) {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
+    
+    // Przyznanie punktów tylko raz za pierwszy login (lub streak)
+    await addPoints(user._id, "login", 2);
 
     // Generate JWT
     const token = jwt.sign(
