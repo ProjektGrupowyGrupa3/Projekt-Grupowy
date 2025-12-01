@@ -56,7 +56,8 @@ const translations = {
         login:"Logowanie",
         register:"Rejestracja",
         learnMode:"Tryb nauki",
-        flashcards:"Fiszki"
+        flashcards:"Fiszki",
+        userTestsList: "Lista testów użytkowników"
     },
     flashcards: {
       title: "Fiszki — nauka",
@@ -85,6 +86,54 @@ const translations = {
       stateInfo: "{n} kart(y) w tej sesji",
       editBtn: "Edytuj",
       deleteBtn: "Usuń"
+    },
+    userTestList: {
+      title: "Testy użytkowników",
+      noTests: "Brak testów",
+      questions: "pytań",
+      comments: "komentarzy",
+      ratings: "ocen",
+      noRatings: "Brak ocen"
+    },
+    userTestDetails: {
+      language: "Język",
+      title: "Szczegóły testu",
+      return: "Powrót do listy testów",
+      testTitle: "Test użytkownika",
+      checkResults: "Sprawdź wynik",
+      results: "🎓 Wynik testu",
+      noAnswer : "Brak odpowiedzi",
+      correct: "Poprawna",
+      incorrect: "Niepoprawna",
+      correctAnswers: "Poprawne odpowiedzi",
+      percentageResult: "Wynik procentowy",
+      currentRating: "Aktualna ocena testu",
+      rateTest: "Ocena testu",
+      saveRating: "Zapisz ocenę",
+      updateRating: "Zaktualizuj ocenę",
+      comments: "Komentarze",
+      question: "Pytanie",
+      yourAnswer: "Twoja odpowiedź",
+      correctAnswer: "Poprawna odpowiedź!",
+      addComment: "Dodaj komentarz",
+      writeComment: "Napisz komentarz...",
+      allQuestionsAnswered: "Odpowiedz na wszystkie pytania przed sprawdzeniem wyniku",
+      confirmSubmit: "Nie odpowiedziałeś na wszystkie pytania. Czy na pewno chcesz sprawdzić wynik?",
+      loginToRate: "Musisz się zalogować, aby oceniać testy!",
+      loginToComment: "Musisz się zalogować, aby dodać komentarz!",
+      enterComment: "Wpisz komentarz przed wysłaniem!",
+      ratingSaved: "Dziękujemy! Twoja ocena: {rating}/5 została zapisana.",
+      ratingUpdated: "Zaktualizowano ocenę z {oldRating} na {newRating} / 5 ⭐",
+      reply: "Odpowiedz",
+      edit: "Edytuj",
+      delete: "Usuń",
+      report: "Zgłoś",
+      writeReply: "Napisz odpowiedź...",
+      addReply: "Dodaj odpowiedź",
+      cancel: "Anuluj",
+      save: "Zapisz",
+      confirmDelete: "Czy na pewno chcesz usunąć ten komentarz?",
+      confirmReport: "Czy na pewno chcesz zgłosić ten komentarz?"
     }
   },
   en: {
@@ -144,7 +193,8 @@ const translations = {
         login:"Login",
         register:"Register",
         learnMode:"Learning Mode",
-        flashcards:"Flashcards"
+        flashcards:"Flashcards",
+        userTestsList: "User Tests List"
     },
     flashcards: {
       title: "Flashcards — learning",
@@ -173,6 +223,55 @@ const translations = {
       stateInfo: "{n} card(s) in this session",
       editBtn: "Edit",
       deleteBtn: "Delete"
+    },
+    userTestList: {
+      title: "User Tests",
+      noTests: "No tests",
+      questions: "questions",
+      comments: "comments", 
+      ratings: "ratings",
+      noRatings: "No ratings"
+      
+    },
+    userTestDetails: {
+      language: "Language",
+      title: "Test Details",
+      return: "Return to tests list",
+      testTitle: "User Test",
+      checkResults: "Check Results",
+      results: "🎓 Test result",
+      noAnswer : "No answer",
+      correct: "Correct",
+      incorrect: "Incorrect",
+      correctAnswers: "Correct Answers",
+      percentageResult: "Percentage Result", 
+      currentRating: "Current Test Rating",
+      rateTest: "Rate Test",
+      saveRating: "Save Rating",
+      updateRating: "Update Rating",
+      comments: "Comments",
+      question: "Question",
+      correctAnswer: "Correct answer!",
+      addComment: "Add Comment",
+      yourAnswer: "Your answer:",
+      writeComment: "Write a comment...",
+      allQuestionsAnswered: "Answer all questions before checking results",
+      confirmSubmit: "You haven't answered all questions. Are you sure you want to check results?",
+      loginToRate: "You need to log in to rate tests!",
+      loginToComment: "You need to log in to add comments!",
+      enterComment: "Enter a comment before submitting!",
+      ratingSaved: "Thank you! Your rating: {rating}/5 has been saved.",
+      ratingUpdated: "Updated rating from {oldRating} to {newRating} / 5 ⭐",
+      reply: "Reply",
+      edit: "Edit", 
+      delete: "Delete",
+      report: "Report",
+      writeReply: "Write a reply...",
+      addReply: "Add Reply",
+      cancel: "Cancel",
+      save: "Save",
+      confirmDelete: "Are you sure you want to delete this comment?",
+      confirmReport: "Are you sure you want to report this comment?"
     }
   }
 };

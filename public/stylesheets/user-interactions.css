@@ -1,0 +1,233 @@
+:root {
+  /* DARK MODE */
+
+  --col-dark-dark: #2a2438;
+
+  --col-accent-dark: #8a6de6;
+
+  --col-neutral-dark: #f0e9ff;
+
+  --col-contrast-dark: #3a324c;
+
+  --col-highlight-dark: #d4c5e0;
+
+  /* LIGHT MODE */
+
+  --col-dark-light: #e8dfff;
+
+  --col-accent-light: #7a5cd6;
+
+  --col-neutral-light: #241e35;
+
+  --col-contrast-light: #d4c8f0;
+
+  --col-highlight-light: #ede2ff;
+
+  /* Aktywne kolory – start od dark */
+
+  --col-dark: var(--col-dark-dark);
+
+  --col-accent: var(--col-accent-dark);
+
+  --col-neutral: var(--col-neutral-dark);
+
+  --col-contrast: var(--col-contrast-dark);
+
+  --col-highlight: var(--col-highlight-dark);
+
+  --text-light: var(--col-neutral);
+
+  transition: all 0.3s ease;
+}
+
+/* Style dla gwiazdek oceny (średnia ocena) */
+#averageStars {
+  color: var(--col-accent);
+  letter-spacing: 2px;
+}
+
+#averageStars .star-filled {
+  color: var(--col-accent);
+}
+
+#averageStars .star-empty {
+  color: var(--col-contrast);
+  opacity: 0.5;
+}
+
+body.light-mode #averageStars {
+  color: var(--col-accent-light);
+}
+
+body.light-mode #averageStars .star-filled {
+  color: var(--col-accent-light);
+}
+
+body.light-mode #averageStars .star-empty {
+  color: var(--col-contrast-light);
+  opacity: 0.5;
+}
+
+
+/* ------- Gwiazdki ocen ------- */
+
+.star-rating {
+  font-size: 2rem;
+  cursor: pointer;
+  display: flex;
+  gap: 8px;
+}
+
+.star-rating span {
+  color: var(--col-contrast);
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.star-rating span:hover {
+  transform: scale(1.2);
+  color: var(--col-accent);
+}
+
+/* Aktywna gwiazdka */
+.star-rating .active {
+  color: var(--col-accent);
+}
+
+body.light-mode .star-rating span {
+  color: var(--col-highlight-light);
+  /* jasny pastel — niezaznaczone */
+}
+
+body.light-mode .star-rating span:hover {
+  color: var(--col-accent-light);
+  /* bardziej nasycony fiolet */
+}
+
+body.light-mode .star-rating .active {
+  color: var(--col-accent-light);
+  /* zaznaczone = nasycony fiolet */
+}
+
+/* LIGHT MODE FIX — przyciski ZAPISZ / DODAJ komentarz */
+
+body.light-mode #submitRatingBtn,
+body.light-mode #submitCommentBtn {
+  color: white !important;
+}
+
+/* --- Stylowanie komentarzy --- */
+.comment-text {
+  color: var(--text-light);
+  margin: 0.5rem 0;
+}
+
+.comment-date {
+  color: var(--col-contrast);
+  opacity: 0.8;
+}
+
+/* Light mode dla komentarzy */
+body.light-mode .comment-text {
+  color: var(--text-dark);
+}
+
+body.light-mode .comment-date {
+  color: var(--col-contrast-light);
+  opacity: 0.8;
+}
+
+/* Kontener komentarza */
+#commentsContainer .border {
+  background-color: var(--col-dark);
+  border-color: var(--col-contrast) !important;
+}
+
+body.light-mode #commentsContainer .border {
+  background-color: var(--col-dark-light);
+  border-color: var(--col-contrast-light) !important;
+}
+
+/* --- Stylowanie placeholder w textarea --- */
+.custom-textarea::placeholder {
+  color: var(--col-dark-light) !important;
+  opacity: 0.7 !important;
+}
+
+body.light-mode .custom-textarea::placeholder {
+  color: var(--col-dark-dark) !important;
+  opacity: 0.7 !important;
+}
+
+/* Dodatkowo poprawmy wygląd samego textarea */
+#newCommentText {
+  background-color: var(--col-dark);
+  color: var(--text-light);
+  border: 1px solid var(--col-contrast);
+  transition: all 0.3s ease;
+}
+
+#newCommentText:focus {
+  border-color: var(--col-accent);
+  box-shadow: 0 0 0 0.2rem rgba(138, 109, 230, 0.25);
+}
+
+body.light-mode #newCommentText {
+  background-color: var(--col-dark-light);
+  color: var(--text-dark);
+  border: 1px solid var(--col-contrast-light);
+}
+
+body.light-mode #newCommentText:focus {
+  border-color: var(--col-accent-light);
+  box-shadow: 0 0 0 0.2rem rgba(122, 92, 214, 0.25);
+}
+
+/* Przyciski interakcji z komentarzami */
+
+.comment-action {
+  background-color: var(--col-contrast);
+  color: var(--text-light) !important;
+  border: 1px solid var(--col-accent);
+  padding: 2px 10px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  transition: all 0.2s ease-in-out;
+  text-decoration: none !important;
+  display: inline-block;
+}
+
+.comment-action:hover {
+  background-color: var(--col-accent);
+  color: var(--text-dark) !important;
+  box-shadow: 0 0 10px var(--col-accent);
+  transform: scale(1.03);
+}
+
+/* Light mode do sekcji komentarzy */
+body.light-mode .comment-action {
+  background-color: var(--col-highlight);
+  color: var(--col-neutral-light) !important;
+  border-color: var(--col-accent-light);
+}
+
+body.light-mode .comment-action:hover {
+  background-color: var(--col-accent-light);
+  color: var(--col-neutral-light) !important;
+  box-shadow: 0 0 10px var(--col-accent-light);
+}
+
+/* --- Alert wynikowy --- */
+.custom-alert-info {
+  background-color: var(--col-dark);
+  border: 1px solid var(--col-accent);
+  color: var(--text-light);
+  border-radius: 12px;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.4);
+}
+
+/* Light mode */
+body.light-mode .custom-alert-info {
+  background-color: var(--col-dark-light);
+  border-color: var(--col-accent-light);
+  color: var(--col-neutral-light);
+}

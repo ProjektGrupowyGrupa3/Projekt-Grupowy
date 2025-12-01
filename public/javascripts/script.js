@@ -50,6 +50,10 @@ function updatePageContent(lang) {
     currentPage = 'index';
   } else if (path.includes('flashcards')) {
     currentPage = 'flashcards';
+  } else if (path.includes('user-test-list')) {
+    currentPage = 'userTestList';
+  } else if (path.includes('user-test-details')) {
+    currentPage = 'userTestDetails';
   }
 
   const pageTranslations = (translations[lang] && translations[lang][currentPage]) || {};
@@ -69,11 +73,56 @@ function updatePageContent(lang) {
         } else {
           element.placeholder = text;
         }
+      } else if (element.tagName === 'TEXTAREA') {
+        element.placeholder = text;
       } else {
         element.textContent = text;
       }
     }
   });
+  
+}
+
+// Funkcja do aktualizacji dynamicznych treści
+function updateDynamicContent(lang, currentPage) {
+  // Wywołaj globalną funkcję jeśli istnieje
+  if (window.updateDynamicContent) {
+    window.updateDynamicContent(lang, currentPage);
+  }
+}
+
+// GGlobalna funkcja pomocnicza do tłumaczeń (dla użycia w innych plikach)
+window.t = function(key, params = {}) {
+  const currentLang = localStorage.getItem('language') || 'pl';
+  const path = window.location.pathname;
+  let currentPage = 'index';
+
+  if (path.includes('user-test-list')) {
+    currentPage = 'userTestList';
+  } else if (path.includes('user-test-details')) {
+    currentPage = 'userTestDetails';
+  }
+
+  const pageTranslations = translations[currentLang] && translations[currentLang][currentPage];
+    
+  let text = (pageTranslations && pageTranslations[key]);
+  
+  if (!text) {
+    console.warn(`Translation missing for key: ${key} in page: ${currentPage}`);
+    return key;
+  }
+  
+  // Zamień parametry {nazwa} na wartości
+  Object.keys(params).forEach(param => {
+    text = text.replace(new RegExp(`{${param}}`, 'g'), params[param]);
+  });
+  
+  return text;
+}
+
+// DODAJ: Funkcja pomocnicza do pobrania aktualnego języka
+window.getCurrentLanguage = function() {
+  return localStorage.getItem('language') || 'pl';
 }
 
 // Inicjalizacja języka przy załadowaniu strony
