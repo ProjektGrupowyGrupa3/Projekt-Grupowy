@@ -1,4 +1,3 @@
-// Flashcards Script — Ukrywanie przycisków nagłówka podczas nauki
 (function () {
   'use strict';
 
@@ -18,6 +17,7 @@
     return (s || '').replace(/\{(\w+)\}/g, (_, k) => (vars[k] !== undefined ? vars[k] : ''));
   }
 
+  // Kod symulujący backend do przechowywania zestawów w localStorage, wystarczy go zmienić na prawdziwy backend w przyszłości
   const BackendService = {
     DB_KEY: 'flashcards_decks_db',
     async getDecks() {
@@ -52,6 +52,8 @@
       return true;
     }
   };
+
+  // Główna logika aplikacji, koniec symulacji backendu
 
   window.addEventListener('DOMContentLoaded', () => {
     const $ = sel => document.querySelector(sel);
