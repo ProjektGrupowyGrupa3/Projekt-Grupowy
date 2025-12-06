@@ -1,11 +1,8 @@
-/* flashcards: kontrastowe kolory dopasowane do głównej palety (automatycznie adaptuje się do light/dark) */
-
 :root {
   --fc-border-strong: rgba(0,0,0,0.12);
   --fc-text-muted-alpha: 0.72;
 }
 
-/* główny wrapper / karta widoku */
 .card.shadow-sm {
   background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.02));
   border-radius: 12px;
@@ -13,14 +10,12 @@
   color: var(--text-light);
 }
 
-/* formularz i panele -> używają globalnych zmiennych, by pasować do trybu */
 #addForm.card, .card.p-3 {
   background-color: color-mix(in srgb, var(--col-dark) 88%, transparent);
   border: 1px solid color-mix(in srgb, var(--col-contrast) 85%, transparent);
   color: var(--text-light);
 }
 
-/* pojedyncza karta w liście fiszek - wyraźna ramka i czytelny tekst */
 #cardsList .card {
   padding: .65rem;
   background-color: color-mix(in srgb, var(--col-base) 92%, transparent);
@@ -29,7 +24,6 @@
   color: var(--text-light);
 }
 
-/* pytanie/odpowiedź podczas nauki */
 #currentCard {
   background: linear-gradient(180deg, color-mix(in srgb, var(--col-dark) 94%, transparent),
                                         color-mix(in srgb, var(--col-base) 98%, transparent));
@@ -38,7 +32,6 @@
   color: var(--text-light);
 }
 
-/* Wyraźne, czytelne pytanie */
 #questionArea,
 #currentCard .h5 {
   color: var(--text-light);
@@ -49,7 +42,6 @@
   -webkit-font-smoothing: antialiased;
 }
 
-/* odpowiedź i pomocnicze teksty — jaśniejsze, żeby były czytelne w trybie ciemnym */
 #answerArea {
   color: color-mix(in srgb, var(--text-light) 92%, white 8%);
   font-weight: 500;
@@ -57,13 +49,11 @@
   transition: color .15s ease, opacity .15s ease;
 }
 
-/* poprawiamy widoczność drobnych tekstów (meta/zmiana stanu) */
 .small.text-muted {
   color: color-mix(in srgb, var(--text-light) 86%, white 14%);
   opacity: var(--fc-text-muted-alpha);
 }
 
-/* poprawiony styl dla przycisków outline, lepsza widoczność na obu trybach */
 .btn-outline-secondary {
   border-color: color-mix(in srgb, var(--col-contrast) 80%, transparent);
   color: var(--text-light);
@@ -74,18 +64,15 @@
   color: var(--text-dark);
 }
 
-/* wyraźniejsze 'usun wszystko' / danger przyciski */
 .btn-danger {
   background-color: color-mix(in srgb, #ff5252 85%, var(--col-accent) 15%);
   border-color: color-mix(in srgb, #ff5252 85%, var(--col-accent) 15%);
   color: white;
 }
 
-/* dodatkowe poprawki kontrastu w liście kart */
 #cardsList .fw-semibold { color: var(--text-light); }
 #cardsList .small.text-muted { color: var(--text-light); opacity: 0.88; }
 
-/* responsywność */
 @media (max-width: 768px) {
   .card.shadow-sm { padding: .5rem; }
   #cardsList .card { font-size: .95rem; }
@@ -98,7 +85,6 @@
   opacity: 0.92;
 }
 
-/* TRYB JASNY (nadpisania) */
 body.light-mode #questionArea,
 body.light-mode #currentCard .h5 {
   color: var(--text-dark);
@@ -112,10 +98,51 @@ body.light-mode #cardsList .small.text-muted {
   opacity: 1;
 }
 
-/* drobne kontrastowe usprawnienia - zapewniają czytelne krawędzie na jasnym tle */
 body.light-mode #cardsList .card {
   border-color: color-mix(in srgb, var(--col-accent-light) 25%, var(--col-contrast-light) 75%);
 }
 body.light-mode #currentCard {
   border-color: color-mix(in srgb, var(--col-accent-light) 28%, var(--col-contrast-light) 72%);
+}
+
+#decksList .list-group-item {
+  background-color: transparent;
+  border-color: var(--fc-border-strong);
+  color: var(--text-light);
+  cursor: pointer;
+  border: 1px solid transparent; 
+  border-bottom: 1px solid var(--fc-border-strong);
+}
+
+#decksList .list-group-item:hover {
+  background-color: rgba(255,255,255,0.05);
+}
+
+body.light-mode #decksList .list-group-item:hover {
+  background-color: rgba(0,0,0,0.05);
+}
+
+.btn-del-deck {
+  opacity: 0.6;
+  border: none;
+  font-size: 1.2rem;
+  line-height: 1;
+}
+.btn-del-deck:hover {
+  opacity: 1;
+  background: rgba(255, 0, 0, 0.2);
+}
+
+#activeSetName {
+  font-size: 0.85rem;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+
+#addForm.card:hover, 
+#cardsList .card:hover,
+.card:hover {
+  transform: none !important;
+  box-shadow: none !important;
+  border-color: color-mix(in srgb, var(--col-contrast) 85%, transparent) !important;
 }
