@@ -1,3 +1,11 @@
+// funkcja obliczająca średnią dla tablic z ocenami i trudnością
+function calculateAverageFromObject(obj) {
+  const values = Object.values(obj || {});
+  if (values.length === 0) return 0;
+  const sum = values.reduce((a,b) => a + b, 0);
+  return Math.round((sum / values.length) * 10) / 10;
+}
+
 // ustawienie zapisanej wartości trybu
 function applySavedTheme() {
     const savedTheme = localStorage.getItem('theme');
@@ -135,3 +143,11 @@ document.addEventListener('DOMContentLoaded', () => {
 document.addEventListener('DOMContentLoaded', () => {
     applySavedTheme();
 });
+
+
+// Funkcja do ponownego przetłumaczenia aktualnej strony
+window.applyTranslations = function() {
+  const currentLang = localStorage.getItem('language') || 'pl';
+  updatePageContent(currentLang);
+  updateDynamicContent(currentLang);
+};

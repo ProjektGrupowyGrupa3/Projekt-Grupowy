@@ -88,15 +88,28 @@ const translations = {
       deleteBtn: "Usuń"
     },
     userTestList: {
+      language: "Język",
       title: "Testy użytkowników",
       noTests: "Brak testów",
       questions: "pytań",
       comments: "komentarzy",
-      ratings: "ocen",
-      noRatings: "Brak ocen"
+      ratings: "Liczba ocen",
+      noRatings: "Brak ocen",
+      difficulty: "Trudność",
+      sortBy: "Sortuj według...",
+      polishFirst: "Polskie pierwsze",
+      englishFirst: "Angielskie pierwsze",
+      polishOnly: "Tylko polskie",
+      englishOnly: "Tylko angielskie",
+      alphabetical: "Alfabetycznie A-Z",
+      byRating: "Najlepiej oceniane",
+      byQuestionCount: "Najwięcej pytań",
+      originalOrder: "Oryginalna kolejność",
+      showingTests: "Wyświetlanie {count} z {total} testów",
+      testsFound: "Znaleziono {count} testów"
     },
     userTestDetails: {
-      language: "Język",
+      language: "Język: ",
       title: "Szczegóły testu",
       return: "Powrót do listy testów",
       testTitle: "Test użytkownika",
@@ -124,8 +137,10 @@ const translations = {
       enterComment: "Wpisz komentarz przed wysłaniem!",
       ratingSaved: "Dziękujemy! Twoja ocena: {rating}/5 została zapisana.",
       ratingUpdated: "Zaktualizowano ocenę z {oldRating} na {newRating} / 5 ⭐",
+      ratings: "Liczba ocen",
       reply: "Odpowiedz",
       edit: "Edytuj",
+      edited: "(edytowano)",
       delete: "Usuń",
       report: "Zgłoś",
       writeReply: "Napisz odpowiedź...",
@@ -133,7 +148,14 @@ const translations = {
       cancel: "Anuluj",
       save: "Zapisz",
       confirmDelete: "Czy na pewno chcesz usunąć ten komentarz?",
-      confirmReport: "Czy na pewno chcesz zgłosić ten komentarz?"
+      confirmReport: "Czy na pewno chcesz zgłosić ten komentarz?",
+      averageDifficulty: "Średnia trudność",
+      difficultyRating: "Ocena trudności",
+      saveDiff: "Zapisz trudność",
+      selectDifficulty: "Wybierz trudność",
+      reportSubmitted: "Dziękujemy! Zgłoszenie zostało przesłane do moderacji.",
+      selectRating: "Wybierz ocenę",
+      notAllAnswered: "Nie wszystkie pytania zostały odpowiedziane. Czy na pewno chcesz sprawdzić wynik?"
     }
   },
   en: {
@@ -225,16 +247,28 @@ const translations = {
       deleteBtn: "Delete"
     },
     userTestList: {
+      language: "Language",
       title: "User Tests",
       noTests: "No tests",
       questions: "questions",
       comments: "comments", 
-      ratings: "ratings",
-      noRatings: "No ratings"
-      
+      ratings: "Ratings count",
+      noRatings: "No ratings",
+      difficulty: "Difficulty",
+      sortBy: "Sort by...",
+      polishFirst: "Polish first",
+      englishFirst: "English first",
+      polishOnly: "Only Polish",
+      englishOnly: "Only English",
+      alphabetical: "Alphabetically A-Z",
+      byRating: "Best rated",
+      byQuestionCount: "Most questions",
+      originalOrder: "Original order",
+      showingTests: "Showing {count} of {total} tests",
+      testsFound: "Found {count} tests"
     },
     userTestDetails: {
-      language: "Language",
+      language: "Language: ",
       title: "Test Details",
       return: "Return to tests list",
       testTitle: "User Test",
@@ -253,7 +287,7 @@ const translations = {
       question: "Question",
       correctAnswer: "Correct answer!",
       addComment: "Add Comment",
-      yourAnswer: "Your answer:",
+      yourAnswer: "Your answer",
       writeComment: "Write a comment...",
       allQuestionsAnswered: "Answer all questions before checking results",
       confirmSubmit: "You haven't answered all questions. Are you sure you want to check results?",
@@ -262,8 +296,10 @@ const translations = {
       enterComment: "Enter a comment before submitting!",
       ratingSaved: "Thank you! Your rating: {rating}/5 has been saved.",
       ratingUpdated: "Updated rating from {oldRating} to {newRating} / 5 ⭐",
+      ratings: "Ratings count",
       reply: "Reply",
-      edit: "Edit", 
+      edit: "Edit",
+      edited: "(edited)",
       delete: "Delete",
       report: "Report",
       writeReply: "Write a reply...",
@@ -271,7 +307,14 @@ const translations = {
       cancel: "Cancel",
       save: "Save",
       confirmDelete: "Are you sure you want to delete this comment?",
-      confirmReport: "Are you sure you want to report this comment?"
+      confirmReport: "Are you sure you want to report this comment?",
+      averageDifficulty: "Average difficulty",
+      difficultyRating: "Difficulty rating",
+      saveDiff: "Save Difficulty",
+      selectDifficulty: "Select Difficulty",
+      reportSubmitted: "Thank you! The report has been submitted for moderation.",
+      selectRating: "Select Rating",
+      notAllAnswered: "Not all questions have been answered. Are you sure you want to check results?"
     }
   }
 };

@@ -7,7 +7,7 @@
 
   --col-neutral-dark: #f0e9ff;
 
-  --col-contrast-dark: #3a324c;
+  --col-contrast-dark: #7f60cc;
 
   --col-highlight-dark: #d4c5e0;
 
@@ -40,19 +40,24 @@
   transition: all 0.3s ease;
 }
 
+.avgRaitingValue {
+  color: var(--text-light);
+}
+
+body.light-mode .avgRaitingValue{
+  color: var(--text-dark);
+}
+
 /* Style dla gwiazdek oceny (średnia ocena) */
-#averageStars {
+#averageStars .star-filled{
   color: var(--col-accent);
   letter-spacing: 2px;
 }
 
-#averageStars .star-filled {
-  color: var(--col-accent);
-}
 
 #averageStars .star-empty {
   color: var(--col-contrast);
-  opacity: 0.5;
+  opacity: 0.8;
 }
 
 body.light-mode #averageStars {
@@ -68,8 +73,33 @@ body.light-mode #averageStars .star-empty {
   opacity: 0.5;
 }
 
+#difficultyStars {
+  font-size: 1.6rem;
+}
+
+#difficultyStars span {
+  color: var(--col-contrast);
+}
+
+#difficultyStars span.active {
+  color: var(--col-accent);
+}
+
+body.light-mode #difficultyStars span {
+  color: var(--col-highlight-light);
+}
+
+body.light-mode #difficultyStars span.active {
+  color: var(--col-accent-light);
+}
+
 
 /* ------- Gwiazdki ocen ------- */
+
+#difficultyStarsAverage span {
+  font-size: 1.4rem;
+  margin-right: 2px;
+}
 
 .star-rating {
   font-size: 2rem;
@@ -122,7 +152,7 @@ body.light-mode #submitCommentBtn {
 }
 
 .comment-date {
-  color: var(--col-contrast);
+  color: var(--text-light);
   opacity: 0.8;
 }
 
@@ -132,7 +162,7 @@ body.light-mode .comment-text {
 }
 
 body.light-mode .comment-date {
-  color: var(--col-contrast-light);
+  color: var(--text-dark);
   opacity: 0.8;
 }
 

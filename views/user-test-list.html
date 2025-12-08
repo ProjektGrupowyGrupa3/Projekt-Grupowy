@@ -15,17 +15,26 @@
   <main class="container py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
       <h3 data-translate="title">Testy użytkowników</h3>
-      <select id="languageSelect" class="form-select w-auto">
-        <option value="pl">Polski</option>
-        <option value="en">English</option>
+      <!-- Select sortowania -->
+      <select id="sortSelect" class="form-select w-auto">
+        <option value="none" data-translate="sortBy">Sortuj według...</option>
+        <option value="pl_first" data-translate="polishFirst">Polskie pierwsze</option>
+        <option value="en_first" data-translate="englishFirst">Angielskie pierwsze</option>
+        <option value="pl_only" data-translate="polishOnly">Tylko polskie</option>
+        <option value="en_only" data-translate="englishOnly">Tylko angielskie</option>
+        <option value="alphabetical" data-translate="alphabetical">Alfabetycznie A-Z</option>
+        <option value="rating" data-translate="byRating">Najlepiej oceniane</option>
+        <option value="questions" data-translate="byQuestionCount">Najwięcej pytań</option>
       </select>
     </div>
     <div id="testsList" class="list-group mt-3"></div>
   </main>
 
+  <script src="/static/javascripts/sort.js"></script>
   <script src="/static/javascripts/script.js"></script>
   <script>
-
+    
+//Przykładowe dane testów użytkowników
     const testsMock = [
       {
         _id: '1',
@@ -65,6 +74,7 @@
             text: 'Super test! Bardzo pomocny w powtórce.',
             createdAt: new Date('2024-01-15'),
             canEdit: true,
+            edited: true,
             canDelete: true,
             canReply: true,
             replies: []
@@ -76,6 +86,7 @@
             text: 'Niektóre pytania były dość trudne, ale fajnie się rozwiązywało.',
             createdAt: new Date('2024-01-16'),
             canEdit: false,
+            edited: false,
             canDelete: false,
             canReply: true,
             replies: [
@@ -85,6 +96,7 @@
                 text: 'Dzięki za feedback! Postaram się dodać więcej wskazówek.',
                 createdAt: new Date('2024-01-16'),
                 canEdit: true,
+                edited: false,
                 canDelete: true,
                 canReply: true,
                 replies: []
@@ -98,8 +110,12 @@
           'user3': 4,
           'user4': 5
         },
-        averageRating: 4.5,
-        ratingCount: 4
+        ratingCount: 4,
+        difficultyRatings: {
+          'user1': 2,
+          'user2': 3,
+          'user3': 2
+        },
       },
       {
         _id: '2',
@@ -123,19 +139,25 @@
             text: 'It helped me so much!',
             createdAt: new Date('2024-01-14'),
             canEdit: false,
+            edited: false,
             canDelete: false,
             canReply: true,
             replies: []
           }
         ],
         ratings: {
-          'user1': 5,
-          'user2': 4,
-          'user3': 4,
-          'user4': 5
+          'user1': 2,
+          'user2': 2,
+          'user3': 3,
+          'user4': 3,
+          'wasd': 4,
+          'test123': 3
         },
-        averageRating: 4.5,
-        ratingCount: 4
+        ratingCount: 6,
+        difficultyRatings: {
+          'u1': 1,
+          'u2': 2
+        },
       },
       {
         _id: '3',
@@ -168,6 +190,7 @@
             text: 'Bardzo przydatny test do powtórki przed egzaminem.',
             createdAt: new Date('2024-01-13'),
             canEdit: false,
+            edited: false,
             canDelete: false,
             canReply: true,
             replies: []
@@ -176,11 +199,16 @@
         ratings: {
           'user1': 5,
           'user2': 4,
-          'user3': 4,
-          'user4': 5
+          'wasd': 4,
+
         },
-        averageRating: 4.5,
-        ratingCount: 4
+        ratingCount: 3,
+        difficultyRatings: {
+          'u1': 1,
+          'u2': 1,
+          'u3': 2
+        },
+
       },
       {
         _id: '4',
@@ -210,10 +238,13 @@
           'user1': 5,
           'user2': 4,
           'user3': 4,
-          'user4': 5
+          'wasd': 1
         },
-        averageRating: 4.5,
-        ratingCount: 4
+        ratingCount: 4,
+        difficultyRatings: {
+          'u1': 2,
+          'u2': 3
+        },
       },
       {
         _id: '5',
@@ -237,6 +268,7 @@
             text: 'Krótki ale treściwy test!',
             createdAt: new Date('2024-01-12'),
             canEdit: false,
+            edited: false,
             canDelete: false,
             canReply: true,
             replies: []
@@ -248,76 +280,147 @@
           'user3': 4,
           'wasd': 5
         },
-        averageRating: 4.5,
-        ratingCount: 4
+        ratingCount: 4,
+        difficultyRatings: {
+          'u1': 3,
+          'u2': 3,
+          'u3': 2
+        },
       }
     ];
 
-    window.onLanguageChange = function(lang) {
-  console.log('Język zmieniony na:', lang);
-  
-  // Jeśli wyniki są wyświetlane, przetłumacz je
-  const resultArea = document.getElementById('resultArea');
-  if (resultArea && !resultArea.classList.contains('d-none')) {
-    translateResults();
-  }
-  
-  // Aktualizuj język testu
-  displayTestLanguage();
-};
+    function loadUserTests() {
+      const container = document.getElementById('testsList');
+      container.innerHTML = '';
 
-// Zachowaj też istniejącą funkcję updateDynamicContent dla kompatybilności
-window.updateDynamicContent = function(lang) {
-  window.onLanguageChange(lang);
-};
+      // Pobierz aktualny tryb sortowania (domyślnie 'none')
+      const sortMode = document.getElementById('sortSelect')?.value || 'none';
+      const currentLang = getCurrentLanguage();
+
+
+      const tests = testsMock;
+      // Tutaj w przyszłości będzie pobieranie z API/backendu
+
+      if (!tests || tests.length === 0) {
+        const t9n = translations[currentLang]?.userTestList || {};
+        container.innerHTML = `<div class="text-center py-4">${t9n.noTests || 'Brak testów'}</div>`;
+        return;
+      }
+
+    window.onLanguageChange = function (lang) {
+      console.log('Język zmieniony na:', lang);
+
+      updateSortSelect(lang);
+      // Jeśli wyniki są wyświetlane, przetłumacz je
+      const resultArea = document.getElementById('resultArea');
+      if (resultArea && !resultArea.classList.contains('d-none')) {
+        translateResults();
+        refreshLanguageBadges();
+      }
+
+      // Aktualizuj język testu
+      refreshLanguageBadges();
+    };
+
+    // Zachowaj też istniejącą funkcję updateDynamicContent dla kompatybilności
+    window.updateDynamicContent = function (lang) {
+      window.onLanguageChange(lang);
+    };
 
     // Funkcja pomocnicza do pobrania aktualnego języka
     function getCurrentLanguage() {
       return localStorage.getItem('language') || 'pl';
     }
 
-    function loadUserTests() {
-      const container = document.getElementById('testsList');
-      container.innerHTML = '';
+    function refreshLanguageBadges() {
+      const currentLang = getCurrentLanguage();
 
-      if (testsMock.length === 0) {
-        container.innerHTML = `<div class="text-center py-4">${t('userTestList.noTests')}</div>`;
-        return;
-      }
+      document.querySelectorAll('.testLanguageName').forEach(span => {
+        const lang = span.textContent.trim().toLowerCase();
 
-      testsMock.forEach(t => {
+        // JEŚLI test był w PL → zostaje PL
+        // JEŚLI test był w EN → zostaje EN
+        // tłumaczymy tylko "Język / Language"
+        if (lang === 'polski' || lang === 'pl') {
+          span.textContent = 'Polski';
+        } else {
+          span.textContent = 'English';
+        }
+      });
+    }
+
+      // Zastosuj sortowanie
+      const sortedTests = applySorting(tests, sortMode, currentLang);
+
+      // Pobierz tłumaczenia
+      const t9n = translations[currentLang]?.userTestList || {};
+
+
+      sortedTests.forEach(t => {
         const a = document.createElement('a');
+        const avgRating = calculateAverageFromObject(t.ratings);
+        const avgDifficulty = calculateAverageFromObject(t.difficultyRatings);
+
         a.href = `/user-test-details?testId=${t._id}&lang=${getCurrentLanguage()}`;
         a.className = 'list-group-item list-group-item-action d-flex justify-content-between align-items-center';
 
-        // Pobierz aktualny język i tłumaczenia
-        const currentLang = getCurrentLanguage();
-        const t9n = translations[currentLang].userTestList;
+
 
         // Określ język testu - używamy prostego warunku
         const testLanguage = t.language === 'pl' ? 'Polski' : 'English';
         const testLanguageBadge = t.language === 'pl' ? 'Język: Polski' : 'Language: English';
 
         a.innerHTML = `
-      <div class="flex-grow-1">
-        <div class="d-flex justify-content-between align-items-start mb-2">
-          <h6 class="mb-0">${t.title} – ${t.user}</h6>
-          <span class="badge bg-secondary">${testLanguageBadge}</span>
-        </div>
-        
-        ${t.averageRating ? `
+              <div class="flex-grow-1">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                  <h6 class="mb-0">${t.title} – ${t.user}</h6>
+                  <span class="badge bg-secondary">
+                      <span data-translate="language">${t9n.language}</span>:
+                      <span class="testLanguageName">${testLanguage}</span>
+                  </span>
+                </div>
+                
+                ${avgRating > 0 ? `
           <div class="mt-2">
-            <small class="star-text-warning">${'★'.repeat(Math.round(t.averageRating))}${'☆'.repeat(5 - Math.round(t.averageRating))}</small>
-            <small class="rating-value ms-1">(${t.averageRating})</small>
-            <small class="rating-count ms-2">${Object.keys(t.ratings || {}).length} ${t9n.ratings}</small>
+
+            <!-- 🔥 Trudność (3 gwiazdki) -->
+            <div class="mt-1">
+              <small class="me-1 fw-bold" data-translate="difficulty">${t9n.difficulty}:</small>
+              <small class="difficultyStars">
+                ${'&#9733;'.repeat(Math.round(avgDifficulty || 0))}
+                ${'&#9734;'.repeat(3 - Math.round(avgDifficulty || 0))}
+              </small>
+              <small class="difficulty-value ms-1">
+                (${(avgDifficulty || 0)})
+              </small>
+            </div>
+            <!-- ⭐ Ocena jakości -->
+            <div class="mt-1">
+              <small class="averageStars">
+                ${'&#9733;'.repeat(Math.round(avgRating || 0))}
+                ${'&#9734;'.repeat(5 - Math.round(avgRating || 0))}
+              </small>
+              <small class="rating-value ms-1">(${avgRating})</small>
+              <small class="rating-count ms-2"> 
+                <span data-translate="ratings">${t9n.ratings}: </span> 
+                <span class="ratingCount">${Object.keys(t.ratings || {}).length}</span> 
+              </small>
+            </div>
           </div>
         ` : `<div class="mt-2"><small class="no-ratings">${t9n.noRatings}</small></div>`}
-      </div>
-      <div class="text-end ms-3">
-        <span class="badge bg-primary rounded-pill">${t.questions.length} ${t9n.questions}</span>
-        <small class="comments-count d-block mt-1">${t.comments.length} ${t9n.comments}</small>
-      </div>
-    `;
+
+              </div>
+              <div class="text-end ms-3">
+                <span class="badge bg-primary rounded-pill">
+                  <span class="q-count">${t.questions.length}</span>
+                  <span data-translate="questions"> ${t9n.questions}</span>
+                </span>
+                <small class="comments-count d-block mt-1">
+                  <span class="c-lenght">${t.comments.length}</span> 
+                  <span data-translate="comments">${t9n.comments}</span>
+                </small>
+              </div>
+            `;
 
         // Debugowanie - sprawdź czy kliknięcie działa
         a.addEventListener('click', (e) => {
@@ -329,10 +432,14 @@ window.updateDynamicContent = function(lang) {
       });
     }
 
-    function calculateAverage(ratings) {
-      if (!ratings || ratings.length === 0) return 0;
-      const sum = ratings.reduce((a, b) => a + b, 0);
-      return (sum / ratings.length).toFixed(1);
+    function setupSorting() {
+      const sortSelect = document.getElementById('sortSelect');
+      if (sortSelect) {
+        sortSelect.addEventListener('change', () => {
+          loadUserTests();
+          refreshLanguageBadges();
+        });
+      }
     }
 
     // Pokazanie użytkownika jeśli zalogowany
@@ -354,7 +461,10 @@ window.updateDynamicContent = function(lang) {
     // Dark/Light Toggle
     document.addEventListener('DOMContentLoaded', () => {
       const currentLang = getCurrentLanguage();
+      setupSorting();
       loadUserTests();
+      updateDynamicContent(currentLang);
+      refreshLanguageBadges();
       setupThemeToggle('toggleTheme');
     });
   </script>
