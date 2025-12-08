@@ -460,12 +460,12 @@
 
     // Dark/Light Toggle
     document.addEventListener('DOMContentLoaded', () => {
+      setupThemeToggle('toggleTheme');
       const currentLang = getCurrentLanguage();
       setupSorting();
       loadUserTests();
       updateDynamicContent(currentLang);
       refreshLanguageBadges();
-      setupThemeToggle('toggleTheme');
     });
   </script>
 
