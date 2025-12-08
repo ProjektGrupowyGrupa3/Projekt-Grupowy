@@ -34,7 +34,12 @@ const translations = {
       subject: "Przedmiot",
       timeLeft: "Pozostały czas",
       loading: "Wczytywanie...",
-      nextQuestion: "Następne pytanie"
+      nextQuestion: "Następne pytanie",
+      QuestionMode: "Tryb pytań",
+      Unanswered: "Nieodpowiedziane",
+      IncorrectAnswers: "Błędne odpowiedzi",
+      SavedQuestions: "Zapisane pytania",
+      RandomQuestions: "Losowe pytania"
     },
     quizTest: {
       title: "Tryb testu",
@@ -44,7 +49,8 @@ const translations = {
       startButton: "Rozpocznij test",
       question: "Pytanie",
       previousQuestion: "Poprzednie pytanie",
-      nextQuestion: "Następne pytanie"
+      nextQuestion: "Następne pytanie",
+      subject: "Przedmiot"
     },
     index: {
       welcome: "Witaj w LearnIt",
@@ -93,9 +99,9 @@ const translations = {
       noTests: "Brak testów",
       questions: "pytań",
       comments: "komentarzy",
-      ratings: "Liczba ocen",
+      ratings: "Liczba ocen:",
       noRatings: "Brak ocen",
-      difficulty: "Trudność",
+      difficulty: "Trudność:",
       sortBy: "Sortuj według...",
       polishFirst: "Polskie pierwsze",
       englishFirst: "Angielskie pierwsze",
@@ -137,7 +143,7 @@ const translations = {
       enterComment: "Wpisz komentarz przed wysłaniem!",
       ratingSaved: "Dziękujemy! Twoja ocena: {rating}/5 została zapisana.",
       ratingUpdated: "Zaktualizowano ocenę z {oldRating} na {newRating} / 5 ⭐",
-      ratings: "Liczba ocen",
+      ratings: "Liczba ocen:",
       reply: "Odpowiedz",
       edit: "Edytuj",
       edited: "(edytowano)",
@@ -193,7 +199,12 @@ const translations = {
       subject: "Subject",
       timeLeft: "Time left",
       loading: "Loading...",
-      nextQuestion: "Next question"
+      nextQuestion: "Next question",
+      QuestionMode: "Question Mode",
+      Unanswered: "Unanswered",
+      IncorrectAnswers: "Incorrect Answers",
+      SavedQuestions: "Saved Questions",
+      RandomQuestions: "Random Questions"
     },
     quizTest: {
       title: "Test mode",
@@ -203,7 +214,8 @@ const translations = {
       startButton: "Start test",
       question: "Question",
       previousQuestion: "Previous question",
-      nextQuestion: "Next question"
+      nextQuestion: "Next question",
+      subject: "Subject"
     },
     index: {
       welcome: "Welcome to LearnIt",
@@ -252,9 +264,9 @@ const translations = {
       noTests: "No tests",
       questions: "questions",
       comments: "comments", 
-      ratings: "Ratings count",
+      ratings: "Ratings count:",
       noRatings: "No ratings",
-      difficulty: "Difficulty",
+      difficulty: "Difficulty:",
       sortBy: "Sort by...",
       polishFirst: "Polish first",
       englishFirst: "English first",
@@ -296,7 +308,7 @@ const translations = {
       enterComment: "Enter a comment before submitting!",
       ratingSaved: "Thank you! Your rating: {rating}/5 has been saved.",
       ratingUpdated: "Updated rating from {oldRating} to {newRating} / 5 ⭐",
-      ratings: "Ratings count",
+      ratings: "Ratings count:",
       reply: "Reply",
       edit: "Edit",
       edited: "(edited)",

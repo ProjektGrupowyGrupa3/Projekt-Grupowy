@@ -63,6 +63,9 @@ app.use('/quiz/learn', quizLearnRouter);
 app.use('/quiz/test', quizTestRouter);
 app.use('/api/questions',questionsRouter)
 app.use('/api/subjects', subjectsRouter);
+//Ranking of Users
+//app.use("/rank", require("./routes/ranking"));
+//app.use('/api/points', require('./routes/points'));
 //User Progress
 app.use('/api/user-progress', userProgressRouter);
 //Flashcards Page

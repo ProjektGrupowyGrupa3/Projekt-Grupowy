@@ -50,7 +50,7 @@
           <span id="averageStars" class="star-text-warning fs-5"></span>
           <span id="averageText" class="ms-2"></span>
           <span id="ratingsCount" class="avgRaitingValue">
-            <span data-translate="ratings"></span>:
+            <span data-translate="ratings"></span>
             <span id="ratingsCountValue">0</span>
           </span>
         </div>
@@ -99,6 +99,7 @@
 <script src="static/javascripts/script.js"></script>
 <script src="static/javascripts/rating.js"></script>
 <script>
+
 // Konfiguracja
 const urlParams = new URLSearchParams(window.location.search);
 const testId = urlParams.get('testId');
@@ -803,18 +804,7 @@ document.getElementById('submitCommentBtn').addEventListener('click', () => {
 });
 
 const user = JSON.parse(localStorage.getItem('user') || 'null');
-    if (user) {
-      document.getElementById('userEmail').textContent = user.name;
-      const btn = document.getElementById('authBtn');
-      btn.textContent = 'Wyloguj';
-      btn.href = '#';
-      btn.addEventListener('click', () => {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        window.location.reload();
-      });
-      document.getElementById('regBtn').style.display = 'none';
-    }
+    
 
 // Zaktualizuj funkcję displayTestLanguage aby używała tłumaczeń
 function displayTestLanguage() {
@@ -832,7 +822,6 @@ document.addEventListener('DOMContentLoaded', () => {
   renderTest();
   initStarRating();
   initDifficultyStars();
-  setupThemeToggle('toggleTheme');
   updateRatingDisplay();
   updateDifficultyDisplay();
   showUserRating();
