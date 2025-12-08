@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title data-translate="title">Szczegóły testu</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/static/stylesheets/user-interactions.css">
+  <link rel="stylesheet" href="/static/stylesheets/style.css">
+</head>
+<body>
+
+<main class="container py-4">
+  <div class="row">
+    <div class="col-md-8 mx-auto">
+
+      <a href="/user-test-list" class="btn btn-primary mb-4" data-translate="return">Powrót do listy testów</a>
+      <h3 id="testTitle">Test użytkowników</h3>
+      <span id="testLanguageBadge" class="badge bg-secondary">
+        <span data-translate="language"></span>
+        <span id="testLanguage"></span>
+      </span>
+      
+      <div id="questionsContainer" class="mt-3"></div>
+      
+      <button id="checkResultsBtn" class="btn btn-primary mb-4" data-translate="checkResults">Sprawdź wynik</button>
+      
+      <div id="resultArea" class="d-none">
+        <div class="alert custom-alert-info text-center">
+          <h4 data-translate="results">🎓 Test result</h4>
+      
+          <p>
+            <span data-translate="correctAnswers">Poprawne odpowiedzi:</span>
+            <strong id="correctCount">0</strong>
+            /
+            <strong id="totalCount">0</strong>
+          </p>
+      
+          <p>
+            <span data-translate="percentResult">Wynik procentowy:</span>
+            <strong id="percentResult">0%</strong>
+          </p>
+        </div>
+      </div>
+      
+
+      <div id="ratingSection" class="mb-3">
+        <h6 data-translate="currentRating">Aktualna ocena testu</h6>
+        <div id="currentRating" class="d-flex align-items-center">
+          <span id="averageStars" class="star-text-warning fs-5"></span>
+          <span id="averageText" class="ms-2"></span>
+          <span id="ratingsCount" class="avgRaitingValue">
+            <span data-translate="ratings"></span>:
+            <span id="ratingsCountValue">0</span>
+          </span>
+        </div>
+        <div id="difficultyDisplay" class="mt-3">
+          <span id="averageStars" class="star-text-warning fs-5"></span>
+          <strong data-translate="averageDifficulty">Średnia trudność:</strong>
+          
+          <span id="difficultyAverage">nbsp</span>
+        </div>
+        
+        </div>
+      </div>
+
+      <div id="userFeedback" class="mt-4 d-none">
+        <h5 data-translate="rateTest">Ocena testu</h5>
+        <div id="ratingStars" class="star-rating mb-3">
+            <span data-star="1">★</span>
+            <span data-star="2">★</span>
+            <span data-star="3">★</span>
+            <span data-star="4">★</span>
+            <span data-star="5">★</span>
+          </div>
+          
+          <button id="submitRatingBtn" class="btn btn-primary btn-sm" data-translate="saveRating">Zapisz ocenę</button>
+          <br> <br>
+          <div id="difficultySection" class="mb-3">
+            <h6 data-translate="difficultyRating">Ocena trudności</h6>
+            <div id="difficultyStars" class="star-rating mb-2">
+              <span data-diff="1">★</span>
+              <span data-diff="2">★</span>
+              <span data-diff="3">★</span>
+            </div>
+            <button id="submitDifficultyBtn" class="btn btn-primary btn-sm" data-translate="saveDiff">Zapisz trudność</button>
+
+          <h5 class="mt-4" data-translate="comments">Komentarze</h5>
+          <textarea id="newCommentText" class="form-control mb-2 custom-textarea" placeholder="Dodaj komentarz" data-translate="addComment"></textarea>
+          <button id="submitCommentBtn" class="btn btn-primary btn-sm" data-translate="addComment">Dodaj komentarz</button>
+          
+          <div id="commentsContainer" class="mt-3"></div>
+        </div>
+      </div>
+    </div>
+  
+</main>
+
+<script src="static/javascripts/script.js"></script>
+<script src="static/javascripts/rating.js"></script>
+<script>
+// Konfiguracja
+const urlParams = new URLSearchParams(window.location.search);
+const testId = urlParams.get('testId');
+let selectedDifficulty = 0;
+
+console.log('Ładowanie testu ID:', testId);
+
+let testData = JSON.parse(localStorage.getItem('currentTestData'));
+
+// Jeśli nie ma danych (np. bezpośrednie wejście na stronę), użyj domyślnych
+if (!testData) {
+  console.warn('Brak danych testu, używam domyślnych');
+  testData = {
+    _id: testId || 'unknown',
+    title: 'Test z matematyki',
+    user: 'JanK',
+    questions: [
+      { question:'2+2=?', answers:[{text:'3',isCorrect:false},{text:'4',isCorrect:true},{text:'5',isCorrect:false}] },
+      { question:'5*3=?', answers:[{text:'15',isCorrect:true},{text:'10',isCorrect:false}] }
+    ],
+    comments: [
+      { _id:'c1', user:'AnnaM', text:'Super test!', createdAt: new Date(), canEdit:true, canDelete:true, canReply:true, replies:[] },
+      { _id:'c2', user:'PiotrS', text:'Trudne pytania.', createdAt: new Date(), canEdit:false, canDelete:false, canReply:true, replies:[] }
+    ]
+  };
+}
+
+console.log('Ładowanie testu ID:', testData._id, 'z', (testData.comments || []).length, 'komentarzami');
+
+let userAnswers = [];
+
+let commentsMock = testData.comments || [];
+
+
+function updateDifficultyDisplay() {
+  const el = document.getElementById('difficultyAverage');
+  if (!el) return;
+
+  const avg = calculateAverageFromObject(testData.difficultyRatings);
+  el.textContent = avg ? avg : "brak";
+
+  if (!avg || avg === 0) {
+    renderDifficultyStars(0);
+    return;
+  }
+
+  renderDifficultyStars(avg);
+}
+
+function initDifficultyStars() {
+  const stars = document.querySelectorAll('#difficultyStars span');
+
+  stars.forEach(star => {
+    star.addEventListener('mouseover', () => highlightDifficulty(star.dataset.diff));
+    star.addEventListener('mouseout', () => highlightDifficulty(selectedDifficulty));
+    star.addEventListener('click', () => {
+      const token = localStorage.getItem('token');
+      if (!token) return alert(t('loginToRate'));
+
+      selectedDifficulty = parseInt(star.dataset.diff);
+      highlightDifficulty(selectedDifficulty);
+    });
+  });
+}
+
+document.getElementById('submitDifficultyBtn').addEventListener('click', () => {
+  if (selectedDifficulty === 0) return alert(t('selectDifficulty'));
+
+  const user = JSON.parse(localStorage.getItem('user'));
+  const userId = user.id || user._id || user.email;
+
+  if (!testData.difficultyRatings) testData.difficultyRatings = {};
+
+  testData.difficultyRatings[userId] = selectedDifficulty;
+
+  const vals = Object.values(testData.difficultyRatings);
+  //testData.averageDifficulty = (vals.reduce((a,b)=>a+b,0) / vals.length).toFixed(1);
+
+  localStorage.setItem('currentTestData', JSON.stringify(testData));
+
+  updateDifficultyDisplay();
+});
+
+
+
+window.onLanguageChange = function(lang) {
+  console.log('Język zmieniony na:', lang);
+  
+  // Jeśli wyniki są wyświetlane, przetłumacz je
+  const resultArea = document.getElementById('resultArea');
+  if (resultArea && !resultArea.classList.contains('d-none')) {
+    translateResults();
+    renderTest();
+    showUserRating();
+    showUserDifficulty();
+    updateRatingDisplay();
+  }
+
+  if (!document.getElementById('resultArea').classList.contains('d-none')) {
+    showResults();   // <---- PRZETŁUMACZ WYNIKI
+  }
+  
+  // Aktualizuj język testu
+  displayTestLanguage();
+};
+
+// Zachowaj też istniejącą funkcję updateDynamicContent dla kompatybilności
+window.updateDynamicContent = function(lang) {
+  window.onLanguageChange(lang);
+};
+
+
+
+// Render pytań do rozwiązania - UŻYWAJĄC KLAS BOOTSTRAP JAK W TRYBIE TESTOWYM
+function renderTest() {
+  document.getElementById('testTitle').textContent = `${testData.title} – ${testData.user}`;
+  const container = document.getElementById('questionsContainer');
+  container.innerHTML = '';
+  
+  testData.questions.forEach((q, idx)=>{
+    const questionCard = document.createElement('div');
+    questionCard.className = 'card mb-4';
+    
+    const answersDiv = document.createElement('div');
+    answersDiv.className = 'list-group list-group-flush';
+    answersDiv.id = `answers-${idx}`;
+    
+    q.answers.forEach((a, answerIdx) => {
+      const answerBtn = document.createElement('button');
+      answerBtn.type = 'button';
+      answerBtn.className = 'list-group-item list-group-item-action';
+      answerBtn.textContent = a.text;
+      answerBtn.onclick = () => {
+        // Usuń aktywność ze wszystkich przycisków w tej grupie
+        const allBtns = answersDiv.querySelectorAll('button');
+        allBtns.forEach(b => b.classList.remove('active'));
+        // Zaznacz kliknięty przycisk
+        answerBtn.classList.add('active');
+        // Zapisz wybór użytkownika
+        userAnswers[idx] = answerIdx;
+      };
+      answersDiv.appendChild(answerBtn);
+    });
+    
+    questionCard.innerHTML = `
+      <div class="card-body">
+        <h5 class="card-title">
+          <span data-translate="question">${t("question")}</span>
+          <span class="questionCount"> ${idx+1}</span>
+        </h5>
+        <p class="card-text">${q.question}</p>
+      </div>
+    `;
+    questionCard.querySelector('.card-body').appendChild(answersDiv);
+    container.appendChild(questionCard);
+  });
+  document.getElementById('userFeedback').classList.add('d-none');
+  document.getElementById('resultArea').classList.add('d-none');
+}
+
+// Sprawdzanie wyników
+function checkResults() {
+  let correct = 0;
+  
+  testData.questions.forEach((q, idx) => {
+    const userAnswerIndex = userAnswers[idx];
+    const isCorrect = userAnswerIndex !== undefined && q.answers[userAnswerIndex].isCorrect;
+    
+    if (isCorrect) {
+      correct++;
+    }
+  });
+  
+  const total = testData.questions.length;
+  const percent = Math.round((correct / total) * 100);
+  console.log(`Wynik: ${correct} / ${total} (${percent}%)`);
+  return {
+    correct,
+    total,
+    percent
+  };
+}
+
+// Pokazanie wyników
+function showResults() {
+  const result = checkResults();
+  const container = document.getElementById('questionsContainer');
+
+  if (!container) {
+    console.error('Nie znaleziono kontenera pytań');
+    return;
+  }
+
+  container.innerHTML = '';
+  
+  testData.questions.forEach((q, idx)=>{
+    const questionCard = document.createElement('div');
+    questionCard.className = 'card mb-4';
+    
+    const userAnswerIndex = userAnswers[idx];
+    const userAnswerText = userAnswerIndex !== undefined 
+      ? q.answers[userAnswerIndex].text 
+      : t('noAnswer');
+    const isCorrect = userAnswerIndex !== undefined && q.answers[userAnswerIndex].isCorrect;
+    
+    // Znajdź poprawną odpowiedź
+    const correctAnswer = q.answers.find(a => a.isCorrect);
+    
+    questionCard.innerHTML = `
+      <div class="card-body">
+        <h5 class="card-title" data-translate="question">${t("question")} ${idx+1}</h5>
+        <p class="card-text">${q.question}</p>
+        
+        <div class="mt-3">
+          <p class="mb-1"><strong>${t('yourAnswer')}:</strong> ${userAnswerText}</p>
+          <p class="mb-1 ${isCorrect ? 'text-success' : 'text-danger'}">
+            <strong>${isCorrect ? '✅ ' + t('correct') : '❌ ' + t('incorrect')}</strong>
+          </p>
+          <p class="mb-0"><strong>${t('correctAnswer')}:</strong> ${correctAnswer ? correctAnswer.text : 'Brak poprawnej odpowiedzi'}</p>        </div>
+      </div>
+    `;
+    container.appendChild(questionCard);
+  });
+  
+// DEBUG: Sprawdź wszystkie elementy przed aktualizacją
+  console.log('DEBUG - Wszystkie elementy wyników:');
+  console.log('correctCount:', document.getElementById('correctCount'));
+  console.log('totalCount:', document.getElementById('totalCount'));
+  console.log('percentResult:', document.getElementById('percentResult'));
+  console.log('resultArea:', document.getElementById('resultArea'));
+
+  // Aktualizacja i pokazanie wyniku
+  const resultAreaElem = document.getElementById('resultArea'); 
+  
+  if (resultAreaElem) {
+    // Próbuj różne sposoby znalezienia elementów
+    const correctCountElem = document.getElementById('correctCount') || 
+                            resultAreaElem.querySelector('#correctCount');
+    const totalCountElem = document.getElementById('totalCount') || 
+                          resultAreaElem.querySelector('#totalCount');
+    const percentResultElem = document.getElementById('percentResult') || 
+                             resultAreaElem.querySelector('#percentResult');
+    
+    console.log('Po poprawkach - correctCountElem:', correctCountElem);
+    console.log('Po poprawkach - totalCountElem:', totalCountElem);
+    console.log('Po poprawkach - percentResultElem:', percentResultElem);
+    
+    if (correctCountElem && totalCountElem && percentResultElem) {
+      correctCountElem.textContent = result.correct;
+      totalCountElem.textContent = result.total;
+      percentResultElem.textContent = `${result.percent}%`;
+      resultAreaElem.classList.remove('d-none');
+      console.log('Wyniki zostały pomyślnie zaktualizowane');
+    } else {
+      console.error('Nie znaleziono elementów wyników nawet po poprawkach');
+      // AWARYJNE: Stwórz wynik od nowa
+      createFallbackResults(result);
+    }
+  } else {
+    console.error('Nie znaleziono resultArea');
+    // AWARYJNE: Stwórz wynik od nowa
+    createFallbackResults(result);
+  }
+
+  // Pokazanie sekcji oceny i komentarzy
+  const userFeedbackElem = document.getElementById('userFeedback');
+  const checkResultsBtnElem = document.getElementById('checkResultsBtn');
+  
+  if (userFeedbackElem) {
+    userFeedbackElem.classList.remove('d-none');
+    renderComments(commentsMock);
+    applyTranslations();
+    
+  } else {
+    console.error('Nie znaleziono sekcji komentarzy');
+  }
+  
+  if (checkResultsBtnElem) {
+    checkResultsBtnElem.classList.add('d-none');
+  }
+}
+
+function createFallbackResults(result) {
+  const container = document.getElementById('questionsContainer');
+  if (!container) return;
+  
+  const resultsCard = document.createElement('div');
+  resultsCard.className = 'card mb-4';
+  resultsCard.innerHTML = `
+    <div class="card-body">
+      <h4 class="card-title">🎓 ${t('results')}</h4>
+      <p class="card-text">${t('correctAnswers')}: <strong>${result.correct}</strong> / <strong>${result.total}</strong></p>
+      <p class="card-text">${t('percentResult')}: <strong>${result.percent}%</strong></p>
+    </div>
+  `;
+  
+  // Wstaw na początek kontenera
+  container.insertBefore(resultsCard, container.firstChild);
+}
+
+// Obsługa przycisku sprawdzania wyniku
+document.getElementById('checkResultsBtn').addEventListener('click', () => {
+  // Sprawdź czy wszystkie pytania mają odpowiedzi
+  const allAnswered = testData.questions.every((q, idx) => {
+    return userAnswers[idx] !== undefined;
+  });
+  
+  if (!allAnswered) {
+    if (!confirm(t('notAllAnswered'))) {
+      return userAnswers[idx] !== undefined;
+    }
+  }
+  
+  showResults();
+});
+
+// Ocena na gwiazdki
+let selectedRating = 0;
+
+function initStarRating() {
+  const stars = document.querySelectorAll('#ratingStars span');
+
+  stars.forEach(star => {
+    star.addEventListener('mouseover', () => {
+      const val = star.dataset.star;
+      highlightStars(val);
+    });
+
+    star.addEventListener('mouseout', () => {
+      highlightStars(selectedRating);
+    });
+
+    star.addEventListener('click', () => {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert(t('loginToRate'));
+        return;
+      }
+      selectedRating = parseInt(star.dataset.star);
+      highlightStars(selectedRating);
+    });
+  });
+}
+
+
+
+function renderDifficultyStars(avg) {
+  const el = document.getElementById('difficultyStarsAverage');
+  const textEl = document.getElementById('difficultyAverageText');
+  if (!el || !textEl) return;
+
+  // Ograniczenie: trudność 1–3, średnia np. 2.3
+  const rounded = Math.round(avg);
+  let starsHTML = '';
+
+  // Pełne gwiazdy (max 3)
+  for (let i = 0; i < rounded; i++) {
+    starsHTML += '<span class="star-filled">★</span>';
+  }
+
+  // Puste do 3
+  for (let i = rounded; i < 3; i++) {
+    starsHTML += '<span class="star-empty">☆</span>';
+  }
+
+  el.innerHTML = starsHTML;
+  textEl.textContent = `${avg}`;
+}
+
+
+// Komentarze
+function renderComments(comments, container=document.getElementById('commentsContainer')) {
+  container.innerHTML='';
+
+  comments.forEach(c=>{
+    const div=document.createElement('div');
+    div.classList.add('border','p-3','mb-3','rounded');
+    div.dataset.id = c._id;
+    c.text = c.text.replace(/\(edytowany\)/gi, '').trim();
+    div.innerHTML=`
+    <strong>${c.user}</strong> 
+    <small class="comment-date">${new Date(c.createdAt).toLocaleString()}</small>
+      <p class="comment-text mt-2">
+        <span class="textComment">${c.text}</span>
+         ${c.edited ? '<em class="edited-flag" data-translate="edited">(edytowany)</em>' : ''}
+         </p>
+      <div class="d-flex gap-2 flex-wrap">
+        ${c.canReply?'<button class="comment-action replyBtn" data-translate="reply">Odpowiedz</button>':''}
+        ${c.canEdit?'<button class="comment-action editBtn" data-translate="edit">Edytuj</button>':''}
+        ${c.canDelete?'<button class="comment-action deleteBtn" data-translate="delete">Usuń</button>':''}
+        <button class="comment-action reportBtn" data-translate="report">Zgłoś</button>
+      </div>
+      <div class="reply-container mt-2"></div>
+      <div class="replies ms-3 mt-2"></div>
+      `;
+      
+    container.appendChild(div);
+    if(c.replies && c.replies.length) 
+        renderComments(c.replies, div.querySelector('.replies'));
+  });
+  attachCommentEvents();
+}
+
+// Obsługa przycisków w komentarzach
+function attachCommentEvents() {
+  // Odpowiedz
+  document.querySelectorAll('.replyBtn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      const commentDiv = e.target.closest('[data-id]');
+      const replyBox = commentDiv.querySelector('.reply-container');
+
+      replyBox.innerHTML = `
+        <textarea class="form-control mb-2 replyText" placeholder="Napisz odpowiedź..." data-translate="writeReply"></textarea>
+        <div class="d-flex gap-2">
+            <button class="comment-action submitReplyBtn" data-translate="addReply">Dodaj odpowiedź</button>
+            <button class="comment-action cancelReplyBtn" data-translate="cancel">Anuluj</button><br>
+        </div>
+        `;
+    replyBox.querySelector('.cancelReplyBtn').addEventListener('click', () => {
+        replyBox.innerHTML = ''; // czyści formularz
+    });
+
+      replyBox.querySelector('.submitReplyBtn').addEventListener('click', () => {
+        const text = replyBox.querySelector('.replyText').value.trim();
+        if (!text) return;
+
+        const id = commentDiv.dataset.id;
+
+        const comment = findCommentById(id, commentsMock);
+        comment.replies.push({
+          _id: Math.random().toString(),
+          user: "Ty",
+          text: text,
+          createdAt: new Date(),
+          canEdit: true,
+          canDelete: true,
+          canReply: true,
+          replies: []
+        });
+
+        renderComments(commentsMock);
+      });
+    });
+  });
+
+  // Edytuj
+  document.querySelectorAll('.editBtn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      const commentDiv = e.target.closest('[data-id]');
+      const textP = commentDiv.querySelector('.comment-text');
+      
+      const oldText = textP.textContent;
+
+      textP.outerHTML = `
+        <textarea class="form-control editArea mb-2">${oldText}</textarea>
+        <div class="d-flex gap-2">
+            <button class="comment-action saveEditBtn" data-translate="save">Zapisz</button>
+            <button class="comment-action cancelEditBtn" data-translate="cancel">Anuluj</button>
+        </div>
+        `;
+
+      commentDiv.querySelector('.saveEditBtn').addEventListener('click', () => {
+        const newText = commentDiv.querySelector('.editArea').value.trim();
+        const id = commentDiv.dataset.id;
+
+        const comment = findCommentById(id, commentsMock);
+        comment.text = newText;
+        comment.edited = true;
+        comment.createdAt = new Date();
+
+        renderComments(commentsMock);
+      });
+      commentDiv.querySelector('.cancelEditBtn').addEventListener('click', () => {
+        renderComments(commentsMock);
+    });
+    });
+  });
+
+  // Usuń
+  document.querySelectorAll('.deleteBtn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      if (!confirm(t('confirmDelete'))) return;
+      else{
+
+      const id = e.target.closest('[data-id]').dataset.id;
+      deleteCommentById(id, commentsMock);
+
+      renderComments(commentsMock);}
+    });
+  });
+
+  // Zgłoś
+  document.querySelectorAll('.reportBtn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (confirm(t('confirmReport'))) {
+        alert(t('reportSubmitted'));
+      }
+    });
+  });
+}
+
+// Funkcje pomocnicze do znajdowania i usuwania komentarzy
+function findCommentById(id, list) {
+  for (const c of list) {
+    if (c._id === id) return c;
+    const child = findCommentById(id, c.replies);
+    if (child) return child;
+  }
+  return null;
+}
+
+function deleteCommentById(id, list) {
+  const index = list.findIndex(c => c._id === id);
+  if (index !== -1) return list.splice(index, 1);
+
+  for (const c of list) {
+    deleteCommentById(id, c.replies);
+  }
+}
+
+function showUserRating() {
+  const token = localStorage.getItem('token');
+  const userDataStr = localStorage.getItem('user');
+  
+  if (!token || !userDataStr) return;
+  
+  try {
+    const userData = JSON.parse(userDataStr);
+    const userId = userData.id || userData._id || userData.email;
+    
+    if (testData.ratings && testData.ratings[userId]) {
+      const userRating = testData.ratings[userId];
+      selectedRating = userRating;
+      highlightStars(userRating);
+      
+    }
+  } catch (error) {
+    console.error('Błąd podczas ładowania oceny użytkownika:', error);
+  }
+}
+
+function showUserDifficulty() {
+  const user = JSON.parse(localStorage.getItem('user') || 'null');
+  if (!user) return;
+
+  const userId = user.id || user._id || user.email;
+
+  // jeśli user oceniał trudność
+  if (testData.difficultyRatings && testData.difficultyRatings[userId]) {
+    selectedDifficulty = testData.difficultyRatings[userId];
+    highlightDifficulty(selectedDifficulty);
+  }
+}
+
+
+function updateRatingDisplay() {
+  const ratings = testData.ratings ? Object.values(testData.ratings) : [];
+  const avgRating = calculateAverageFromObject(testData.ratings);
+  const count = ratings.length;
+  
+  const averageStars = document.getElementById('averageStars');
+  const averageText = document.getElementById('averageText');
+  const ratingsCount = document.getElementById('ratingsCount');
+  
+  if (averageStars && averageText && ratingsCount) {
+    if (count > 0 && avgRating > 0) {
+      // Użyj HTML z różnymi klasami dla pełnych i pustych gwiazdek
+      const fullStarsCount = Math.round(avgRating);
+      const emptyStarsCount = 5 - fullStarsCount;
+      
+      let starsHTML = '';
+      
+      // Pełne gwiazdki
+      for (let i = 0; i < fullStarsCount; i++) {
+        starsHTML += '<span class="star-filled">★</span>';
+      }
+      
+      // Puste gwiazdki
+      for (let i = 0; i < emptyStarsCount; i++) {
+        starsHTML += '<span class="star-empty">☆</span>';
+      }
+      
+      averageStars.innerHTML = starsHTML;
+      averageText.textContent = `${avgRating} (`;
+      ratingsCountValue.textContent = `${count})`;
+    } else {
+      // Brak ocen - wszystkie gwiazdki puste
+      averageStars.innerHTML = '<span class="star-empty">☆</span>'.repeat(5);
+      averageText.textContent = t('noRatings');
+      ratingsCount.textContent = '';
+    }
+  }
+}
+
+
+
+// Funkcję do zapisywania oceny
+function saveRating(rating) {
+  const token = localStorage.getItem('token');
+  const userDataStr = localStorage.getItem('user');
+  
+  if (!token || !userDataStr) {
+    alert(t('loginToRate'));
+    return;
+  }
+  
+  try {
+    const userData = JSON.parse(userDataStr);
+    const userId = userData.id || userData._id || userData.email; // Użyj unikalnego ID użytkownika
+    
+    if (!testData.ratings) testData.ratings = {};
+    
+    // Sprawdź czy użytkownik już ocenił
+    const userPreviousRating = testData.ratings[userId];
+    
+    testData.ratings[userId] = rating;
+    
+    // Oblicz nową średnią ocenę
+    const ratingsArray = Object.values(testData.ratings);
+    const sum = ratingsArray.reduce((a, b) => a + b, 0);
+    testData.averageRating = (sum / ratingsArray.length).toFixed(1);
+    
+    // Zapisz
+    localStorage.setItem('currentTestData', JSON.stringify(testData));
+    
+    // Odśwież wyświetlanie oceny
+    updateRatingDisplay();
+    
+    // Komunikat dla użytkownika
+    if (userPreviousRating) {
+      alert(t('ratingUpdated', { oldRating: userPreviousRating, newRating: rating }));
+    } else {
+      alert(t('ratingSaved', { rating }));
+    }
+    
+  } catch (error) {
+    console.error('Błąd podczas zapisywania oceny:', error);
+    alert('Error');
+  }
+}
+
+// Ocena i komentarze
+document.getElementById('submitRatingBtn').addEventListener('click', () => {
+  if (selectedRating === 0) {
+    alert(t('selectRating'));
+    return;
+  }
+  saveRating(selectedRating);
+});
+
+document.getElementById('submitCommentBtn').addEventListener('click', () => {
+  // Sprawdź czy użytkownik jest zalogowany - tak jak w login.html
+  const token = localStorage.getItem('token');
+  const userDataStr = localStorage.getItem('user');
+  
+  if (!token || !userDataStr) {
+    alert(t('loginToComment'));
+    return;
+  }
+  
+  const commentText = document.getElementById('newCommentText').value.trim();
+  
+  if (!commentText) {
+    alert(t('enterComment'));
+    return;
+  }
+  
+  try {
+    // Pobierz dane użytkownika 
+    const userData = JSON.parse(userDataStr);
+    
+    // Dodaj nowy komentarz
+    const newComment = {
+      _id: 'c' + Date.now(),
+      user: userData.name,
+      text: commentText,
+      createdAt: new Date(),
+      canEdit: true,
+      canDelete: true,
+      canReply: true,
+      replies: []
+    };
+    
+    // Dodaj komentarz
+    testData.comments = testData.comments || [];
+    testData.comments.unshift(newComment);
+
+    
+    // ZAPISUJEMY ZAKTUALIZOWANE DANE TESTU
+    localStorage.setItem('currentTestData', JSON.stringify(testData));
+    
+    // Odśwież wyświetlane komentarze
+    renderComments(commentsMock);
+    
+    // Wyczyść pole tekstowe
+    document.getElementById('newCommentText').value = '';
+    
+  } catch (error) {
+    console.error('Błąd podczas dodawania komentarza:', error);
+    alert('Error');
+  }
+});
+
+const user = JSON.parse(localStorage.getItem('user') || 'null');
+    if (user) {
+      document.getElementById('userEmail').textContent = user.name;
+      const btn = document.getElementById('authBtn');
+      btn.textContent = 'Wyloguj';
+      btn.href = '#';
+      btn.addEventListener('click', () => {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        window.location.reload();
+      });
+      document.getElementById('regBtn').style.display = 'none';
+    }
+
+// Zaktualizuj funkcję displayTestLanguage aby używała tłumaczeń
+function displayTestLanguage() {
+  const testLanguage = testData.language || 'pl';
+  const languageBadge = document.getElementById('testLanguageBadge');
+  const testLangSpan = document.getElementById('testLanguage');
+  if (languageBadge) {
+    const languageName = testLanguage === 'pl' ? 'Polski' : 'English';
+    testLangSpan.textContent =  languageName;
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  displayTestLanguage();
+  renderTest();
+  initStarRating();
+  initDifficultyStars();
+  setupThemeToggle('toggleTheme');
+  updateRatingDisplay();
+  updateDifficultyDisplay();
+  showUserRating();
+  showUserDifficulty();
+});
+</script>
+<script src="/static/javascripts/translations.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -18,16 +18,40 @@
         <li class="nav-item"><a class="nav-link" href="/quiz/learn" data-translate="learnMode">Tryb nauki</a></li>
         <li class="nav-item"><a class="nav-link" href="/flashcards" data-translate="flashcards">Fiszki</a></li>
         <li class="nav-item"><a class="nav-link" href="/rank" data-translate="rank">Ranking</a></li>
+        <li class="nav-item"><a class="nav-link" href="/user-test-list" data-translate="userTestsList">Lista Testów użytkowników</a></li>
       </ul>
       <div class="d-flex align-items-center">
         <button id="toggleTheme" class="btn btn-outline-light me-2">Toggle Dark/Light</button>
         <span id="userEmail" class="me-3"></span>
         <a id="authBtn" class="btn btn-outline-light me-2" href="/login" data-translate="login">Zaloguj</a>
         <a id="regBtn" class="btn btn-secondary" href="/register" data-translate="register">Rejestracja</a>
+      <button id="themeToggleBtn" class="btn btn-theme-toggle" aria-label="Zmień motyw">
+          <i id="themeIcon" class="bi bi-moon-stars-fill"></i>
+        </button>
       </div>
-      <div class="language-switcher">
-        <button onclick="changeLanguage('pl')" class="btn btn-primary">PL</button>
-        <button onclick="changeLanguage('en')" class="btn btn-primary">EN</button>
+    <div class="dropdown lang-dropdown-container">
+        <button class="btn btn-link text-decoration-none dropdown-toggle text-light border-0" 
+                type="button" 
+                id="langDropdown" 
+                data-bs-toggle="dropdown" 
+                aria-expanded="false">
+            <span id="currentLangLabel">PL</span>
+        </button>
+
+        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="langDropdown">
+            <li>
+                <a class="dropdown-item lang-select d-flex justify-content-between text-light align-items-center" href="#" data-lang="pl">
+                    Polski
+                    <span class="check-icon" data-lang-target="pl"></span> 
+                </a>
+            </li>
+            <li>
+                <a class="dropdown-item lang-select d-flex justify-content-between text-light align-items-center" href="#" data-lang="en">
+                    English
+                    <span class="check-icon" data-lang-target="en"></span>
+                </a>
+            </li>
+        </ul>
       </div>
     </div>
   </div>

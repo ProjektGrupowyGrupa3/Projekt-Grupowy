@@ -1,4 +1,13 @@
 // Ustawienie zapisanej wartości trybu
+// funkcja obliczająca średnią dla tablic z ocenami i trudnością
+function calculateAverageFromObject(obj) {
+    const values = Object.values(obj || {});
+    if (values.length === 0) return 0;
+    const sum = values.reduce((a, b) => a + b, 0);
+    return Math.round((sum / values.length) * 10) / 10;
+}
+
+// ustawienie zapisanej wartości trybu
 function applySavedTheme() {
     const savedTheme = localStorage.getItem('theme');
     if (savedTheme === 'light') {
@@ -23,10 +32,14 @@ function setupThemeToggle(toggleBtnId) {
     });
 }
 
-
 function changeLanguage(lang) {
     localStorage.setItem('language', lang);
     updatePageContent(lang);
+    
+    // Dodano: Aktualizacja dynamicznych treści (jeśli funkcja istnieje)
+    if (typeof updateDynamicContent === 'function') {
+        updateDynamicContent(lang);
+    }
 }
 
 function updatePageContent(lang) {
@@ -50,9 +63,13 @@ function updatePageContent(lang) {
         currentPage = 'index';
     } else if (path.includes('flashcards')) {
         currentPage = 'flashcards';
+    } else if (path.includes('user-test-list')) {
+        currentPage = 'userTestList';
+    } else if (path.includes('user-test-details')) {
+        currentPage = 'userTestDetails';
     }
 
-    // Pobranie tłumaczeń (zakładam, że zmienna 'translations' jest dostępna globalnie)
+    // Używamy bezpieczniejszego dostępu przez window.translations (z Twojej wersji HEAD)
     const pageTranslations = (window.translations && window.translations[lang] && window.translations[lang][currentPage]) || {};
     const layoutTranslations = (window.translations && window.translations[lang] && window.translations[lang].layout) || {};
 
@@ -70,11 +87,60 @@ function updatePageContent(lang) {
                 } else {
                     element.placeholder = text;
                 }
+            } else if (element.tagName === 'TEXTAREA') {
+                // Dodano obsługę TEXTAREA (z wersji origin)
+                element.placeholder = text;
             } else {
                 element.textContent = text;
             }
         }
     });
+}
+
+// --- NOWE FUNKCJE Z SERWERA (Niezbędne dla nowych funkcjonalności) ---
+
+// Funkcja do aktualizacji dynamicznych treści
+function updateDynamicContent(lang, currentPage) {
+    // Wywołaj globalną funkcję jeśli istnieje (definiowaną w plikach poszczególnych widoków)
+    if (window.updateDynamicContent) {
+        window.updateDynamicContent(lang, currentPage);
+    }
+}
+
+// Globalna funkcja pomocnicza do tłumaczeń (używana w JS, np. w alertach czy generowaniu HTML)
+window.t = function(key, params = {}) {
+    const currentLang = localStorage.getItem('language') || 'pl';
+    const path = window.location.pathname;
+    let currentPage = 'index';
+
+    if (path.includes('user-test-list')) {
+        currentPage = 'userTestList';
+    } else if (path.includes('user-test-details')) {
+        currentPage = 'userTestDetails';
+    }
+
+    // Zabezpieczenie: szukamy w window.translations
+    const transObj = window.translations || (typeof translations !== 'undefined' ? translations : {});
+    const pageTranslations = transObj[currentLang] && transObj[currentLang][currentPage];
+    
+    let text = (pageTranslations && pageTranslations[key]);
+  
+    if (!text) {
+        // Opcjonalnie: console.warn(`Translation missing for key: ${key}`);
+        return key;
+    }
+  
+    // Zamień parametry {nazwa} na wartości
+    Object.keys(params).forEach(param => {
+        text = text.replace(new RegExp(`{${param}}`, 'g'), params[param]);
+    });
+  
+    return text;
+}
+
+// Funkcja pomocnicza do pobrania aktualnego języka
+window.getCurrentLanguage = function() {
+    return localStorage.getItem('language') || 'pl';
 }
 
 // --- Obsługa Sesji Użytkownika ---
@@ -93,10 +159,8 @@ function checkUserSession() {
         userEmailEl.textContent = user.name;
 
         // 2. Zmień przycisk "Zaloguj" na "Wyloguj"
-        // Zmieniamy też atrybut data-translate, żeby funkcja updatePageContent() 
-        // przy zmianie języka wiedziała, że teraz ma tłumaczyć słowo "logout", a nie "login"
         authBtn.setAttribute('data-translate', 'logout'); 
-        authBtn.textContent = 'Wyloguj'; // Domyślny tekst zanim zadziała tłumaczenie
+        authBtn.textContent = 'Wyloguj'; 
         authBtn.href = '#';
 
         // 3. Nadpisz zachowanie przycisku (Wylogowanie)
@@ -104,7 +168,6 @@ function checkUserSession() {
             e.preventDefault();
             localStorage.removeItem('token');
             localStorage.removeItem('user');
-            // Przekierowanie na stronę główną lub odświeżenie
             window.location.href = '/'; 
         };
 
@@ -115,20 +178,30 @@ function checkUserSession() {
     }
 }
 
-// Główna Inicjalizacja (Wspólna dla wszystkiego) 
+// --- Główna Inicjalizacja ---
 
 document.addEventListener('DOMContentLoaded', () => {
     // 1. Ustaw motyw
     applySavedTheme();
+    // Upewnij się, że ID przycisku w HTML to 'toggleTheme'. 
+    // Jeśli używasz nowej wersji z ikoną księżyca, może to być 'themeToggleBtn'.
+    // Dla pewności zostawiam obie opcje:
     setupThemeToggle('toggleTheme'); 
+    setupThemeToggle('themeToggleBtn'); 
 
     // 2. Ustaw język
     const currentLang = localStorage.getItem('language') || 'pl';
-    // Upewnij się, że obiekt translations jest już załadowany (np. w innym pliku js)
     if (typeof updatePageContent === 'function') {
         updatePageContent(currentLang);
     }
 
-    // 3. Sprawdź sesję użytkownika (zalogowany/wylogowany)
+    // 3. Sprawdź sesję użytkownika
     checkUserSession();
 });
+
+// Funkcja pomocnicza dla zewnętrznych skryptów (z wersji origin)
+window.applyTranslations = function() {
+    const currentLang = localStorage.getItem('language') || 'pl';
+    updatePageContent(currentLang);
+    updateDynamicContent(currentLang);
+};

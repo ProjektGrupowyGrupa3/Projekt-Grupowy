@@ -23,6 +23,8 @@ const setPasswordRouter = require('./routes/set-password');
 const flashcardsRouter = require('./routes/flashcards');
 const adminPanelRouter = require("./routes/adminPanel");
 
+const userTestDetailsRouter = require('./routes/user-test-details');
+const userTestListRouter = require('./routes/user-test-list');
 var app = express();
 
 // 🔹 Load environment variables
@@ -68,6 +70,10 @@ app.use('/api/points', require('./routes/points'));
 app.use('/api/user-progress', userProgressRouter);
 //Flashcards Page
 app.use('/flashcards', flashcardsRouter);
+//User test details
+app.use('/user-test-details', userTestDetailsRouter);
+//User test list
+app.use('/user-test-list', userTestListRouter);
 //Reset Password Page
 app.use('/reset-password', resetPasswordRouter);
 app.use('/set-password/:id',setPasswordRouter)
