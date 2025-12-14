@@ -33,7 +33,7 @@
   <script src="/static/javascripts/sort.js"></script>
   <script src="/static/javascripts/script.js"></script>
   <script>
-    
+    setupThemeToggle('toggleTheme');
 //Przykładowe dane testów użytkowników
     const testsMock = [
       {
@@ -442,20 +442,7 @@
       }
     }
 
-    // Pokazanie użytkownika jeśli zalogowany
-    const user = JSON.parse(localStorage.getItem('user') || 'null');
-    if (user) {
-      document.getElementById('userEmail').textContent = user.name;
-      const btn = document.getElementById('authBtn');
-      btn.textContent = 'Wyloguj';
-      btn.href = '#';
-      btn.addEventListener('click', () => {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        window.location.reload();
-      });
-      document.getElementById('regBtn').style.display = 'none';
-    }
+
 
 
     // Dark/Light Toggle

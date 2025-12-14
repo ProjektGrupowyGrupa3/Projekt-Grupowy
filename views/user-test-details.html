@@ -99,7 +99,7 @@
 <script src="static/javascripts/script.js"></script>
 <script src="static/javascripts/rating.js"></script>
 <script>
-
+setupThemeToggle('toggleTheme');
 // Konfiguracja
 const urlParams = new URLSearchParams(window.location.search);
 const testId = urlParams.get('testId');
@@ -526,12 +526,14 @@ function attachCommentEvents() {
         const text = replyBox.querySelector('.replyText').value.trim();
         if (!text) return;
 
+        const userDataStr = localStorage.getItem('user');
+        const userData = JSON.parse(userDataStr);
         const id = commentDiv.dataset.id;
 
         const comment = findCommentById(id, commentsMock);
         comment.replies.push({
           _id: Math.random().toString(),
-          user: "Ty",
+          user: userData.name,
           text: text,
           createdAt: new Date(),
           canEdit: true,
@@ -754,6 +756,7 @@ document.getElementById('submitCommentBtn').addEventListener('click', () => {
   // Sprawdź czy użytkownik jest zalogowany - tak jak w login.html
   const token = localStorage.getItem('token');
   const userDataStr = localStorage.getItem('user');
+  console.log('Dane użytkownika do komentarza:', userDataStr);
   
   if (!token || !userDataStr) {
     alert(t('loginToComment'));
@@ -770,7 +773,7 @@ document.getElementById('submitCommentBtn').addEventListener('click', () => {
   try {
     // Pobierz dane użytkownika 
     const userData = JSON.parse(userDataStr);
-    
+    console.log('Dodawanie komentarza przez użytkownika:', userData);
     // Dodaj nowy komentarz
     const newComment = {
       _id: 'c' + Date.now(),
@@ -803,7 +806,7 @@ document.getElementById('submitCommentBtn').addEventListener('click', () => {
   }
 });
 
-const user = JSON.parse(localStorage.getItem('user') || 'null');
+
     
 
 // Zaktualizuj funkcję displayTestLanguage aby używała tłumaczeń

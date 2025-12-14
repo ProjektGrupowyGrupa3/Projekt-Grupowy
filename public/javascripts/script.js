@@ -16,19 +16,38 @@ function applySavedTheme() {
   }
 }
 
-// Funkcja obsługująca przełącznik
-function setupThemeToggle(toggleBtnId) {
-  const toggleBtn = document.getElementById(toggleBtnId);
-  if (!toggleBtn) return; // Jeśli nie ma przycisku na danej podstronie, przerywamy
-
-  toggleBtn.addEventListener('click', () => {
-      document.body.classList.toggle('light-mode');
-      if (document.body.classList.contains('light-mode')) {
-          localStorage.setItem('theme', 'light');
-      } else {
-          localStorage.setItem('theme', 'dark');
-      }
+const user = JSON.parse(localStorage.getItem('user') || 'null');
+if(user){
+  document.getElementById('userEmail').textContent = user.email;
+  if(user.userType<2){
+    document.getElementById('adminPanel').style.display = 'none';
+  }
+  const btn = document.getElementById('authBtn');
+  btn.textContent = 'Wyloguj';
+  btn.href = '#';
+  btn.addEventListener('click', ()=> {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    window.location.reload();
   });
+  document.getElementById('regBtn').style.display = 'none';
+}
+else{
+  document.getElementById('adminPanel').style.display = 'none';
+}
+// funkcja toggle
+function setupThemeToggle(toggleBtnId) {
+    const toggleBtn = document.getElementById(toggleBtnId);
+    if(!toggleBtn) return;
+
+    toggleBtn.addEventListener('click', () => {
+        document.body.classList.toggle('light-mode');
+        if(document.body.classList.contains('light-mode')){
+            localStorage.setItem('theme','light');
+        } else {
+            localStorage.setItem('theme','dark');
+        }
+    });
 }
 
 // Funkcja zmiany języka
@@ -70,6 +89,11 @@ function updatePageContent(lang) {
 
   document.querySelectorAll('[data-translate]').forEach(element => {
     const key = element.getAttribute('data-translate');
+    if(key == "login"){
+      if(user){
+        //key = "logout"
+      }
+    }
     // Najpierw szukamy w tłumaczeniach strony, potem w ogólnym layoucie
     const text =
       (pageTranslations && pageTranslations[key]) ||
@@ -131,21 +155,14 @@ function checkUserSession() {
 }
 
 // Główna Inicjalizacja (Wspólna dla wszystkiego) 
-
 document.addEventListener('DOMContentLoaded', () => {
-  // 1. Ustaw motyw
-  applySavedTheme();
-  setupThemeToggle('toggleTheme'); 
-
-  // 2. Ustaw język
   const currentLang = localStorage.getItem('language') || 'pl';
-  // Upewnij się, że obiekt translations jest już załadowany (np. w innym pliku js)
-  if (typeof updatePageContent === 'function') {
-      updatePageContent(currentLang);
-  }
+  updatePageContent(currentLang);
+});
 
-  // 3. Sprawdź sesję użytkownika (zalogowany/wylogowany)
-  checkUserSession();
+// od razu ustaw tryb przy ładowaniu strony
+document.addEventListener('DOMContentLoaded', () => {
+    applySavedTheme();
 });
 
 
@@ -191,21 +208,3 @@ window.getCurrentLanguage = function() {
   return localStorage.getItem('language') || 'pl';
 }
 
-// Inicjalizacja języka przy załadowaniu strony
-document.addEventListener('DOMContentLoaded', () => {
-  const currentLang = localStorage.getItem('language') || 'pl';
-  updatePageContent(currentLang);
-});
-
-// od razu ustaw tryb przy ładowaniu strony
-document.addEventListener('DOMContentLoaded', () => {
-    applySavedTheme();
-});
-
-
-// Funkcja do ponownego przetłumaczenia aktualnej strony
-window.applyTranslations = function() {
-  const currentLang = localStorage.getItem('language') || 'pl';
-  updatePageContent(currentLang);
-  updateDynamicContent(currentLang);
-};
