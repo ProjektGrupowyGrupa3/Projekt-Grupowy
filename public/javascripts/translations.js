@@ -54,6 +54,7 @@ const translations = {
     },
     layout:{
         login:"Logowanie",
+        logout:"Wyloguj",
         register:"Rejestracja",
         learnMode:"Tryb nauki",
         flashcards:"Fiszki"
@@ -153,6 +154,7 @@ const translations = {
     },
     layout: {
         login:"Login",
+        logout:"Logout",
         register:"Register",
         learnMode:"Learning Mode",
         flashcards:"Flashcards"

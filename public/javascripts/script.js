@@ -8,6 +8,25 @@ function applySavedTheme() {
     }
 }
 
+const user = JSON.parse(localStorage.getItem('user') || 'null');
+if(user){
+  document.getElementById('userEmail').textContent = user.email;
+  if(user.userType<2){
+    document.getElementById('adminPanel').style.display = 'none';
+  }
+  const btn = document.getElementById('authBtn');
+  btn.textContent = 'Wyloguj';
+  btn.href = '#';
+  btn.addEventListener('click', ()=> {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    window.location.reload();
+  });
+  document.getElementById('regBtn').style.display = 'none';
+}
+else{
+  document.getElementById('adminPanel').style.display = 'none';
+}
 // funkcja toggle
 function setupThemeToggle(toggleBtnId) {
     const toggleBtn = document.getElementById(toggleBtnId);
@@ -57,11 +76,17 @@ function updatePageContent(lang) {
 
 
   document.querySelectorAll('[data-translate]').forEach(element => {
-    const key = element.getAttribute('data-translate');
+    key = element.getAttribute('data-translate');
+    if(key == "login"){
+      if(user){
+        key = "logout"
+      }
+    }
+    
     const text =
       (pageTranslations && pageTranslations[key]) ||
       (layoutTranslations && layoutTranslations[key]);
-
+    
     if (text) {
       if (element.tagName === 'INPUT') {
         if (element.type === 'submit' || element.type === 'button') {
@@ -86,3 +111,4 @@ document.addEventListener('DOMContentLoaded', () => {
 document.addEventListener('DOMContentLoaded', () => {
     applySavedTheme();
 });
+

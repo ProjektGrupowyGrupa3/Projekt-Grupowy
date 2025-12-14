@@ -22,6 +22,8 @@ const resetPasswordRouter = require('./routes/reset-password');
 const setPasswordRouter = require('./routes/set-password');
 const flashcardsRouter = require('./routes/flashcards');
 const createtestRouter = require('./routes/create-test');
+const adminPanelRouter = require("./routes/adminPanel");
+const administrationPanelRouter = require("./routes/administrationPanel");
 var app = express();
 
 // 🔹 Load environment variables
@@ -64,7 +66,12 @@ app.use('/api/user-progress', userProgressRouter);
 app.use('/flashcards', flashcardsRouter);
 //Create Test Page
 app.use('/create-test', createtestRouter);
-
+//Ranking of Users
+app.use("/rank", require("./routes/ranking"));
+app.use('/api/points', require('./routes/points'));
+// Admin stuff
+app.use("/api/adminPanel", adminPanelRouter);
+app.use("/adminPanel",administrationPanelRouter)
 //Reset Password Page
 app.use('/reset-password', resetPasswordRouter);
 app.use('/set-password/:id',setPasswordRouter)
