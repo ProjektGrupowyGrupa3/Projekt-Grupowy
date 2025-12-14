@@ -56,8 +56,7 @@ const translations = {
         login:"Logowanie",
         register:"Rejestracja",
         learnMode:"Tryb nauki",
-        flashcards:"Fiszki",
-        logout: "Wyloguj"
+        flashcards:"Fiszki"
     },
     flashcards: {
       title: "Fiszki — nauka",
@@ -156,8 +155,7 @@ const translations = {
         login:"Login",
         register:"Register",
         learnMode:"Learning Mode",
-        flashcards:"Flashcards",
-        logout: "Logout"
+        flashcards:"Flashcards"
     },
     flashcards: {
       title: "Flashcards — learning",

@@ -21,8 +21,7 @@ const questionsRouter = require('./routes/questions')
 const resetPasswordRouter = require('./routes/reset-password');
 const setPasswordRouter = require('./routes/set-password');
 const flashcardsRouter = require('./routes/flashcards');
-const adminPanelRouter = require("./routes/adminPanel");
-
+const createtestRouter = require('./routes/create-test');
 var app = express();
 
 // 🔹 Load environment variables
@@ -48,8 +47,6 @@ app.use('/', indexRouter);
 app.use('/users', usersRouter);
 //Register/Login logic
 app.use("/api/auth", authRoutes);
-// Admin stuff
-app.use("/api/adminPanel", adminPanelRouter);
 //Open API implementation for testing and documentation
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 //Register Page
@@ -61,13 +58,13 @@ app.use('/quiz/learn', quizLearnRouter);
 app.use('/quiz/test', quizTestRouter);
 app.use('/api/questions',questionsRouter)
 app.use('/api/subjects', subjectsRouter);
-//Ranking of Users
-app.use("/rank", require("./routes/ranking"));
-app.use('/api/points', require('./routes/points'));
 //User Progress
 app.use('/api/user-progress', userProgressRouter);
 //Flashcards Page
 app.use('/flashcards', flashcardsRouter);
+//Create Test Page
+app.use('/create-test', createtestRouter);
+
 //Reset Password Page
 app.use('/reset-password', resetPasswordRouter);
 app.use('/set-password/:id',setPasswordRouter)
@@ -75,7 +72,6 @@ app.use('/set-password/:id',setPasswordRouter)
 app.use(function(req, res, next) {
   next(createError(404));
 });
-
 
 // error handler
 app.use(function(err, req, res, next) {
