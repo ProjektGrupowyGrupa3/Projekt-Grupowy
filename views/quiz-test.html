@@ -33,7 +33,7 @@
 
       <div id="quizArea" class="mt-4 d-none">
         <div class="d-flex justify-content-between align-items-center mb-2">
-          <div>Timer: <span id="timer">15:00</span></div>
+          <div>Timer: <span id="timer">00:00</span></div>
           <div data-translate="question">Pytanie <span id="curIdx">0</span>/<span id="total">0</span></div>
         </div>
         <div id="questionCard" class="card">
@@ -76,11 +76,7 @@ async function initQuizTest() {
 
 
   try {
-      var PolEng = "pl";
-      if(localStorage.getItem('language')=="en"){
-        PolEng = "en"
-      }
-    const res = await fetch(`/api/subjects?lang=${PolEng}`);
+    const res = await fetch('/api/subjects?lang=pl');
     const subjects = await res.json();
     subjectSelect.innerHTML = '';
 
@@ -112,15 +108,15 @@ async function initQuizTest() {
 
     let pool = [];
     try {
-      var PolEng = "pl";
+      var PolEng = "pol";
       if(localStorage.getItem('language')=="en"){
-        PolEng = "en"
+        PolEng = "eng"
       }
       const token = localStorage.getItem('token');
       const headers = { 'Content-Type': 'application/json' };
       if (token) headers['Authorization'] = 'Bearer ' + token;
 
-      const res = await fetch(`/api/questions?subject=${encodeURIComponent(subj)}&mode=random&limit=${cnt}&lang=${PolEng}`, { headers });
+      const res = await fetch(`/api/questions?subject=${encodeURIComponent(subj)}&mode=random&limit=${cnt}`, { headers });
       if (!res.ok) throw new Error(`Błąd HTTP ${res.status}`);
       const { questions } = await res.json();
       pool = questions;
@@ -180,30 +176,9 @@ async function initQuizTest() {
 
 
 function updateTimer(state) {
-  
   const m = Math.floor(state.timeLeft / 60).toString().padStart(2, '0');
   const s = (state.timeLeft % 60).toString().padStart(2, '0');
   document.getElementById('timer').textContent = `${m}:${s}`;
-}
-
-async function addPointsAPI(type, amount, questionId) {
-    try {
-        const token = localStorage.getItem("token");
-
-        const res = await fetch("/api/points/add", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": "Bearer " + token
-            },
-            body: JSON.stringify({ type, amount, questionId })
-        });
-
-        return await res.json();
-        
-    } catch (err) {
-        console.error("❌ Błąd API:", err);
-    }
 }
 
 
@@ -236,7 +211,8 @@ function highlightSelected(state) {
   if (selected !== null && btns[selected]) btns[selected].classList.add('active');
 }
 
-async function finishTest(state) {
+
+function finishTest(state) {
   if (state.timer) clearInterval(state.timer);
 
   let correct = 0;
@@ -247,7 +223,6 @@ async function finishTest(state) {
   });
 
   const percent = Math.round((correct / state.questions.length) * 100);
-
   const res = document.getElementById('resultArea');
   res.classList.remove('d-none');
   res.innerHTML = `
@@ -258,35 +233,8 @@ async function finishTest(state) {
     </div>
   `;
 
-  // Nalicz punkty gdy wynik > 50%
-  try {
-    if (percent > 50) {
-      const uniqueAction = "test_passed_" + Date.now();
-      await addPointsAPI(uniqueAction, 20, state.testId);  
-      res.innerHTML += `
-        <div class="alert alert-success text-center mt-3">
-          🎉 Zdobywasz <strong>20 punktów</strong> za zaliczenie testu!
-        </div>
-      `;
-    } else {
-      res.innerHTML += `
-        <div class="alert alert-warning text-center mt-3">
-          😞 Wynik poniżej 50% — spróbuj ponownie!
-        </div>
-      `;
-    }
-  } catch (err) {
-    console.error("Błąd naliczania punktów:", err);
-    res.innerHTML += `
-      <div class="alert alert-danger text-center mt-3">
-        ⚠️ Wystąpił błąd podczas naliczania punktów.
-      </div>
-    `;
-  }
-
   document.getElementById('quizArea').classList.add('d-none');
 }
-
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
