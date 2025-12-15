@@ -92,59 +92,28 @@
     let totalQuestions = 0;
 
 
-  
-  try {
-  
-    var PolEng = "pl";
-      if(localStorage.getItem('language')=="en"){
-        PolEng = "en"
-      }
-    const res = await fetch(`/api/subjects?lang=${PolEng}`);
-    const subjects = await res.json();
-
-    subjectSelect.innerHTML = '';
-    if (!subjects.length) {
-      subjectSelect.innerHTML = '<option value="">Brak przedmiotów w bazie</option>';
-      return;
-    }
-
-    subjects.forEach(subj => {
-      const option = document.createElement('option');
-      option.value = subj._id;
-      option.textContent = `${subj.name} (sem. ${subj.semester})`;
-      subjectSelect.appendChild(option);
-    });
-  } catch (err) {
-    console.error('Błąd podczas pobierania przedmiotów:', err);
-    subjectSelect.innerHTML = '<option value="">Błąd ładowania danych</option>';
-  }
-
-
-  function getAuthHeaders() {
-    const token = localStorage.getItem('token');
-    const headers = { 'Content-Type': 'application/json' };
-    if (token) headers['Authorization'] = 'Bearer ' + token;
-    return headers;
-  }
-
-  async function loadQuestions(subjectId, mode = 'all', lang = 'pl') {
+    
     try {
-      var PolEng = "pl";
-      if(localStorage.getItem('language')=="en"){
-        PolEng = "en"
+      const res = await fetch('/api/subjects?lang=pl');
+      const subjects = await res.json();
+
+      subjectSelect.innerHTML = '';
+      if (!subjects.length) {
+        subjectSelect.innerHTML = '<option value="">Brak przedmiotów w bazie</option>';
+        return;
       }
-      const res = await fetch(`/api/questions?subject=${encodeURIComponent(subjectId)}&mode=${mode}&lang=${PolEng}`, {
-        headers: getAuthHeaders()
+
+      subjects.forEach(subj => {
+        const option = document.createElement('option');
+        option.value = subj._id;
+        option.textContent = `${subj.name} (sem. ${subj.semester})`;
+        subjectSelect.appendChild(option);
       });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const { totalCount, questions } = await res.json();
-      totalQuestions = totalCount;
-      return questions;
-    } catch (e) {
-      console.error('Błąd podczas pobierania pytań:', e);
-      return [];
+    } catch (err) {
+      console.error('Błąd podczas pobierania przedmiotów:', err);
+      subjectSelect.innerHTML = '<option value="">Błąd ładowania danych</option>';
     }
-  }
+
 
     function getAuthHeaders() {
       const token = localStorage.getItem('token');

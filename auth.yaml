@@ -14,9 +14,260 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
+  schemas:
 
+    LocalizedString:
+      type: object
+      required:
+        - pl
+        - en
+      properties:
+        pl:
+          type: string
+          example: Programowanie Obiektowe
+        en:
+          type: string
+          example: Object-Oriented Programming
+
+    Subject:
+      type: object
+      required:
+        - name
+        - semester
+      properties:
+        name:
+          $ref: '#/components/schemas/LocalizedString'
+        semester:
+          type: integer
+          minimum: 1
+          example: 2
+        specialization:
+          $ref: '#/components/schemas/LocalizedString'
+        description:
+          $ref: '#/components/schemas/LocalizedString'
+
+    Answer:
+      type: object
+      required:
+        - label
+        - text
+        - isCorrect
+        - explanation
+      properties:
+        label:
+          type: string
+          example: A
+        text:
+          $ref: '#/components/schemas/LocalizedString'
+        isCorrect:
+          type: boolean
+          example: true
+        explanation:
+          $ref: '#/components/schemas/LocalizedString'
+
+    Question:
+      type: object
+      required:
+        - subject
+        - question
+        - answers
+        - number
+      properties:
+        subject:
+          type: string
+          description: MongoDB ObjectId of Subject
+          example: 64f8d3b21a9c4e0e8c9a1234
+        question:
+          $ref: '#/components/schemas/LocalizedString'
+        answers:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/Answer'
+        difficulty:
+          type: string
+          enum: [easy, medium, hard]
+          default: medium
+          example: medium
+        tags:
+          type: array
+          items:
+            type: string
+          example: [Loops, Basics]
+        number:
+          type: integer
+          example: 101
+          
 paths:
+  ############################################################
+  # USER REGISTER
+  ############################################################
+  /auth/register:
+    post:
+      summary: Register a new user
+      tags: [Authentication]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, email, password]
+              properties:
+                name:
+                  type: string
+                  example: Alice Doe
+                email:
+                  type: string
+                  format: email
+                  example: alice@example.com
+                password:
+                  type: string
+                  format: password
+                  example: StrongPassword123
+                  description: Must be at least 8 characters long, contain at least one letter and one number
+                  pattern: "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{8,}$"
+      responses:
+        '201':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: User registered successfully
+                  user:
+                    type: object
+                    properties:
+                      id: { type: string, example: 671ba88e2c7a6d76c4a6f123 }
+                      name: { type: string, example: Alice Doe }
+                      email: { type: string, example: alice@example.com }
+                  token:
+                    type: string
+                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        '400': { description: Invalid input or user already exists }
+        '500': { description: Server error }
+  ############################################################
+  # USER LOGIN
+  ############################################################
+  /auth/login:
+    post:
+      summary: Log in an existing user
+      tags: [Authentication]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: alice@example.com
+                password:
+                  type: string
+                  format: password
+                  example: StrongPassword123
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string, example: Login successful }
+                  user:
+                    type: object
+                    properties:
+                      id: { type: string, example: 671ba88e2c7a6d76c4a6f123 }
+                      name: { type: string, example: Alice Doe }
+                      email: { type: string, example: alice@example.com }
+                  token:
+                    type: string
+                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        '400': { description: Invalid credentials }
+        '500': { description: Server error }
+  ############################################################
+  # USER RESET PASSWORD
+  ############################################################
 
+  /auth/reset-password:
+    post:
+      summary: Request a password reset link
+      tags: [Authentication]
+      description: Creates a reset token in database, TTL 1h, and sends an email containing the reset link
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: alice@example.com
+      responses:
+        '200':
+          description: Reset email sent successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Reset link has been sent to your email address
+        '404':
+          description: No user found with that email
+        '500':
+          description: Server error
+  ############################################################
+  # USER PASSWORD RESERT CONFIRM
+  ############################################################
+  /auth/reset-password-confirm:
+    post:
+      summary: Confirm password reset and set new password
+      tags: [Authentication]
+      description: Validates reset token, updates user's password and removes used token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token, newPassword]
+              properties:
+                token:
+                  type: string
+                  example: 678abc1299eece42f19fa321
+                newPassword:
+                  type: string
+                  format: password
+                  example: NewSecurePass1
+                  description: Must be at least 8 characters long, contain at least one letter and one number
+                  pattern: "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{8,}$"
+      responses:
+        '200':
+          description: Password successfully updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Password has been reset successfully
+        '400':
+          description: Invalid or expired token / weak password
+        '500':
+          description: Server error
   ############################################################
   # ADMIN USER MANAGEMENT
   ############################################################
@@ -182,7 +433,33 @@ paths:
         required: true
         content:
           application/json:
-            schema: { type: object }
+            schema:
+              $ref: '#/components/schemas/Question'
+            example:
+              subject: 64f8d3b21a9c4e0e8c9a1234
+              question:
+                pl: Co to jest pętla for?
+                en: What is a for loop?
+              answers:
+                - label: A
+                  text:
+                    pl: Służy do iteracji
+                    en: Used for iteration
+                  isCorrect: true
+                  explanation:
+                    pl: Pętla for wykonuje kod wielokrotnie
+                    en: A for loop repeats code execution
+                - label: B
+                  text:
+                    pl: Deklaruje zmienną
+                    en: Declares a variable
+                  isCorrect: false
+                  explanation:
+                    pl: To nie jest jej główne zastosowanie
+                    en: This is not its primary purpose
+              difficulty: easy
+              tags: [Loops, Basics]
+              number: 101
       responses:
         '200': { description: Question updated }
         '404': { description: Question not found }
@@ -213,10 +490,38 @@ paths:
         required: true
         content:
           application/json:
-            schema: { type: object }
+            schema:
+              $ref: '#/components/schemas/Question'
+            example:
+              subject: 64f8d3b21a9c4e0e8c9a1234
+              question:
+                pl: Co to jest pętla for?
+                en: What is a for loop?
+              answers:
+                - label: A
+                  text:
+                    pl: Służy do iteracji
+                    en: Used for iteration
+                  isCorrect: true
+                  explanation:
+                    pl: Pętla for wykonuje kod wielokrotnie
+                    en: A for loop repeats code execution
+                - label: B
+                  text:
+                    pl: Deklaruje zmienną
+                    en: Declares a variable
+                  isCorrect: false
+                  explanation:
+                    pl: To nie jest jej główne zastosowanie
+                    en: This is not its primary purpose
+              difficulty: easy
+              tags: [Loops, Basics]
       responses:
-        '201': { description: Question created }
-        '500': { description: Server error }
+        '201':
+          description: Question created
+        '500':
+          description: Server error
+
 
   ############################################################
   # SUBJECTS
@@ -268,7 +573,19 @@ paths:
         required: true
         content:
           application/json:
-            schema: { type: object }
+            schema:
+              $ref: '#/components/schemas/Subject'
+            example:
+              name:
+                pl: Programowanie Obiektowe
+                en: Object-Oriented Programming
+              semester: 2
+              specialization:
+                pl: Informatyka
+                en: Computer Science
+              description:
+                pl: Przedmiot wprowadzający do programowania obiektowego w języku Java.
+                en: An introductory course to object-oriented programming using Java.
       responses:
         '200': { description: Subject updated }
         '404': { description: Subject not found }
@@ -299,7 +616,21 @@ paths:
         required: true
         content:
           application/json:
-            schema: { type: object }
+            schema:
+              $ref: '#/components/schemas/Subject'
+            example:
+              name:
+                pl: Programowanie Obiektowe
+                en: Object-Oriented Programming
+              semester: 2
+              specialization:
+                pl: Informatyka
+                en: Computer Science
+              description:
+                pl: Przedmiot wprowadzający do programowania obiektowego w języku Java.
+                en: An introductory course to object-oriented programming using Java.
       responses:
-        '201': { description: Subject created }
-        '500': { description: Server error }
+        '201':
+          description: Subject created
+        '500':
+          description: Server error

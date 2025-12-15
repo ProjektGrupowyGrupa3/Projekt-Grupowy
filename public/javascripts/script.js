@@ -88,17 +88,17 @@ function updatePageContent(lang) {
   const layoutTranslations = (translations[lang] && translations[lang].layout) || {};
 
   document.querySelectorAll('[data-translate]').forEach(element => {
-    const key = element.getAttribute('data-translate');
+    key = element.getAttribute('data-translate');
     if(key == "login"){
       if(user){
-        //key = "logout"
+        key = "logout"
       }
     }
-    // Najpierw szukamy w tłumaczeniach strony, potem w ogólnym layoucie
+    
     const text =
       (pageTranslations && pageTranslations[key]) ||
       (layoutTranslations && layoutTranslations[key]);
-
+    
     if (text) {
       if (element.tagName === 'INPUT') {
         if (element.type === 'submit' || element.type === 'button') {

@@ -40,14 +40,19 @@ router.post("/register", async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: "7d" }
     );
-
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 3600000 // 1 hour
+    });
     // Respond with token + user data
     res.status(201).json({
       message: "User registered successfully",
       user: {
         id: user._id,
         name: user.name,
-        email: user.email
+        email: user.email,
+        userType: user.accessLvl
       },
       token
     });
@@ -86,10 +91,14 @@ router.post('/login', async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: '7d' }
     );
-
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 3600000 // 1 hour
+    });
     res.status(200).json({
       message: 'Login successful',
-      user: { id: user._id, name: user.name, email: user.email },
+      user: { id: user._id, name: user.name, email: user.email, userType: user.accessLvl},
       token,
     });
   } catch (err) {

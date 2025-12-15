@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LearnIt — Stwórz własny test</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="static/stylesheets/style.css">
+    <link rel="stylesheet" href="static/stylesheets/createTest.css">
+</head>
+<body>
+    
+<main class="container py-5">
+    <section id="creator-section">
+        <div class="row mb-4">
+            <div class="col-12 text-center">
+                <h1 class="display-6">Stwórz własny test</h1>
+                <p class="lead">Zapisz test lokalnie i wróć do niego kiedy chcesz.</p>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <div class="card p-3">
+                    <div class="d-md-flex align-items-center justify-content-between gap-3">
+                        <div class="flex-grow-1">
+                            <input type="text" id="test-title" class="form-control form-control-lg" placeholder="Nazwij swój test (np. Matematyka - Dział 1)">
+                        </div>
+                        <div class="d-flex gap-2 mt-3 mt-md-0">
+                            <button class="btn btn-outline-warning" onclick="resetCreator()">Nowy</button>
+                            <button class="btn btn-info text-white" data-bs-toggle="modal" data-bs-target="#loadTestModal" onclick="renderSavedTestsList()">📂 Wczytaj</button>
+                            <button class="btn btn-success" onclick="saveTestLocally()">💾 Zapisz</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-lg-5">
+                <div class="card p-4 h-100">
+                    <h4 class="mb-3">Nowe pytanie <span id="q-counter" class="badge bg-secondary float-end">0/30</span></h4>
+                    <form id="add-question-form">
+                        <div class="mb-3">
+                            <label class="form-label">Treść pytania</label>
+                            <textarea class="form-control" id="inputQuestion" rows="2" placeholder="Wpisz treść pytania..." required></textarea>
+                        </div>
+                        
+                        <div class="mb-2 input-group">
+                            <span class="input-group-text bg-transparent text-light border-secondary">A</span>
+                            <input type="text" class="form-control" id="inputA" placeholder="Odpowiedź A" required>
+                        </div>
+                        <div class="mb-2 input-group">
+                            <span class="input-group-text bg-transparent text-light border-secondary">B</span>
+                            <input type="text" class="form-control" id="inputB" placeholder="Odpowiedź B" required>
+                        </div>
+                        <div class="mb-2 input-group">
+                            <span class="input-group-text bg-transparent text-light border-secondary">C</span>
+                            <input type="text" class="form-control" id="inputC" placeholder="Odpowiedź C" required>
+                        </div>
+                        <div class="mb-3 input-group">
+                            <span class="input-group-text bg-transparent text-light border-secondary">D</span>
+                            <input type="text" class="form-control" id="inputD" placeholder="Odpowiedź D" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Poprawna odpowiedź:</label>
+                            <select class="form-select" id="correctSelect">
+                                <option value="A">A</option>
+                                <option value="B">B</option>
+                                <option value="C">C</option>
+                                <option value="D">D</option>
+                            </select>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100">Dodaj pytanie</button>
+                        <div id="limit-warning" class="text-danger mt-2 text-center d-none">Osiągnięto limit 30 pytań!</div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="col-lg-7">
+                <div class="card p-4 h-100">
+                    <h4 class="mb-3">Twoje pytania</h4>
+                    <div id="questions-list" style="max-height: 500px; overflow-y: auto;">
+                        <p class="text-muted text-center mt-5" id="empty-msg">Brak dodanych pytań. Dodaj pierwsze pytanie po lewej stronie.</p>
+                    </div>
+                    <hr>
+                    <button id="start-test-btn" class="btn btn-success w-100 btn-lg mt-3" disabled>Rozpocznij Test</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="quiz-section" class="d-none">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h3 id="quiz-title">Test Użytkownika</h3>
+                        <span id="quiz-progress" class="badge bg-primary fs-6">1 / 5</span>
+                    </div>
+
+                    <div id="quiz-container">
+                        </div>
+
+                    <div class="d-flex justify-content-between mt-4">
+                        <button class="btn btn-outline-light" id="prev-q-btn" style="visibility: hidden;">Poprzednie</button>
+                        <button class="btn btn-primary" id="next-q-btn">Następne</button>
+                        <button class="btn btn-success d-none" id="finish-quiz-btn">Zakończ i Sprawdź</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="results-section" class="d-none">
+        <div class="row justify-content-center">
+            <div class="col-md-8 text-center mb-4">
+                <h2 class="display-5">Wynik Testu</h2>
+                <div class="card p-3 d-inline-block mt-3 bg-opacity-25 bg-success">
+                    <h1 class="display-3 fw-bold" id="score-display">0%</h1>
+                    <p class="mb-0" id="score-details">0 / 0 poprawnych</p>
+                </div>
+                <div class="mt-4">
+                    <button class="btn btn-warning" onclick="backToCreator()">Wróć do edycji</button>
+                    <button class="btn btn-secondary" onclick="restartQuiz()">Rozwiąż ponownie</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="row justify-content-center">
+            <div class="col-md-10">
+                <h4 class="mb-3">Szczegółowe odpowiedzi:</h4>
+                <div id="results-list">
+                    </div>
+            </div>
+        </div>
+    </section>
+
+</main>
+
+<div class="modal fade" id="loadTestModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Zapisane testy</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div id="saved-tests-list" class="list-group">
+            </div>
+        <p id="no-saved-tests-msg" class="text-center text-muted mt-3">Brak zapisanych testów.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Zamknij</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="static/javascripts/translations.js"></script>
+<script src="static/javascripts/script.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // --- ZMIENNE STANU ---
+    let questions = [];
+    let currentQuestionIndex = 0;
+    let userAnswers = {}; 
+    const MAX_QUESTIONS = 30;
+    const STORAGE_KEY = 'learnit_user_tests'; // Klucz w localStorage
+
+    // --- ELEMENTY DOM ---
+    const creatorSection = document.getElementById('creator-section');
+    const quizSection = document.getElementById('quiz-section');
+    const resultsSection = document.getElementById('results-section');
+    
+    const form = document.getElementById('add-question-form');
+    const questionsListEl = document.getElementById('questions-list');
+    const emptyMsg = document.getElementById('empty-msg');
+    const qCounter = document.getElementById('q-counter');
+    const limitWarning = document.getElementById('limit-warning');
+    const testTitleInput = document.getElementById('test-title');
+    
+    const startTestBtn = document.getElementById('start-test-btn');
+    const quizTitleEl = document.getElementById('quiz-title');
+    const quizContainer = document.getElementById('quiz-container');
+    const nextBtn = document.getElementById('next-q-btn');
+    const prevBtn = document.getElementById('prev-q-btn');
+    const finishBtn = document.getElementById('finish-quiz-btn');
+    const progressBadge = document.getElementById('quiz-progress');
+
+    const scoreDisplay = document.getElementById('score-display');
+    const scoreDetails = document.getElementById('score-details');
+    const resultsList = document.getElementById('results-list');
+
+    // --- LOGIKA KREATORA ---
+
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        if (questions.length >= MAX_QUESTIONS) return;
+
+        const newQ = {
+            id: Date.now(),
+            text: document.getElementById('inputQuestion').value,
+            options: {
+                A: document.getElementById('inputA').value,
+                B: document.getElementById('inputB').value,
+                C: document.getElementById('inputC').value,
+                D: document.getElementById('inputD').value,
+            },
+            correct: document.getElementById('correctSelect').value
+        };
+
+        questions.push(newQ);
+        renderQuestionsList();
+        form.reset();
+        document.getElementById('inputQuestion').focus();
+        checkLimits();
+    });
+
+    function checkLimits() {
+        qCounter.innerText = `${questions.length}/${MAX_QUESTIONS}`;
+        if (questions.length > 0) {
+            startTestBtn.disabled = false;
+            emptyMsg.style.display = 'none';
+        } else {
+            startTestBtn.disabled = true;
+            emptyMsg.style.display = 'block';
+        }
+        
+        if (questions.length >= MAX_QUESTIONS) {
+            limitWarning.classList.remove('d-none');
+            form.querySelector('button[type="submit"]').disabled = true;
+        } else {
+            limitWarning.classList.add('d-none');
+            form.querySelector('button[type="submit"]').disabled = false;
+        }
+    }
+
+    function renderQuestionsList() {
+        questionsListEl.innerHTML = '';
+        if (questions.length === 0) {
+            questionsListEl.appendChild(emptyMsg);
+            return;
+        }
+
+        questions.forEach((q, index) => {
+            const div = document.createElement('div');
+            div.className = 'card mb-2 p-3 question-preview bg-dark bg-opacity-10';
+            div.innerHTML = `
+                <div class="d-flex justify-content-between">
+                    <strong>${index + 1}. ${q.text}</strong>
+                    <button class="btn btn-sm btn-outline-danger" onclick="removeQuestion(${index})">Usuń</button>
+                </div>
+                <div class="small mt-2 text-muted">
+                    Poprawna: <span class="fw-bold text-success">${q.correct}</span>
+                </div>
+            `;
+            questionsListEl.appendChild(div);
+        });
+    }
+
+    window.removeQuestion = function(index) {
+        questions.splice(index, 1);
+        renderQuestionsList();
+        checkLimits();
+    };
+
+    window.resetCreator = function() {
+        if(confirm("Czy na pewno chcesz wyczyścić obecny test? Niezapisane zmiany zostaną utracone.")) {
+            questions = [];
+            testTitleInput.value = "";
+            renderQuestionsList();
+            checkLimits();
+        }
+    };
+
+    // --- LOGIKA ZAPISYWANIA I WCZYTYWANIA (LOCALSTORAGE) ---
+
+    window.saveTestLocally = function() {
+        if (questions.length === 0) {
+            alert("Dodaj przynajmniej jedno pytanie przed zapisaniem.");
+            return;
+        }
+
+        let title = testTitleInput.value.trim();
+        if (!title) {
+            title = "Test bez nazwy (" + new Date().toLocaleDateString() + ")";
+        }
+
+        const testObj = {
+            id: Date.now(),
+            title: title,
+            date: new Date().toLocaleString(),
+            questions: questions
+        };
+
+        // Pobierz istniejące testy
+        let savedTests = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+        savedTests.push(testObj);
+        
+        // Zapisz zaktualizowaną listę
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(savedTests));
+        
+        alert("Test został zapisany pomyślnie!");
+    };
+
+    window.renderSavedTestsList = function() {
+        const listContainer = document.getElementById('saved-tests-list');
+        const noTestsMsg = document.getElementById('no-saved-tests-msg');
+        let savedTests = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+
+        listContainer.innerHTML = '';
+        
+        if (savedTests.length === 0) {
+            noTestsMsg.style.display = 'block';
+            return;
+        }
+        noTestsMsg.style.display = 'none';
+
+        // Sortuj od najnowszych
+        savedTests.reverse().forEach(test => {
+            const item = document.createElement('div');
+            item.className = 'list-group-item d-flex justify-content-between align-items-center flex-column flex-sm-row gap-2';
+            item.style.backgroundColor = 'var(--col-base)';
+            item.style.color = 'var(--text-light)';
+            item.style.borderColor = 'var(--col-contrast)';
+            
+            item.innerHTML = `
+                <div>
+                    <h5 class="mb-1 fw-bold text-primary">${test.title}</h5>
+                    <small class="text-muted">Data: ${test.date} | Pytań: ${test.questions.length}</small>
+                </div>
+                <div class="btn-group">
+                    <button class="btn btn-sm btn-success" onclick="loadTest(${test.id})">Wczytaj</button>
+                    <button class="btn btn-sm btn-outline-danger" onclick="deleteTest(${test.id})">Usuń</button>
+                </div>
+            `;
+            listContainer.appendChild(item);
+        });
+    };
+
+    window.deleteTest = function(id) {
+        if(!confirm("Czy na pewno usunąć ten test?")) return;
+        
+        let savedTests = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+        savedTests = savedTests.filter(t => t.id !== id);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(savedTests));
+        
+        renderSavedTestsList(); // Odśwież widok modala
+    };
+
+    window.loadTest = function(id) {
+        let savedTests = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+        const testToLoad = savedTests.find(t => t.id === id);
+
+        if (testToLoad) {
+            questions = testToLoad.questions;
+            testTitleInput.value = testToLoad.title;
+            renderQuestionsList();
+            checkLimits();
+            
+            // Zamknij modal
+            const modalEl = document.getElementById('loadTestModal');
+            const modalInstance = bootstrap.Modal.getInstance(modalEl);
+            modalInstance.hide();
+        }
+    };
+
+    // --- LOGIKA TESTU ---
+
+    startTestBtn.addEventListener('click', () => {
+        const title = testTitleInput.value.trim() || "Test Użytkownika";
+        quizTitleEl.innerText = title;
+        
+        creatorSection.classList.add('d-none');
+        quizSection.classList.remove('d-none');
+        resultsSection.classList.add('d-none'); // Upewnij się, że wyniki są ukryte
+        
+        currentQuestionIndex = 0;
+        userAnswers = {};
+        renderQuizQuestion();
+    });
+
+    function renderQuizQuestion() {
+        const q = questions[currentQuestionIndex];
+        progressBadge.innerText = `Pytanie ${currentQuestionIndex + 1} z ${questions.length}`;
+
+        prevBtn.style.visibility = currentQuestionIndex === 0 ? 'hidden' : 'visible';
+        
+        if (currentQuestionIndex === questions.length - 1) {
+            nextBtn.classList.add('d-none');
+            finishBtn.classList.remove('d-none');
+        } else {
+            nextBtn.classList.remove('d-none');
+            finishBtn.classList.add('d-none');
+        }
+
+        let optionsHtml = '';
+        ['A', 'B', 'C', 'D'].forEach(opt => {
+            const isChecked = userAnswers[currentQuestionIndex] === opt ? 'checked' : '';
+            const activeClass = isChecked ? 'active' : ''; 
+            
+            optionsHtml += `
+                <label class="list-group-item d-flex gap-3 align-items-center ${activeClass}" style="cursor: pointer;">
+                    <input class="form-check-input flex-shrink-0" type="radio" name="qOption" value="${opt}" ${isChecked} 
+                    onchange="selectAnswer('${opt}', this)">
+                    <span>
+                        <strong class="me-2">${opt}.</strong> ${q.options[opt]}
+                    </span>
+                </label>
+            `;
+        });
+
+        quizContainer.innerHTML = `
+            <h5 class="mb-4">${q.text}</h5>
+            <div class="list-group">
+                ${optionsHtml}
+            </div>
+        `;
+    }
+
+    window.selectAnswer = function(value, radioElement) {
+        userAnswers[currentQuestionIndex] = value;
+        const labels = radioElement.closest('.list-group').querySelectorAll('.list-group-item');
+        labels.forEach(l => l.classList.remove('active'));
+        radioElement.closest('label').classList.add('active');
+    };
+
+    nextBtn.addEventListener('click', () => {
+        currentQuestionIndex++;
+        renderQuizQuestion();
+    });
+
+    prevBtn.addEventListener('click', () => {
+        currentQuestionIndex--;
+        renderQuizQuestion();
+    });
+
+    finishBtn.addEventListener('click', () => {
+        showResults();
+    });
+
+    // --- LOGIKA WYNIKÓW ---
+
+    function showResults() {
+        quizSection.classList.add('d-none');
+        resultsSection.classList.remove('d-none');
+
+        let score = 0;
+        resultsList.innerHTML = '';
+
+        questions.forEach((q, index) => {
+            const userChoice = userAnswers[index];
+            const isCorrect = userChoice === q.correct;
+            if (isCorrect) score++;
+
+            const cardClass = isCorrect ? 'correct' : 'wrong';
+            const icon = isCorrect ? '✔️' : '❌';
+            const userText = userChoice ? `${userChoice}: ${q.options[userChoice]}` : 'Brak odpowiedzi';
+            const correctText = `${q.correct}: ${q.options[q.correct]}`;
+
+            let detailHtml = `
+                <div class="card mb-3 result-card ${cardClass}">
+                    <div class="card-body">
+                        <h5 class="card-title d-flex justify-content-between">
+                            <span>${index + 1}. ${q.text}</span>
+                            <span>${icon}</span>
+                        </h5>
+                        <div class="mt-3">
+                            <p class="mb-1 ${isCorrect ? 'text-success fw-bold' : 'text-danger'}">
+                                Twoja odpowiedź: ${userText}
+                            </p>
+                            ${!isCorrect ? `<p class="mb-0 text-success opacity-75">Poprawna: ${correctText}</p>` : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+            resultsList.insertAdjacentHTML('beforeend', detailHtml);
+        });
+
+        const percentage = Math.round((score / questions.length) * 100);
+        scoreDisplay.innerText = `${percentage}%`;
+        scoreDetails.innerText = `${score} z ${questions.length} poprawnych`;
+    }
+
+    window.restartQuiz = function() {
+        resultsSection.classList.add('d-none');
+        quizSection.classList.remove('d-none');
+        currentQuestionIndex = 0;
+        userAnswers = {};
+        renderQuizQuestion();
+    }
+
+    window.backToCreator = function() {
+        resultsSection.classList.add('d-none');
+        creatorSection.classList.remove('d-none');
+    }
+
+    // --- DARK MODE TOGGLE ---
+    const themeBtn = document.getElementById('toggleTheme');
+    themeBtn.addEventListener('click', () => {
+        document.body.classList.toggle('light-mode');
+    });
+
+</script>
+</body>
+</html>

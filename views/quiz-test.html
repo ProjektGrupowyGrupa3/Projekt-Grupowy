@@ -33,7 +33,7 @@
 
       <div id="quizArea" class="mt-4 d-none">
         <div class="d-flex justify-content-between align-items-center mb-2">
-          <div>Timer: <span id="timer">15:00</span></div>
+          <div>Timer: <span id="timer">00:00</span></div>
           <div data-translate="question">Pytanie <span id="curIdx">0</span>/<span id="total">0</span></div>
         </div>
         <div id="questionCard" class="card">
@@ -76,11 +76,7 @@ async function initQuizTest() {
 
 
   try {
-      var PolEng = "pl";
-      if(localStorage.getItem('language')=="en"){
-        PolEng = "en"
-      }
-    const res = await fetch(`/api/subjects?lang=${PolEng}`);
+    const res = await fetch('/api/subjects?lang=pl');
     const subjects = await res.json();
     subjectSelect.innerHTML = '';
 
@@ -112,15 +108,15 @@ async function initQuizTest() {
 
     let pool = [];
     try {
-      var PolEng = "pl";
+      var PolEng = "pol";
       if(localStorage.getItem('language')=="en"){
-        PolEng = "en"
+        PolEng = "eng"
       }
       const token = localStorage.getItem('token');
       const headers = { 'Content-Type': 'application/json' };
       if (token) headers['Authorization'] = 'Bearer ' + token;
 
-      const res = await fetch(`/api/questions?subject=${encodeURIComponent(subj)}&mode=random&limit=${cnt}&lang=${PolEng}`, { headers });
+      const res = await fetch(`/api/questions?subject=${encodeURIComponent(subj)}&mode=random&limit=${cnt}`, { headers });
       if (!res.ok) throw new Error(`Błąd HTTP ${res.status}`);
       const { questions } = await res.json();
       pool = questions;
@@ -180,7 +176,6 @@ async function initQuizTest() {
 
 
 function updateTimer(state) {
-  
   const m = Math.floor(state.timeLeft / 60).toString().padStart(2, '0');
   const s = (state.timeLeft % 60).toString().padStart(2, '0');
   document.getElementById('timer').textContent = `${m}:${s}`;
