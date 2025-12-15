@@ -116,55 +116,17 @@ function updatePageContent(lang) {
   
 }
 
-// --- Obsługa Sesji Użytkownika ---
-
-function checkUserSession() {
-  const user = JSON.parse(localStorage.getItem('user') || 'null');
-  
-  // Pobieramy elementy layoutu
-  const userEmailEl = document.getElementById('userEmail');
-  const authBtn = document.getElementById('authBtn');
-  const regBtn = document.getElementById('regBtn');
-
-  // Jeśli użytkownik jest w localStorage ORAZ elementy istnieją w HTML
-  if (user && userEmailEl && authBtn) {
-      // 1. Wyświetl nazwę/email użytkownika
-      userEmailEl.textContent = user.name;
-
-      // 2. Zmień przycisk "Zaloguj" na "Wyloguj"
-      // Zmieniamy też atrybut data-translate, żeby funkcja updatePageContent() 
-      // przy zmianie języka wiedziała, że teraz ma tłumaczyć słowo "logout", a nie "login"
-      authBtn.setAttribute('data-translate', 'logout'); 
-      authBtn.textContent = 'Wyloguj'; // Domyślny tekst zanim zadziała tłumaczenie
-      authBtn.href = '#';
-
-      // 3. Nadpisz zachowanie przycisku (Wylogowanie)
-      authBtn.onclick = (e) => {
-          e.preventDefault();
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
-          // Przekierowanie na stronę główną lub odświeżenie
-          window.location.href = '/'; 
-      };
-
-      // 4. Ukryj przycisk rejestracji
-      if (regBtn) {
-          regBtn.style.display = 'none';
-      }
-  }
-}
-
 // Główna Inicjalizacja (Wspólna dla wszystkiego) 
 document.addEventListener('DOMContentLoaded', () => {
   const currentLang = localStorage.getItem('language') || 'pl';
   updatePageContent(currentLang);
 });
 
+
 // od razu ustaw tryb przy ładowaniu strony
 document.addEventListener('DOMContentLoaded', () => {
-    applySavedTheme();
+  applySavedTheme();
 });
-
 
 // Funkcja do aktualizacji dynamicznych treści
 function updateDynamicContent(lang, currentPage) {
