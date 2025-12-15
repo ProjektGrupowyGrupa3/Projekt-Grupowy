@@ -23,6 +23,9 @@ const setPasswordRouter = require('./routes/set-password');
 const flashcardsRouter = require('./routes/flashcards');
 const createtestRouter = require('./routes/create-test');
 const adminPanelRouter = require("./routes/adminPanel");
+
+const userTestDetailsRouter = require('./routes/user-test-details');
+const userTestListRouter = require('./routes/user-test-list');
 const administrationPanelRouter = require("./routes/administrationPanel");
 var app = express();
 
@@ -60,10 +63,18 @@ app.use('/quiz/learn', quizLearnRouter);
 app.use('/quiz/test', quizTestRouter);
 app.use('/api/questions',questionsRouter)
 app.use('/api/subjects', subjectsRouter);
+//Ranking of Users
+//app.use("/rank", require("./routes/ranking"));
+//app.use('/api/points', require('./routes/points'));
 //User Progress
 app.use('/api/user-progress', userProgressRouter);
 //Flashcards Page
 app.use('/flashcards', flashcardsRouter);
+
+//User test details
+app.use('/user-test-details', userTestDetailsRouter);
+//User test list
+app.use('/user-test-list', userTestListRouter);
 //Create Test Page
 app.use('/create-test', createtestRouter);
 //Ranking of Users

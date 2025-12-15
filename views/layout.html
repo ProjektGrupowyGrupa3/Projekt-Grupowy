@@ -5,32 +5,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
 </head>
-  <body>
-    <nav class="navbar navbar-expand-lg">
-      <div class="container-fluid">
-        <a class="navbar-brand" href="/">LearnIt</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav">
-          <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="nav">
-          <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-            <li class="nav-item" id="adminPanel"><a class="nav-link" href="/adminPanel">Panel Administracyjny</a></li>
-            <li class="nav-item"><a class="nav-link" href="/quiz/test">Test</a></li>
-            <li class="nav-item"><a class="nav-link" href="/quiz/learn" data-translate="learnMode">Tryb nauki</a></li>
-            <li class="nav-item"><a class="nav-link" href="/flashcards" data-translate="flashcards">Fiszki</a></li>
-            <li class="nav-item"><a class="nav-link" href="/create-test" data-translate="createTest">Utwórz test</a></li>
-          </ul>
-          <div class="d-flex align-items-center">
-            <button id="toggleTheme" class="btn btn-outline-light me-2">Toggle Dark/Light</button>
-            <span id="userEmail" class="me-3"></span>
-            <a id="authBtn" class="btn btn-outline-light me-2" href="/login" data-translate="login">Zaloguj</a>
-            <a id="regBtn" class="btn btn-secondary" href="/register" data-translate="register">Rejestracja</a>
-          </div>
-          <div class="language-switcher">
-            <button onclick="changeLanguage('pl')" class="btn btn-primary">PL</button>
-            <button onclick="changeLanguage('en')" class="btn btn-primary">EN</button>
-          </div>
-        </div>
+<body>
+<nav class="navbar navbar-expand-lg">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="/">LearnIt</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="nav">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <li class="nav-item"><a class="nav-link" href="/quiz/test">Test</a></li>
+        <li class="nav-item"><a class="nav-link" href="/quiz/learn" data-translate="learnMode">Tryb nauki</a></li>
+        <li class="nav-item"><a class="nav-link" href="/flashcards" data-translate="flashcards">Fiszki</a></li>
+        <li class="nav-item"><a class="nav-link" href="/rank" data-translate="rank">Ranking</a></li>
+        <li class="nav-item"><a class="nav-link" href="/create-test" data-translate="createTest">Utwórz test</a></li>
+        <li class="nav-item"><a class="nav-link" href="/user-test-list" data-translate="userTestsList">Lista Testów użytkowników</a></li>
+      </ul>
+      <div class="d-flex align-items-center">
+        <button id="toggleTheme" class="btn btn-outline-light me-2">Toggle Dark/Light</button>
+        <span id="userEmail" class="me-3"></span>
+        <a id="authBtn" class="btn btn-outline-light me-2" href="/login" data-translate="login">Zaloguj</a>
+        <a id="regBtn" class="btn btn-secondary" href="/register" data-translate="register">Rejestracja</a>
       </div>
     </nav>
   </body>
