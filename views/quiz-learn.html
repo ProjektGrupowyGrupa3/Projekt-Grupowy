@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="pl">
-
+    
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -25,15 +25,6 @@
         </div>
 
         <div class="mb-3">
-<<<<<<< Updated upstream
-          <label class="form-label fw-semibold" data-translate="QuestionMode">Tryb pytań</label>
-          <select id="mode" class="form-select">
-            <option value="all" selected>Wszystkie pytania</option>
-            <option value="unanswered" data-translate="Unanswered">Nieodpowiedziane</option>
-            <option value="incorrect" data-translate="IncorrectAnswers">Błędne odpowiedzi</option>
-            <option value="saved" data-translate="SavedQuestions">Zapisane pytania</option>
-            <option value="random" data-translate="RandomQuestions">Losowe pytania</option>
-=======
           <label class="form-label fw-semibold" data-translate="questionMode">Tryb pytań</label>
           <select id="mode" class="form-select">
             <option value="all" selected data-translate="all">Wszystkie pytania</option>
@@ -41,7 +32,6 @@
             <option value="incorrect" data-translate="incorrect">Błędne odpowiedzi</option>
             <option value="saved" data-translate="saved">Zapisane pytania</option>
             <option value="random" data-translate="random">Losowe pytania</option>
->>>>>>> Stashed changes
 
           </select>
         </div>
@@ -82,10 +72,6 @@
   <script src="/static/javascripts/script.js"></script>
   <script src="/static/javascripts/translations.js"></script>
   <script>
-<<<<<<< Updated upstream
-
-  document.addEventListener('DOMContentLoaded', initQuizPage);
-=======
 // ==========================================
 // 1. ZMIENNE GLOBALNE
 // ==========================================
@@ -93,7 +79,6 @@ let queue = [];
 let answered = false;
 let correct = false;
 let totalQuestions = 0; // Usunąłem answeredCount, bo lepiej liczyć z queue.length
->>>>>>> Stashed changes
 
 // Elementy DOM
 let subjectSelect, startBtn, nextBtn, qText, opts, explain, progressLabel, progressBar, cardArea;
@@ -105,31 +90,6 @@ function getGlobalT() {
     const lang = localStorage.getItem('language') || 'pl';
     const langObj = translations[lang] || translations['pl'];
 
-<<<<<<< Updated upstream
-
-    
-    try {
-      const res = await fetch('/api/subjects?lang=pl');
-      const subjects = await res.json();
-
-      subjectSelect.innerHTML = '';
-      if (!subjects.length) {
-        subjectSelect.innerHTML = '<option value="">Brak przedmiotów w bazie</option>';
-        return;
-      }
-
-      subjects.forEach(subj => {
-        const option = document.createElement('option');
-        option.value = subj._id;
-        option.textContent = `${subj.name} (sem. ${subj.semester})`;
-        subjectSelect.appendChild(option);
-      });
-    } catch (err) {
-      console.error('Błąd podczas pobierania przedmiotów:', err);
-      subjectSelect.innerHTML = '<option value="">Błąd ładowania danych</option>';
-    }
-
-=======
     if (langObj && langObj.quizLearn) {
         return langObj.quizLearn;
     }
@@ -198,7 +158,6 @@ async function addPointsAPI(type, amount, questionId) {
         return { success: false };
     }
 }
->>>>>>> Stashed changes
 
 async function loadAndRenderSubjects(lang) {
     const select = document.getElementById('subject');
@@ -339,28 +298,6 @@ function createSaveButton(q) {
 
     }
 
-<<<<<<< Updated upstream
-
-    function renderProgress(currentNumber) {
-      const total = totalQuestions || 0;
-      const percent = total ? Math.round((currentNumber / total) * 100) : 0;
-      progressLabel.textContent = `Pytanie nr ${currentNumber}${total ? ' / ' + total : ''}`;
-      progressBar.style.width = `${percent}%`;
-      progressBar.setAttribute('aria-valuenow', percent);
-    }
-
-    function renderQuestion(q) {
-      qText.textContent = q.question || 'Brak treści pytania';
-      opts.innerHTML = '';
-      explain.classList.add('d-none');
-      nextBtn.disabled = true;
-      answered = false;
-      correct = false;
-
-      renderProgress(q.number || '?');
-
-      q.answers.forEach((ans) => {
-=======
 function renderQuestion(q) {
     if (!qText || !opts) return;
 
@@ -375,7 +312,6 @@ function renderQuestion(q) {
     renderProgress(q.number || '?');
 
     q.answers.forEach((ans) => {
->>>>>>> Stashed changes
         const btn = document.createElement('button');
         btn.className = 'list-group-item list-group-item-action';
         btn.textContent = ans.text;
@@ -388,26 +324,6 @@ async function handleAnswerClick(q, ans, btn) {
     if (answered) return;
     const t = getGlobalT();
 
-<<<<<<< Updated upstream
-      if (correct) {
-        btn.classList.add('list-group-item-success');
-        explain.textContent = '✅ Dobrze!';
-        await saveAnswerToDB(q._id, true);
-      } else {
-        btn.classList.add('list-group-item-danger');
-        explain.innerHTML = `
-          <div class="alert alert-warning">
-            ❌ ${ans.explanation || 'Niepoprawna odpowiedź.'}
-          </div>
-        `;
-        explain.appendChild(createShowCorrectButton(q, btn));
-        explain.appendChild(createSaveButton(q));
-        await saveAnswerToDB(q._id, false);
-      }
-
-      explain.classList.remove('d-none');
-      nextBtn.disabled = false;
-=======
     answered = true;
     correct = ans.isCorrect;
     Array.from(opts.children).forEach(b => (b.disabled = true));
@@ -461,7 +377,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (token) {
         const protectedContent = document.getElementById('protectedContent');
         if (protectedContent) protectedContent.style.display = 'block';
->>>>>>> Stashed changes
     }
 
     subjectSelect = document.getElementById('subject');
@@ -546,44 +461,6 @@ document.addEventListener('languageChanged', (e) => {
     resetQuizState();
 });
 
-<<<<<<< Updated upstream
-    startBtn.addEventListener('click', async () => {
-      const subj = subjectSelect.value;
-      const mode = document.getElementById('mode')?.value || 'all';
-      if (!subj) return alert('❗ Wybierz przedmiot zanim rozpoczniesz naukę.');
-
-      queue = await loadQuestions(subj, mode);
-      if (!queue.length) return alert('Brak pytań dla wybranego przedmiotu.');
-
-      answeredCount = 0;
-      document.getElementById('cardArea').classList.remove('d-none');
-      renderQuestion(queue[0]);
-    });
-
-    nextBtn.addEventListener('click', () => {
-      if (!answered) return;
-      const current = queue.shift();
-      answeredCount++;
-      if (!correct) queue.push(current);
-      if (queue.length === 0) {
-        qText.textContent = '🎉 Brawo — przerobione wszystkie pytania!';
-        opts.innerHTML = '';
-        explain.classList.add('d-none');
-        nextBtn.disabled = true;
-        progressLabel.textContent = 'Zakończono!';
-        progressBar.style.width = '100%';
-        progressBar.classList.add('bg-info');
-        return;
-      }
-      renderQuestion(queue[0]);
-    });
-  }
-
-</script>
-
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-
-=======
 window.updatePageSpecificContent = function(lang) {
     loadAndRenderSubjects(lang);
     resetQuizState();
@@ -592,7 +469,6 @@ window.updatePageSpecificContent = function(lang) {
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
   
->>>>>>> Stashed changes
 </body>
 
 </html>
