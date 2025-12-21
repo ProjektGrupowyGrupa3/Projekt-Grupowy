@@ -101,10 +101,6 @@ function updateLangButtonUI(lang) {
 
 // Funkcja zmiany języka
 function changeLanguage(lang) {
-<<<<<<< Updated upstream
-  localStorage.setItem('language', lang);
-  updatePageContent(lang);
-=======
     localStorage.setItem('language', lang);
     updatePageContent(lang);
     updateLangButtonUI(lang);
@@ -117,60 +113,12 @@ function changeLanguage(lang) {
     // Wyślij zdarzenie globalne
     const event = new CustomEvent('languageChanged', { detail: { newLang: lang } });
     document.dispatchEvent(event);
->>>>>>> Stashed changes
 }
 
 function updatePageContent(lang) {
   const path = window.location.pathname;
   let currentPage = 'index';
 
-<<<<<<< Updated upstream
-  // Logika wykrywania strony
-  if (path.includes('quiz/learn')) {
-      currentPage = 'quizLearn';
-  } else if (path.includes('quiz/test')) {
-      currentPage = 'quizTest';
-  } else if (path.includes('login')) {
-      currentPage = 'login';
-  } else if (path.includes('register')) {
-      currentPage = 'register';
-  } else if (path.includes('reset-password-new')) {
-      currentPage = 'resetPasswordNew';
-  } else if (path.includes('reset-password')) {
-      currentPage = 'resetPassword';
-  } else if (path.includes('index')) {
-      currentPage = 'index';
-  } else if (path.includes('flashcards')) {
-      currentPage = 'flashcards';
-  } else if (path.includes('user-test-list')) {
-    currentPage = 'userTestList';
-  } else if (path.includes('user-test-details')) {
-    currentPage = 'userTestDetails';
-  }
-
-  // Pobranie tłumaczeń (zakładam, że zmienna 'translations' jest dostępna globalnie)
-  const pageTranslations = (translations[lang] && translations[lang][currentPage]) || {};
-  const layoutTranslations = (translations[lang] && translations[lang].layout) || {};
-
-  document.querySelectorAll('[data-translate]').forEach(element => {
-    key = element.getAttribute('data-translate');
-    if(key == "login"){
-      if(user){
-        key = "logout"
-      }
-    }
-    
-    const text =
-      (pageTranslations && pageTranslations[key]) ||
-      (layoutTranslations && layoutTranslations[key]);
-    
-    if (text) {
-      if (element.tagName === 'INPUT') {
-        if (element.type === 'submit' || element.type === 'button') {
-          element.value = text;
-        } else {
-          element.placeholder = text;
-=======
     // Logika wykrywania strony
     if (path.includes('quiz/learn')) currentPage = 'quizLearn';
     else if (path.includes('quiz/test')) currentPage = 'quizTest';
@@ -209,33 +157,12 @@ function updatePageContent(lang) {
             } else {
                 element.textContent = text;
             }
->>>>>>> Stashed changes
         }
-      } else if (element.tagName === 'TEXTAREA') {
-        element.placeholder = text;
-      } else {
-        element.textContent = text;
-      }
-    }
   });
   
 }
 
-<<<<<<< Updated upstream
-// Główna Inicjalizacja (Wspólna dla wszystkiego) 
-document.addEventListener('DOMContentLoaded', () => {
-  const currentLang = localStorage.getItem('language') || 'pl';
-  updatePageContent(currentLang);
-});
-
-
-// od razu ustaw tryb przy ładowaniu strony
-document.addEventListener('DOMContentLoaded', () => {
-  applySavedTheme();
-});
-=======
 // --- Funkcje Globalne (Wymagane przez inne skrypty) ---
->>>>>>> Stashed changes
 
 function updateDynamicContent(lang, currentPage) {
     if (window.updateDynamicContent) {
@@ -274,8 +201,6 @@ window.applyTranslations = function() {
     updatePageContent(currentLang);
     updateDynamicContent(currentLang);
 };
-<<<<<<< Updated upstream
-=======
 
 // Funkcja pomocnicza dostępna globalnie
 function renderSubjectsCommon(containerId, mode, lang) {
@@ -566,4 +491,3 @@ document.addEventListener('DOMContentLoaded', () => {
     checkUserSession();
     checkUrlAlerts();
 });
->>>>>>> Stashed changes

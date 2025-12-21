@@ -77,10 +77,7 @@ const translations = {
         learnMode:"Tryb nauki",
         flashcards:"Fiszki",
         logout: "Wyloguj",
-<<<<<<< Updated upstream
-=======
         statistics: "Statystyki",
->>>>>>> Stashed changes
         userTestsList: "Lista testów użytkowników"
     },
     flashcards: {
