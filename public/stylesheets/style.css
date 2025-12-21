@@ -101,6 +101,76 @@ body {
   border-color: var(--col-reg-btn-hover-dark);
 }
 
+/* Menu użytkownika*/
+.navbar #userMenuBtn {
+  background: transparent;
+  border: none;
+  margin: 0; 
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  color: var(--text-light); 
+  font-weight: 600;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+}
+
+.navbar #userMenuBtn:hover,
+.navbar #userMenuBtn:focus,
+.navbar .dropdown.show #userMenuBtn, /* Bootstrap 4/5 dodaje klasę .show przy otwarciu */
+.navbar #userMenuBtn[aria-expanded="true"] {
+    background-color: var(--col-highlight);
+    color: var(--text-dark);
+    box-shadow: 0 0 12px 3px var(--col-accent); /* Twój efekt poświaty */
+    outline: none; /* Usuwa brzydką ramkę focusu przeglądarki */
+}
+
+.navbar .dropdown-menu {
+    background-color: var(--col-dark); 
+    border: 1px solid var(--col-contrast);
+    border-radius: 12px;
+    padding: 10px 0;
+    margin-top: 10px !important;
+    min-width: 220px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+}
+
+.navbar .dropdown-item {
+    color: var(--col-neutral);
+    padding: 10px 20px;
+    font-size: 0.95rem;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+}
+
+.navbar .dropdown-item i {
+    color: var(--col-accent);
+    margin-right: 10px; 
+    opacity: 0.8;
+    transition: opacity 0.2s;
+}
+
+.navbar .dropdown-item:hover {
+    background-color: var(--col-contrast);
+    color: var(--col-neutral);
+    padding-left: 25px;
+}
+
+.navbar .dropdown-item:hover i {
+    opacity: 1;
+}
+
+.navbar .dropdown-divider {
+    border-top: 1px solid var(--col-contrast);
+    opacity: 0.5;
+}
+
+.navbar .dropdown-item.text-danger:hover {
+    background-color: rgba(220, 53, 69, 0.15);
+    color: #dc3545 !important;
+}
+
 /* Buttons */
 .btn-primary {
   background-color: var(--col-accent);
@@ -160,6 +230,9 @@ body {
   transition: all 0.3s;
 }
 .card .card-body {
+  color: var(--text-light);
+}
+.card .card-header {
   color: var(--text-light);
 }
 .card:hover {
@@ -289,4 +362,113 @@ body.light-mode .navbar #regBtn:hover {
   border-color: var(--col-reg-btn-hover-light);
 }
 
+
+
+
+/* 1. Otwieranie po najechaniu myszką (tylko na komputerach - min-width) */
+@media (min-width: 992px) {
+   .lang-dropdown-container:hover .dropdown-menu {
+        display: block;
+        margin-top: 0; /* Usuwamy odstęp, żeby myszka nie "uciekła" */
+    }
+}
+
+.lang-dropdown-container .dropdown-menu {
+    right: 0 !important;  /* Przyklej do prawej krawędzi przycisku */
+    left: auto !important; /* Odczep od lewej */
+    min-width: 100px; /* Opcjonalnie: minimalna szerokość, żeby tekst się nie łamał */
+}
+
+/* --- STYLIZACJA DROPDOWN MENU --- */
+
+/* Domyślne ukrycie menu */
+.lang-dropdown-container .dropdown-menu {
+    /* Upewniamy się, że menu jest domyślnie ukryte i poza zasięgiem kliknięć */
+    visibility: hidden;
+    opacity: 0;
+    transition: visibility 0s, opacity 0.2s linear;
+    
+    /* Pozycjonowanie (możesz potrzebować 'position: absolute;' jeśli używasz niestandardowych ustawień) */
+    position: absolute; 
+    top: 100%; /* Menu pojawi się pod przyciskiem */
+    z-index: 1000; /* Upewnij się, że jest na wierzchu */
+}
+
+/* Stan: Najazd myszką na cały kontener (rodzic) */
+.lang-dropdown-container:hover .dropdown-menu {
+    /* Zmień te właściwości, aby menu się pokazało */
+    visibility: visible;
+    opacity: 1;
+}
+
+.lang-dropdown-container .dropdown-menu::before {
+    content: "";
+    position: absolute;
+    top: -20px; 
+    left: 0;
+    right: 0;
+    height: 20px;
+    background: transparent;
+}
+
+/* --- Modyfikacja aktywnego języka (szary kolor) --- */
+
+/* Zmodyfikowany stan aktywnego języka (Ten wybrany) */
+.lang-dropdown-container .dropdown-item.active-lang {
+    /* Tło: Usuwamy akcentowe tło */
+    background-color: transparent !important; 
+    
+    /* Tekst: Używamy szarego, przygaszonego koloru */
+    color: var(--col-neutral-faded, #888888) !important; 
+    
+    /* Zmniejszamy lub usuwamy pogrubienie */
+    font-weight: 500; 
+    
+    /* Zablokowanie najazdu na aktywny element */
+    pointer-events: none;
+    cursor: default;
+}
+
+.lang-dropdown-container .dropdown-item.active-lang:hover,
+.lang-dropdown-container .dropdown-item.active-lang:focus {
+    background-color: transparent !important;
+    color: var(--col-neutral-faded, #888888) !important; 
+}
+
+/* --- Stylizacja głównego przycisku (tego widocznego przed rozwinięciem) --- */
+#langDropdown {
+    color: var(--col-neutral) !important; 
+    border: none !important;            
+    outline: none !important;           
+    box-shadow: none !important;
+}
+
+#langDropdown:hover,
+#langDropdown:focus,
+#langDropdown.show,
+#langDropdown[aria-expanded="true"] {
+    color: var(--col-accent) !important; /* Po najechaniu na skrót PL/EN */
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+.btn-theme-toggle {
+    background-color: transparent;
+    color: var(--col-neutral);            /* Kolor ikony */
+    width: 25px;
+    height: 25px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    font-size: 1rem;
+}
+
+.btn-theme-toggle:hover {
+    /* background-color: var(--col-highlight); Podświetlenie tła */
+    color: var(--col-accent);               /* Zmiana koloru ikony na akcent */
+    /* transform: rotate(15deg);               Mały obrót dla bajeru */
+    /* border-color: var(--col-accent); */
+}
 

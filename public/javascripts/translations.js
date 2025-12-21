@@ -30,20 +30,32 @@ const translations = {
     },
     quizLearn: {
       title: "🧠 Tryb nauki",
-      startButton: "Rozpocznij naukę",
       subject: "Przedmiot",
-      timeLeft: "Pozostały czas",
       loading: "Wczytywanie...",
-      nextQuestion: "Następne pytanie",
-      QuestionMode: "Tryb pytań",
-      Unanswered: "Nieodpowiedziane",
-      IncorrectAnswers: "Błędne odpowiedzi",
-      SavedQuestions: "Zapisane pytania",
-      RandomQuestions: "Losowe pytania"
+      questionMode: "Tryb pytań",
+      all: "Wszystkie pytania",
+      unanswered: "Nieodpowiedziane",
+      incorrect: "Błędne odpowiedzi",
+      saved: "Zapisane pytania",
+      random: "Losowe pytania",
+      startButton: "Rozpocznij naukę",
+      nextQuest: "Następne pytanie",
+      quiz_progress: "Pytanie nr",
+      quiz_finished: "Zakończono!",
+      quiz_btn_show_answer: "👀 Pokaż poprawną odpowiedź",
+      quiz_header_correct: "💡 Poprawna odpowiedź:",
+      quiz_btn_save: "💾 Zapamiętaj pytanie",
+      quiz_btn_saved: "✅ Zapamiętano",
+      quiz_feedback_correct: "✅ Dobrze!",
+      quiz_feedback_wrong: "Niepoprawna odpowiedź.",
+      quiz_alert_select: "❗ Wybierz przedmiot.",
+      quiz_alert_empty: "Brak pytań.",
+      quiz_congrats: "🎉 Brawo — przerobione wszystkie pytania!"
     },
     quizTest: {
       title: "Tryb testu",
       loading: "Wczytywanie...",
+      subject: "Przedmiot",
       numberOfQuestions: "Ilość pytań",
       time: "Czas (minuty)",
       startButton: "Rozpocznij test",
@@ -65,6 +77,10 @@ const translations = {
         learnMode:"Tryb nauki",
         flashcards:"Fiszki",
         logout: "Wyloguj",
+<<<<<<< Updated upstream
+=======
+        statistics: "Statystyki",
+>>>>>>> Stashed changes
         userTestsList: "Lista testów użytkowników"
     },
     flashcards: {
@@ -175,7 +191,33 @@ const translations = {
       reportSubmitted: "Dziękujemy! Zgłoszenie zostało przesłane do moderacji.",
       selectRating: "Wybierz ocenę",
       notAllAnswered: "Nie wszystkie pytania zostały odpowiedziane. Czy na pewno chcesz sprawdzić wynik?"
-    }
+    },
+    rank: {
+      rank_title: "Ranking",
+      rank_period_label: "Okres:",
+      rank_period_all: "Od początku",
+      rank_period_curr_week: "Bieżący tydzień",
+      rank_period_last_week: "Poprzedni tydzień",
+      rank_col_user: "Użytkownik",
+      rank_col_points: "Punkty",
+      rank_error_fetch: "Nie udało się pobrać rankingu."
+    },
+    dashboard: {
+      stats_points: "Twoje Punkty",
+      stats_tests: "Rozwiązane Testy",
+      stats_fav_subjects: "Ulubione Przedmioty",
+      stats_best_accuracy: "Najlepsza Skuteczność",
+      stats_no_data: "Brak danych...",
+      stats_history_title: "Historia Aktywności",
+      stats_col_date: "Data",
+      stats_col_category: "Kategoria",
+      stats_col_score: "Wynik"
+    },
+    toast_points_gained: "Zdobyłeś +{points} pkt!",
+    alert_auth_required: "Musisz się zalogować, aby uzyskać dostęp do tej sekcji!",
+    alert_registered: "Rejestracja udana! Otrzymujesz 100 pkt na start! 🎉",
+    alert_login_success: "Witaj z powrotem! 👋",
+    alert_login_bonus: "Witaj! Otrzymujesz +2 pkt za codzienne logowanie! 🎉"
   },
   en: {
     login: {
@@ -208,27 +250,49 @@ const translations = {
     },
     quizLearn: {
       title: "🧠 Learning mode",
-      startButton: "Start learning",
       subject: "Subject",
-      timeLeft: "Time left",
       loading: "Loading...",
-      nextQuestion: "Next question",
-      QuestionMode: "Question Mode",
-      Unanswered: "Unanswered",
-      IncorrectAnswers: "Incorrect Answers",
-      SavedQuestions: "Saved Questions",
-      RandomQuestions: "Random Questions"
+      questionMode: "Question mode",
+      all: "All questions",
+      unanswered: "Unanswered",
+      incorrect: "Incorrect answers",
+      saved: "Saved questions",
+      random: "Random questions",
+      startButton: "Start learning",
+      nextQuest: "Next question",
+      quiz_progress: "Question No.",
+      quiz_finished: "Finished!",
+      quiz_btn_show_answer: "👀 Show correct answer",
+      quiz_header_correct: "💡 Correct answer:",
+      quiz_btn_save: "💾 Save question",
+      quiz_btn_saved: "✅ Saved",
+      quiz_feedback_correct: "✅ Correct!",
+      quiz_feedback_wrong: "Incorrect answer.",
+      quiz_alert_select: "❗ Select a subject.",
+      quiz_alert_empty: "No questions available.",
+      quiz_congrats: "🎉 Bravo — all questions completed!"
     },
     quizTest: {
       title: "Test mode",
       loading: "Loading...",
+      subject: "Subject",
       numberOfQuestions: "Number of questions",
       time: "Time (minutes)",
       startButton: "Start test",
       question: "Question",
       previousQuestion: "Previous question",
-      nextQuestion: "Next question",
-      subject: "Subject"
+      nextQuest: "Next question",
+      quiz_progress: "Progress",
+      quiz_finished: "Finished!",
+      quiz_btn_show_answer: "👀 Show correct answer",
+      quiz_header_correct: "💡 Correct answer:",
+      quiz_btn_save: "💾 Save question",
+      quiz_btn_saved: "✅ Saved",
+      quiz_feedback_correct: "✅ Correct!",
+      quiz_feedback_wrong: "Incorrect answer.",
+      quiz_alert_select: "❗ Select a subject.",
+      quiz_alert_empty: "No questions available.",
+      quiz_congrats: "🎉 Bravo — all questions completed!"
     },
     index: {
       welcome: "Welcome to LearnIt",
@@ -243,6 +307,7 @@ const translations = {
         learnMode:"Learning Mode",
         flashcards:"Flashcards",
         logout: "Logout",
+        statistics: "Statistics",
         userTestsList: "User Tests List"
     },
     flashcards: {
@@ -353,6 +418,33 @@ const translations = {
       reportSubmitted: "Thank you! The report has been submitted for moderation.",
       selectRating: "Select Rating",
       notAllAnswered: "Not all questions have been answered. Are you sure you want to check results?"
-    }
+    },
+    rank: {
+      rank_title: "Leaderboard",
+      rank_period_label: "Period:",
+      rank_period_all: "All time",
+      rank_period_curr_week: "Current week",
+      rank_period_last_week: "Last week",
+      rank_col_user: "User",
+      rank_col_points: "Points",
+      rank_error_fetch: "Failed to load ranking."
+    },
+    dashboard: {
+      stats_points: "Your Points",
+      stats_tests: "Solved Tests",
+      stats_fav_subjects: "Favorite Subjects",
+      stats_best_accuracy: "Best Accuracy",
+      stats_no_data: "No data available...",
+      stats_history_title: "Activity History",
+      stats_col_date: "Date",
+      stats_col_category: "Category",
+      stats_col_score: "Score"
+    },
+    toast_points_gained: "You gained +{points} pts!",
+    alert_auth_required: "You must log in to access this section!",
+    alert_registered: "Registration successful! You get 10 points to start! 🎉",
+    alert_login_success: "Successfully logged in! Welcome back 👋",
+    alert_login_success: "Welcome back! 👋",
+    alert_login_bonus: "Welcome back! You got +2 pts for daily login! 🎉"
   }
 };

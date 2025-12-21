@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>Panel Użytkownika</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="/static/stylesheets/style.css">
+    <style>
+        /* Specjalne kolory dla podium */
+        .medal-gold { color: #FFD700; text-shadow: 0px 0px 5px rgba(255, 215, 0, 0.5); }
+        .medal-silver { color: #C0C0C0; text-shadow: 0px 0px 5px rgba(192, 192, 192, 0.5); }
+        .medal-bronze { color: #CD7F32; text-shadow: 0px 0px 5px rgba(205, 127, 50, 0.5); }
+        
+        .dashboard-card {
+            transition: transform 0.2s;
+            border: none;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .dashboard-card:hover { transform: translateY(-5px); }
+    </style>
+</head>
+<body>
+
+<main class="container py-4">
+    
+    <div class="row mb-4 g-3">
+        <div class="col-md-6">
+            <div class="card dashboard-card bg-primary text-white h-100">
+                <div class="card-body d-flex align-items-center justify-content-between">
+                    <div>
+                        <h5 class="card-title" data-translate="stats_points">Twoje Punkty</h5>
+                        <h2 class="display-4 fw-bold" id="totalPoints">0</h2>
+                    </div>
+                    <i class="bi bi-star-fill fs-1 opacity-50"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card dashboard-card bg-success text-white h-100">
+                <div class="card-body d-flex align-items-center justify-content-between">
+                    <div>
+                        <h5 class="card-title" data-translate="stats_tests">Rozwiązane Testy</h5>
+                        <h2 class="display-4 fw-bold" id="totalTests">0</h2>
+                    </div>
+                    <i class="bi bi-journal-check fs-1 opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4 g-3">
+        
+        <div class="col-md-6">
+            <div class="card dashboard-card h-100">
+                <div class="card-header bg-transparent border-0 pt-3">
+                    <h5 class="card-title">
+                        <i class="bi bi-heart-fill text-danger me-2"></i>
+                        <span data-translate="stats_fav_subjects">Ulubione Przedmioty</span>
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush" id="popularPodium">
+                        <li class="list-group-item text-center text-muted" data-translate="stats_no_data">Brak danych...</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card dashboard-card h-100">
+                <div class="card-header bg-transparent border-0 pt-3">
+                    <h5 class="mb-0">
+                        <i class="bi bi-trophy-fill text-warning me-2"></i>
+                        <span data-translate="stats_best_accuracy">Najlepsza Skuteczność</span>
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush" id="bestPodium">
+                         <li class="list-group-item text-center text-muted" data-translate="stats_no_data">Brak danych...</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card dashboard-card">
+        <div class="card-header" data-translate="stats_history_title">
+            Historia Aktywności
+        </div>
+        <div class="card-body p-0">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th data-translate="stats_col_date">Data</th>
+                        <th data-translate="stats_col_category">Kategoria</th>
+                        <th data-translate="stats_col_score">Wynik</th>
+                    </tr>
+                </thead>
+                <tbody id="activityTable">
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</main>
+
+<script src="/static/javascripts/script.js"></script>
+<script>
+    // Skrypt specyficzny dla Dashboardu
+    document.addEventListener('DOMContentLoaded', async () => {
+        // Sprawdź autoryzację (funkcja ze script.js)
+        if(requireAuth() === false) return; 
+
+        try {
+            const token = localStorage.getItem('token');
+            const res = await fetch('/dashboard/api', { // Dostosuj ścieżkę
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                renderDashboard(data.stats);
+            }
+        } catch (err) {
+            console.error("Błąd pobierania danych dashboardu", err);
+        }
+    });
+
+    function renderDashboard(stats) {
+        const currentLang = localStorage.getItem('language') || 'pl';
+        
+        // 1. Liczniki
+        document.getElementById('totalPoints').textContent = stats.points;
+        document.getElementById('totalTests').textContent = stats.totalTests;
+        
+        // Funkcja pomocnicza do generowania podium
+        const createPodiumRow = (item, index, valueText) => {
+            let icon = '';
+            let colorClass = '';
+            
+            if (index === 0) { icon = 'bi-award-fill'; colorClass = 'medal-gold'; }
+            else if (index === 1) { icon = 'bi-award-fill'; colorClass = 'medal-silver'; }
+            else if (index === 2) { icon = 'bi-award-fill'; colorClass = 'medal-bronze'; }
+
+            return `
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <i class="bi ${icon} ${colorClass} me-2 fs-5"></i>
+                        <span class="fw-medium">${item._id}</span> </div>
+                    <span class="badge bg-light text-dark border">${valueText}</span>
+                </li>
+            `;
+        };
+
+        // 2. Renderowanie Podium Popularności
+        const popContainer = document.getElementById('popularPodium');
+        if (stats.popularCategories && stats.popularCategories.length > 0) {
+        popContainer.innerHTML = stats.popularCategories
+            .map((cat, i) => {
+                // cat.subjectName to obiekt { pl: "...", en: "..." }
+                // Wybieramy nazwę na podstawie języka. 
+                // Jeśli brak tłumaczenia dla wybranego języka, bierzemy 'pl' jako zapas.
+                const name = cat.subjectName[currentLang] || cat.subjectName['pl'] || 'Nieznany przedmiot';
+                
+                // Przekazujemy wyciągniętą nazwę do funkcji tworzącej wiersz
+                // Zauważ, że przekazuję obiekt z polem _id jako nazwa, by pasowało do funkcji createPodiumRow
+                return createPodiumRow({ _id: name }, i, `${cat.count} pytań`);
+            })
+            .join('');
+    } else {
+        popContainer.innerHTML = '<li class="list-group-item text-center text-muted">Brak danych...</li>';
+    }
+
+    
+        // 3. Renderowanie Podium Skuteczności
+        const bestContainer = document.getElementById('bestPodium');
+        if (stats.bestCategories && stats.bestCategories.length > 0) {
+            bestContainer.innerHTML = stats.bestCategories
+                .map((cat, i) => {
+                    // A. Bezpieczne wyciągnięcie nazwy
+                    // Sprawdzamy czy subjectName istnieje. Jeśli tak, bierzemy język obecny LUB polski.
+                    const name = cat.subjectName 
+                        ? (cat.subjectName[currentLang] || cat.subjectName['pl']) 
+                        : 'Nieznany przedmiot';
+
+                    // B. Przekazanie do funkcji
+                    // Pakujemy nazwę w obiekt { _id: name }, bo tak oczekuje funkcja createPodiumRow
+                    return createPodiumRow({ _id: name }, i, `${Math.round(cat.avgScore)}%`);
+                })
+                .join('');
+        }
+        // 4. Tabela historii
+        const historyContainer = document.getElementById('activityTable');
+        
+        // Słownik do tłumaczenia kodów akcji na ładny tekst
+        const actionDictionary = {
+            'quiz_correct': { pl: 'Poprawna odpowiedź', en: 'Correct Answer' },
+            'quiz_wrong':   { pl: 'Błędna odpowiedź', en: 'Wrong Answer' },
+            'test_passed':  { pl: 'Zaliczony test', en: 'Test Passed' },
+            'login':        { pl: 'Logowanie', en: 'Login' },
+            'registration': { pl: 'Rejestracja', en: 'Registration' },
+            'login_streak': { pl: 'Seria logowań', en: 'Login Streak' }
+        };
+        
+        if (stats.recentActivity && stats.recentActivity.length > 0) {
+            historyContainer.innerHTML = stats.recentActivity.map(act => {
+                // 1. Formatowanie daty
+                const date = new Date(act.date).toLocaleString(currentLang, {
+                    year: 'numeric', month: 'numeric', day: 'numeric',
+                    hour: '2-digit', minute: '2-digit'
+                });
+                // const date = new Date(act.date).toLocaleString();
+
+                // 2. Tłumaczenie akcji
+                const actionDef = actionDictionary[act.actionType];
+                const actionLabel = actionDef 
+                    ? (actionDef[currentLang] || actionDef['pl']) 
+                    : act.actionType; // Jeśli nie znamy typu, wyświetl kod
+
+                // 3. Nazwa przedmiotu (jeśli istnieje)
+                // act.subjectName to obiekt {pl, en}, więc wybieramy język
+                let subjectLabel = '';
+                let scoreBadge = '';
+                let subjectInfo = '';
+                let badge = '';
+                let label = '';
+
+                if (act.subjectName) {
+                    const name = act.subjectName[currentLang] || act.subjectName['pl'];
+                    subjectLabel = `<div class="text-secondary small mt-1"><i class="bi bi-book me-1"></i>${name}</div>`;
+                }
+                if (act.type === 'test_result') {
+                    // --- TO JEST WYNIK TESTU ---
+                    const isPassed = act.isSuccess;
+                    const textKey = isPassed ? {pl:'Zaliczony test', en:'Test Passed'} : {pl:'Niezaliczony test', en:'Test Failed'};
+                    const text = textKey[currentLang] || textKey['pl'];
+                    
+                    // Kolor badge
+                    const badgeClass = isPassed ? 'bg-success' : 'bg-danger';
+                    
+                    label = `<strong>${text}</strong>`;
+                    badge = `<span class="badge ${badgeClass} ms-2">${act.score}%</span>`;
+                    
+                } else {
+                    // --- TO JEST INNA AKCJA ---
+                    const def = actionDictionary[act.originalType];
+                    const text = def ? (def[currentLang] || def['pl']) : act.originalType;
+                    
+                    // Specjalny kolor dla błędnych odpowiedzi
+                    const isError = act.originalType === 'quiz_wrong';
+                    label = `<strong class="${isError ? 'text-danger' : ''}">${text}</strong>`;
+                }
+
+                // 3. Punkty (Kolor szary jeśli 0)
+                let pointsBadge = '';
+                if (act.points > 0) {
+                    pointsBadge = `<span class="badge bg-primary bg-opacity-10 text-primary border border-primary">+${act.points} pkt</span>`;
+                } else {
+                    pointsBadge = `<span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary">0 pkt</span>`;
+                }
+
+                return `
+                    <tr>
+                        <td class="align-middle"><small class="text-muted">${date}</small></td>
+                        <td class="align-middle">
+                            <div class="d-flex align-items-center">
+                                ${label}
+                                ${badge}
+                            </div>
+                            ${subjectLabel}
+                        </td>
+                        <td class="align-middle">
+                            ${pointsBadge}
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        } else {
+            historyContainer.innerHTML = '<tr><td colspan="3" class="text-center py-3 text-muted">Brak ostatniej aktywności</td></tr>';
+        }
+    }
+</script>
+<script src="/static/javascripts/translations.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

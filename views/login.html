@@ -54,9 +54,13 @@
       if(res.ok){
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data.user));
-        window.location.href = '/';
-      } else {
-        alert(data.message || 'Błąd logowania');
+          if (data.pointsAdded === true) {
+            // Sytuacja A: Pierwsze logowanie dzisiaj -> Bonus
+            window.location.href = '/dashboard?alert=login_bonus';
+          } else {
+            // Sytuacja B: Kolejne logowanie -> Zwykłe powitanie
+            window.location.href = '/dashboard?alert=login_success';
+          }
       }
     } catch(err){
       alert('Błąd sieci: '+err.message);

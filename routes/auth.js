@@ -32,7 +32,7 @@ router.post("/register", async (req, res) => {
     }
 
     // Create user
-    const user = await User.create({ name, email, password });
+    const user = await User.create({ name, email, password, points: 0 });
 
     // Generate JWT
     const token = jwt.sign(
@@ -40,6 +40,7 @@ router.post("/register", async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: "7d" }
     );
+<<<<<<< Updated upstream
     res.cookie("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
@@ -54,6 +55,24 @@ router.post("/register", async (req, res) => {
         email: user.email,
         userType: user.accessLvl
       },
+=======
+
+    // Przyznajemy punkt na start (10pkt za rejestracje)
+    await addPoints(user._id, 'registration', 10);
+
+    // Przygotowujemy obiekt do wysłania
+    // Konwertujemy dokument Mongoose na zwykły obiekt JS
+    const userResponse = user.toObject();
+    
+    // Ręcznie ustawiamy punkty w odpowiedzi, bo w bazie mogły się zapisać,
+    // ale zmienna 'user' z linii wyżej jeszcze o tym nie wie.
+    userResponse.points = 10;
+
+    // Respond with token + user data
+    res.status(201).json({
+      message: "User registered successfully",
+      user: userResponse,
+>>>>>>> Stashed changes
       token
     });
   } catch (err) {
@@ -84,6 +103,11 @@ router.post('/login', async (req, res) => {
     if (!isMatch) {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
+<<<<<<< Updated upstream
+=======
+    
+    const pointsAdded = await addPoints(user._id, 'login', 2);
+>>>>>>> Stashed changes
 
     // Generate JWT
     const token = jwt.sign(
@@ -91,6 +115,7 @@ router.post('/login', async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: '7d' }
     );
+<<<<<<< Updated upstream
     res.cookie("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
@@ -99,6 +124,22 @@ router.post('/login', async (req, res) => {
     res.status(200).json({
       message: 'Login successful',
       user: { id: user._id, name: user.name, email: user.email, userType: user.accessLvl},
+=======
+
+    // Konwertujemy usera na zwykły obiekt, żeby móc go edytować przed wysłaniem
+    const userResponse = user.toObject();
+
+    if (pointsAdded) {
+        // Jeśli właśnie dodaliśmy punkty w bazie, musimy je też dodać
+        // do obiektu, który wysyłamy do przeglądarki.
+        // W przeciwnym razie frontend dostanie stare dane.
+        userResponse.points = (userResponse.points || 0) + 2;
+    }
+
+    res.status(200).json({
+      message: 'Login successful',
+      user: userResponse,
+>>>>>>> Stashed changes
       token,
     });
   } catch (err) {
