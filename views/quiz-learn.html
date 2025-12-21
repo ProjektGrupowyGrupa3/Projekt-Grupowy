@@ -25,13 +25,13 @@
         </div>
 
         <div class="mb-3">
-          <label class="form-label fw-semibold" data-translate="Question mode">Tryb pytań</label>
+          <label class="form-label fw-semibold" data-translate="QuestionMode">Tryb pytań</label>
           <select id="mode" class="form-select">
             <option value="all" selected>Wszystkie pytania</option>
             <option value="unanswered" data-translate="Unanswered">Nieodpowiedziane</option>
-            <option value="incorrect" data-translate="Incorrect answers">Błędne odpowiedzi</option>
-            <option value="saved" data-translate="Saved questions">Zapisane pytania</option>
-            <option value="random" data-translate="Random questions">Losowe pytania</option>
+            <option value="incorrect" data-translate="IncorrectAnswers">Błędne odpowiedzi</option>
+            <option value="saved" data-translate="SavedQuestions">Zapisane pytania</option>
+            <option value="random" data-translate="RandomQuestions">Losowe pytania</option>
 
           </select>
         </div>
@@ -70,8 +70,9 @@
   </main>
 
   <script src="/static/javascripts/script.js"></script>
+  <script src="/static/javascripts/translations.js"></script>
   <script>
-  setupThemeToggle('toggleTheme');
+
   document.addEventListener('DOMContentLoaded', initQuizPage);
 
   async function initQuizPage() {
@@ -91,59 +92,28 @@
     let totalQuestions = 0;
 
 
-  
-  try {
-  
-    var PolEng = "pl";
-      if(localStorage.getItem('language')=="en"){
-        PolEng = "en"
-      }
-    const res = await fetch(`/api/subjects?lang=${PolEng}`);
-    const subjects = await res.json();
-
-    subjectSelect.innerHTML = '';
-    if (!subjects.length) {
-      subjectSelect.innerHTML = '<option value="">Brak przedmiotów w bazie</option>';
-      return;
-    }
-
-    subjects.forEach(subj => {
-      const option = document.createElement('option');
-      option.value = subj._id;
-      option.textContent = `${subj.name} (sem. ${subj.semester})`;
-      subjectSelect.appendChild(option);
-    });
-  } catch (err) {
-    console.error('Błąd podczas pobierania przedmiotów:', err);
-    subjectSelect.innerHTML = '<option value="">Błąd ładowania danych</option>';
-  }
-
-
-  function getAuthHeaders() {
-    const token = localStorage.getItem('token');
-    const headers = { 'Content-Type': 'application/json' };
-    if (token) headers['Authorization'] = 'Bearer ' + token;
-    return headers;
-  }
-
-  async function loadQuestions(subjectId, mode = 'all', lang = 'pl') {
+    
     try {
-      var PolEng = "pl";
-      if(localStorage.getItem('language')=="en"){
-        PolEng = "en"
+      const res = await fetch('/api/subjects?lang=pl');
+      const subjects = await res.json();
+
+      subjectSelect.innerHTML = '';
+      if (!subjects.length) {
+        subjectSelect.innerHTML = '<option value="">Brak przedmiotów w bazie</option>';
+        return;
       }
-      const res = await fetch(`/api/questions?subject=${encodeURIComponent(subjectId)}&mode=${mode}&lang=${PolEng}`, {
-        headers: getAuthHeaders()
+
+      subjects.forEach(subj => {
+        const option = document.createElement('option');
+        option.value = subj._id;
+        option.textContent = `${subj.name} (sem. ${subj.semester})`;
+        subjectSelect.appendChild(option);
       });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const { totalCount, questions } = await res.json();
-      totalQuestions = totalCount;
-      return questions;
-    } catch (e) {
-      console.error('Błąd podczas pobierania pytań:', e);
-      return [];
+    } catch (err) {
+      console.error('Błąd podczas pobierania przedmiotów:', err);
+      subjectSelect.innerHTML = '<option value="">Błąd ładowania danych</option>';
     }
-  }
+
 
     function getAuthHeaders() {
       const token = localStorage.getItem('token');
@@ -181,6 +151,7 @@
       }
     }
 
+
     function renderProgress(currentNumber) {
       const total = totalQuestions || 0;
       const percent = total ? Math.round((currentNumber / total) * 100) : 0;
@@ -188,27 +159,6 @@
       progressBar.style.width = `${percent}%`;
       progressBar.setAttribute('aria-valuenow', percent);
     }
-
-    async function addPointsAPI(type, amount, questionId) {
-      try {
-          const token = localStorage.getItem("token");
-
-          const res = await fetch("/api/points/add", {
-              method: "POST",
-              headers: {
-                  "Content-Type": "application/json",
-                  "Authorization": "Bearer " + token
-              },
-              body: JSON.stringify({ type, amount, questionId })
-          });
-
-          return await res.json();
-          
-      } catch (err) {
-          console.error("❌ Błąd API:", err);
-      }
-  }
-
 
     function renderQuestion(q) {
       qText.textContent = q.question || 'Brak treści pytania';
@@ -236,34 +186,24 @@
       correct = ans.isCorrect;
       Array.from(opts.children).forEach(b => (b.disabled = true));
 
-      try {
-        if (correct) {
-            btn.classList.add('list-group-item-success');
-            explain.textContent = '✅ Dobrze!';
+      if (correct) {
+        btn.classList.add('list-group-item-success');
+        explain.textContent = '✅ Dobrze!';
+        await saveAnswerToDB(q._id, true);
+      } else {
+        btn.classList.add('list-group-item-danger');
+        explain.innerHTML = `
+          <div class="alert alert-warning">
+            ❌ ${ans.explanation || 'Niepoprawna odpowiedź.'}
+          </div>
+        `;
+        explain.appendChild(createShowCorrectButton(q, btn));
+        explain.appendChild(createSaveButton(q));
+        await saveAnswerToDB(q._id, false);
+      }
 
-            await saveAnswerToDB(q._id, true);
-
-            await addPointsAPI("quiz_correct", 5, q._id);
-
-        } else {
-            btn.classList.add('list-group-item-danger');
-            explain.innerHTML = `
-                <div class="alert alert-warning">
-                    ❌ ${ans.explanation || 'Niepoprawna odpowiedź.'}
-                </div>
-            `;
-            explain.appendChild(createShowCorrectButton(q, btn));
-            explain.appendChild(createSaveButton(q));
-
-            await saveAnswerToDB(q._id, false);
-        }
-    } catch (err) {
-        console.error("Błąd podczas zapisywania:", err);
-        alert("Wystąpił błąd podczas zapisywania odpowiedzi lub punktów.");
-    }
-
-    explain.classList.remove('d-none');
-    nextBtn.disabled = false;
+      explain.classList.remove('d-none');
+      nextBtn.disabled = false;
     }
 
     function createShowCorrectButton(q) {
@@ -344,10 +284,11 @@
       renderQuestion(queue[0]);
     });
   }
+
 </script>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="/static/javascripts/translations.js"></script>
+
 </body>
 
 </html>

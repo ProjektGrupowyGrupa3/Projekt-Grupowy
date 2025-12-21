@@ -33,7 +33,7 @@
   <script src="/static/javascripts/sort.js"></script>
   <script src="/static/javascripts/script.js"></script>
   <script>
-    
+    setupThemeToggle('toggleTheme');
 //Przykładowe dane testów użytkowników
     const testsMock = [
       {
@@ -385,7 +385,7 @@
 
             <!-- 🔥 Trudność (3 gwiazdki) -->
             <div class="mt-1">
-              <small class="me-1 fw-bold" data-translate="difficulty">${t9n.difficulty}:</small>
+              <small class="me-1 fw-bold" data-translate="difficulty">${t9n.difficulty}</small>
               <small class="difficultyStars">
                 ${'&#9733;'.repeat(Math.round(avgDifficulty || 0))}
                 ${'&#9734;'.repeat(3 - Math.round(avgDifficulty || 0))}
@@ -402,7 +402,7 @@
               </small>
               <small class="rating-value ms-1">(${avgRating})</small>
               <small class="rating-count ms-2"> 
-                <span data-translate="ratings">${t9n.ratings}: </span> 
+                <span data-translate="ratings">${t9n.ratings} </span> 
                 <span class="ratingCount">${Object.keys(t.ratings || {}).length}</span> 
               </small>
             </div>
@@ -442,25 +442,12 @@
       }
     }
 
-    // Pokazanie użytkownika jeśli zalogowany
-    const user = JSON.parse(localStorage.getItem('user') || 'null');
-    if (user) {
-      document.getElementById('userEmail').textContent = user.name;
-      const btn = document.getElementById('authBtn');
-      btn.textContent = 'Wyloguj';
-      btn.href = '#';
-      btn.addEventListener('click', () => {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        window.location.reload();
-      });
-      document.getElementById('regBtn').style.display = 'none';
-    }
+
 
 
     // Dark/Light Toggle
     document.addEventListener('DOMContentLoaded', () => {
-      setupThemeToggle('toggleTheme');
+
       const currentLang = getCurrentLanguage();
       setupSorting();
       loadUserTests();

@@ -1,0 +1,185 @@
+main.container {
+    color: #ffffff !important;
+}
+
+
+.form-control, 
+.form-select,
+#test-title {
+    background-color: rgba(255, 255, 255, 0.08) !important; 
+    color: #ffffff !important;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+
+.form-control::placeholder,
+#test-title::placeholder {
+    color: rgba(255, 255, 255, 0.6) !important;
+    opacity: 1;
+}
+
+.form-control:focus, 
+.form-select:focus {
+    background-color: rgba(255, 255, 255, 0.15) !important;
+    border-color: var(--col-accent);
+    color: #ffffff !important;
+    box-shadow: 0 0 10px rgba(138, 109, 230, 0.3);
+}
+
+
+select option {
+    background-color: #2a2438 !important;
+    color: #ffffff !important; 
+}
+
+
+.card h4, 
+.card h5,
+.card-title, 
+.form-label,
+label,
+strong {
+    color: #ffffff !important;
+}
+
+
+.question-preview {
+    background-color: rgba(0, 0, 0, 0.3) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #ffffff !important;
+}
+.question-preview strong {
+    color: #ffffff !important;
+}
+.question-preview .text-muted {
+    color: #bbbbbb !important; 
+}
+
+
+#saved-tests-list .list-group-item {
+    background-color: #2a2438 !important;
+    color: #ffffff !important;
+    border-color: rgba(255,255,255,0.1);
+}
+#saved-tests-list h5 {
+    color: #8a6de6 !important;
+}
+#saved-tests-list small {
+    color: #cccccc !important;
+}
+
+
+#quiz-container h5 {
+    color: #ffffff !important;
+    font-size: 1.4rem;
+    font-weight: 600;
+    margin-bottom: 20px;
+}
+
+
+#quiz-container .list-group-item {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #ffffff !important;
+    transition: all 0.2s;
+}
+
+
+#quiz-container .list-group-item:hover {
+    background-color: rgba(255, 255, 255, 0.2) !important;
+    cursor: pointer;
+}
+
+#quiz-container .list-group-item.active {
+    background-color: var(--col-accent) !important;
+    border-color: var(--col-accent) !important;
+    color: #ffffff !important;
+}
+
+
+.form-check-input {
+    border: 1px solid #aaaaaa;
+}
+.form-check-input:checked {
+    background-color: #ffffff;
+    border-color: #ffffff;
+}
+
+
+.result-card {
+    background-color: rgba(255,255,255,0.05);
+}
+.result-card.correct { border: 1px solid #198754; }
+.result-card.wrong { border: 1px solid #dc3545; }
+
+.result-card p { color: #dddddd !important; }
+.result-card .text-success { color: #4dd485 !important; } 
+.result-card .text-danger { color: #ff6b75 !important; }
+
+/* Modal Wczytywania */
+.modal-content {
+    background-color: #1a1525 !important;
+    border: 1px solid var(--col-accent);
+    color: #ffffff !important;
+}
+.btn-close {
+    filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+
+body.light-mode main.container { color: inherit !important; }
+
+body.light-mode .form-control, 
+body.light-mode .form-select,
+body.light-mode #test-title {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    border-color: #ced4da;
+}
+body.light-mode select option {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+}
+body.light-mode .form-control::placeholder,
+body.light-mode #test-title::placeholder {
+    color: #6c757d !important;
+}
+body.light-mode .card h4, 
+body.light-mode .card h5,
+body.light-mode .card-title,
+body.light-mode label,
+body.light-mode strong {
+    color: #000000 !important;
+}
+body.light-mode .question-preview {
+    background-color: #f8f9fa !important;
+    color: #000000 !important;
+}
+body.light-mode .question-preview strong { color: #000000 !important; }
+body.light-mode .question-preview .text-muted { color: #6c757d !important; }
+
+body.light-mode #saved-tests-list .list-group-item {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+}
+body.light-mode #saved-tests-list h5 { color: var(--col-accent) !important; }
+
+/* Quiz Light Mode Reset */
+body.light-mode #quiz-container h5 { color: #000000 !important; }
+body.light-mode #quiz-container .list-group-item {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    border-color: rgba(0,0,0,0.125);
+}
+body.light-mode #quiz-container .list-group-item:hover {
+    background-color: #f0f0f0 !important;
+}
+body.light-mode #quiz-container .list-group-item.active {
+    background-color: var(--col-accent) !important;
+    color: #ffffff !important;
+}
+body.light-mode .btn-close { filter: none; }
+body.light-mode .modal-content {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+}

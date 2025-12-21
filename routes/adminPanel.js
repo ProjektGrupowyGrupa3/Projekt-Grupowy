@@ -23,7 +23,7 @@ router.get("/users/:id", adminAuth(1), async (req, res) => {
 // Search user
 router.get("/users", adminAuth(1), async (req, res) => {
   try {
-    const { q } = req.query.q;
+    const { q } = req.query;
     const filter = q
       ? {
           $or: [
@@ -136,13 +136,22 @@ router.get("/questions/search", adminAuth(1), async (req, res) => {
     const { q } = req.query;
 
     const filter = q
-      ? { "question.en": { $regex: q, $options: "i" } }
+      ? {
+          $or: [
+            { "question.en": { $regex: q, $options: "i" } },
+            { "question.pl": { $regex: q, $options: "i" } },
+            { tags: { $in: [new RegExp(q, "i")] } }
+          ]
+        }
       : {};
 
-    const result = await Question.find(filter).limit(100);
+    const result = await Question.find(filter)
+      .limit(100)
+      .populate("subject", "name"); 
 
     res.json(result);
   } catch (err) {
+    console.error(err);
     res.status(500).json({ message: "Server error" });
   }
 });
@@ -161,13 +170,29 @@ router.get("/questions/:id", adminAuth(1), async (req, res) => {
 // Create question
 router.post("/questions", adminAuth(1), async (req, res) => {
   try {
-    const q = await Question.create(req.body);
-    res.status(201).json(q);
+      const existing = await Question
+      .find({ number: { $exists: true } })
+      .select("number -_id")
+      .sort({ number: 1 })
+      .lean();
+    let nextNumber = 1;
+    for (const q of existing) {
+      if (q.number === nextNumber) {
+        nextNumber++;
+      } else if (q.number > nextNumber) {
+        break;
+      }
+    }
+    const question = await Question.create({
+      ...req.body,
+      number: nextNumber
+    });
+    res.status(201).json(question);
   } catch (err) {
+    console.error(err);
     res.status(500).json({ message: "Server error" });
   }
 });
-
 // Edit question
 router.put("/questions/:id", adminAuth(1), async (req, res) => {
   try {
@@ -186,24 +211,48 @@ router.put("/questions/:id", adminAuth(1), async (req, res) => {
 // Delete question
 router.delete("/questions/:id", adminAuth(1), async (req, res) => {
   try {
-    const deleted = await Question.findByIdAndDelete(req.params.id);
-    if (!deleted) return res.status(404).json({ message: "Not found" });
-    res.json({ message: "Deleted" });
+    const question = await Question.findById(req.params.id);
+    if (!question) {
+      return res.status(404).json({ message: "Not found" });
+    }
+
+    const deletedNumber = question.number;
+
+    await Question.deleteOne({ _id: question._id });
+
+    if (typeof deletedNumber === "number") {
+      await Question.updateMany(
+        { number: { $gt: deletedNumber } },
+        { $inc: { number: -1 } }
+      );
+    }
+
+    res.json({
+      message: "Question deleted and numbering updated",
+      deletedNumber
+    });
+
   } catch (err) {
+    console.error(err);
     res.status(500).json({ message: "Server error" });
   }
 });
-
 //SUBJECTS
 
 // Search subjects
 router.get("/subjects/search", adminAuth(1), async (req, res) => {
   try {
     const { q } = req.query;
-
     const filter = q
-      ? { "name.en": { $regex: q, $options: "i" } }
-      : {};
+      ? {
+          $or: [
+            { "name.en": { $regex: q, $options: "i" } },
+            { "name.pl": { $regex: q, $options: "i" } },
+            { "specialization.en": { $regex: q, $options: "i" } },
+            { "specialization.pl": { $regex: q, $options: "i" } },
+          ]
+        }
+      : {}; 
 
     const list = await Subject.find(filter).limit(100);
     res.json(list);

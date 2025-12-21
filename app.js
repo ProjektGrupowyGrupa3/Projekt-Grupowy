@@ -21,10 +21,12 @@ const questionsRouter = require('./routes/questions')
 const resetPasswordRouter = require('./routes/reset-password');
 const setPasswordRouter = require('./routes/set-password');
 const flashcardsRouter = require('./routes/flashcards');
+const createtestRouter = require('./routes/create-test');
 const adminPanelRouter = require("./routes/adminPanel");
 
 const userTestDetailsRouter = require('./routes/user-test-details');
 const userTestListRouter = require('./routes/user-test-list');
+const administrationPanelRouter = require("./routes/administrationPanel");
 var app = express();
 
 // 🔹 Load environment variables
@@ -68,6 +70,8 @@ app.use("/rank", require("./routes/ranking"));
 app.use('/api/points', require('./routes/points'));
 //User Progress
 app.use('/api/user-progress', userProgressRouter);
+//User Progress Page
+app.use('/dashboard', require('./routes/dashboard'));
 //Flashcards Page
 app.use('/flashcards', flashcardsRouter);
 //User test details
