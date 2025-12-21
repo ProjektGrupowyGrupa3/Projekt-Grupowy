@@ -33,16 +33,11 @@
 
       <div id="quizArea" class="mt-4 d-none">
         <div class="d-flex justify-content-between align-items-center mb-2">
-<<<<<<< Updated upstream
-          <div>Timer: <span id="timer">00:00</span></div>
-          <div data-translate="question">Pytanie <span id="curIdx">0</span>/<span id="total">0</span></div>
-=======
           <div>Timer: <span id="timer">15:00</span></div>
           <div>
             <span data-translate="question">Pytanie</span> 
             <span id="curIdx">0</span>/<span id="total">0</span>
           </div>
->>>>>>> Stashed changes
         </div>
         <div id="questionCard" class="card">
           <div class="card-body">
@@ -63,11 +58,6 @@
 
 
 <script>
-<<<<<<< Updated upstream
-
-=======
-// setupThemeToggle('toggleTheme');
->>>>>>> Stashed changes
 document.addEventListener('DOMContentLoaded', initQuizTest);
 
 // Nasłuchiwanie na globalną zmianę języka
@@ -140,33 +130,9 @@ async function initQuizTest() {
     timeLeft: 0
   };
 
-<<<<<<< Updated upstream
-
-
-  try {
-    const res = await fetch('/api/subjects?lang=pl');
-    const subjects = await res.json();
-    subjectSelect.innerHTML = '';
-
-    if (!subjects.length) {
-      subjectSelect.innerHTML = '<option value="">Brak przedmiotów w bazie</option>';
-    } else {
-      subjects.forEach(subj => {
-        const opt = document.createElement('option');
-        opt.value = subj._id;
-        opt.textContent = `${subj.name} (sem. ${subj.semester})`;
-        subjectSelect.appendChild(opt);
-      });
-    }
-  } catch (err) {
-    console.error('Błąd ładowania przedmiotów:', err);
-    subjectSelect.innerHTML = '<option value="">Błąd ładowania danych</option>';
-  }
-=======
   
   const currentLang = localStorage.getItem('language') || 'pl';
   await loadAndRenderSubjects(currentLang);
->>>>>>> Stashed changes
 
   
   startBtn.addEventListener('click', async () => {
@@ -256,8 +222,6 @@ function updateTimer(state) {
   document.getElementById('timer').textContent = `${m}:${s}`;
 }
 
-<<<<<<< Updated upstream
-=======
 async function addPointsAPI(type, amount, questionId) {
       try {
           const token = localStorage.getItem("token");
@@ -279,7 +243,6 @@ async function addPointsAPI(type, amount, questionId) {
   }
 
 
->>>>>>> Stashed changes
 
 function renderQuestion(state) {
   const q = state.questions[state.cur];
@@ -310,10 +273,6 @@ function highlightSelected(state) {
   if (selected !== null && btns[selected]) btns[selected].classList.add('active');
 }
 
-<<<<<<< Updated upstream
-
-function finishTest(state) {
-=======
 // Wysyłanie wyniku do bazy (statystyki) 
 async function saveTestResultAPI(data) {
     try {
@@ -336,7 +295,6 @@ async function saveTestResultAPI(data) {
 
 // --- ZMODYFIKOWANA FUNKCJA finishTest ---
 async function finishTest(state) {
->>>>>>> Stashed changes
   if (state.timer) clearInterval(state.timer);
 
   // 1. Obliczanie wyniku
@@ -353,8 +311,6 @@ async function finishTest(state) {
   });
 
   const percent = Math.round((correct / state.questions.length) * 100);
-<<<<<<< Updated upstream
-=======
 
   // 2. ZAPIS WYNIKU DO BAZY (TestResult)
   // Wywołujemy to ZAWSZE, niezależnie od wyniku (0% czy 100%)
@@ -370,7 +326,6 @@ async function finishTest(state) {
   const resultId = savedResult && savedResult.resultId ? savedResult.resultId : state.testId;
   
   // 3. Wyświetlanie wyniku (UI)
->>>>>>> Stashed changes
   const res = document.getElementById('resultArea');
   res.classList.remove('d-none');
   
@@ -385,8 +340,6 @@ async function finishTest(state) {
     </div>
   `;
 
-<<<<<<< Updated upstream
-=======
 
   // 4. Naliczanie punktów (UserEarnedAction) - tylko gdy > 50%
   try {
@@ -421,7 +374,6 @@ async function finishTest(state) {
   }
 
   // Ukryj obszar pytań
->>>>>>> Stashed changes
   document.getElementById('quizArea').classList.add('d-none');
 }
 </script>
