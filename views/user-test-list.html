@@ -27,6 +27,9 @@
         <option value="questions" data-translate="byQuestionCount">Najwięcej pytań</option>
       </select>
     </div>
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <input type="text" id="searchInput" class="form-control d-flex" placeholder="Szukaj po tytule lub tagach...">
+    </div>
     <div id="testsList" class="list-group mt-3"></div>
   </main>
 
@@ -35,271 +38,27 @@
   <script>
     setupThemeToggle('toggleTheme');
 //Przykładowe dane testów użytkowników
-    const testsMock = [
-      {
-        _id: '1',
-        title: 'Test z matematyki',
-        user: 'JanK',
-        language: 'pl',
-        questions: [
-          {
-            question: 'Ile wynosi 2 + 2?',
-            answers: [
-              { text: '3', isCorrect: false },
-              { text: '4', isCorrect: true },
-              { text: '5', isCorrect: false }
-            ]
-          },
-          {
-            question: 'Ile wynosi 5 × 3?',
-            answers: [
-              { text: '10', isCorrect: false },
-              { text: '15', isCorrect: true },
-              { text: '20', isCorrect: false }
-            ]
-          },
-          {
-            question: 'Pierwiastek kwadratowy z 16 to:',
-            answers: [
-              { text: '2', isCorrect: false },
-              { text: '4', isCorrect: true },
-              { text: '8', isCorrect: false }
-            ]
-          }
-        ],
-        comments: [
-          {
-            _id: 'c1',
-            user: 'AnnaM',
-            text: 'Super test! Bardzo pomocny w powtórce.',
-            createdAt: new Date('2024-01-15'),
-            canEdit: true,
-            edited: true,
-            canDelete: true,
-            canReply: true,
-            replies: []
-          },
-          {
-            _id: 'c2',
-            user: 'PiotrS',
-            language: 'pl',
-            text: 'Niektóre pytania były dość trudne, ale fajnie się rozwiązywało.',
-            createdAt: new Date('2024-01-16'),
-            canEdit: false,
-            edited: false,
-            canDelete: false,
-            canReply: true,
-            replies: [
-              {
-                _id: 'r1',
-                user: 'JanK',
-                text: 'Dzięki za feedback! Postaram się dodać więcej wskazówek.',
-                createdAt: new Date('2024-01-16'),
-                canEdit: true,
-                edited: false,
-                canDelete: true,
-                canReply: true,
-                replies: []
-              }
-            ]
-          }
-        ],
-        ratings: {
-          'user1': 5,
-          'user2': 4,
-          'user3': 4,
-          'user4': 5
-        },
-        ratingCount: 4,
-        difficultyRatings: {
-          'user1': 2,
-          'user2': 3,
-          'user3': 2
-        },
-      },
-      {
-        _id: '2',
-        title: 'Physics Test',
-        user: 'AnnaM',
-        language: 'en',
-        questions: [
-          {
-            question: 'What is the unit of force?',
-            answers: [
-              { text: 'Newton', isCorrect: true },
-              { text: 'Watt', isCorrect: false },
-              { text: 'Joule', isCorrect: false }
-            ]
-          }
-        ],
-        comments: [
-          {
-            _id: 'c3',
-            user: 'TomaszZ',
-            text: 'It helped me so much!',
-            createdAt: new Date('2024-01-14'),
-            canEdit: false,
-            edited: false,
-            canDelete: false,
-            canReply: true,
-            replies: []
-          }
-        ],
-        ratings: {
-          'user1': 2,
-          'user2': 2,
-          'user3': 3,
-          'user4': 3,
-          'wasd': 4,
-          'test123': 3
-        },
-        ratingCount: 6,
-        difficultyRatings: {
-          'u1': 1,
-          'u2': 2
-        },
-      },
-      {
-        _id: '3',
-        title: 'Test z historii',
-        user: 'PiotrS',
-        language: 'pl',
-        questions: [
-          {
-            question: 'Kiedy wybuchła II wojna światowa?',
-            answers: [
-              { text: '1914', isCorrect: false },
-              { text: '1939', isCorrect: true },
-              { text: '1945', isCorrect: false }
-            ]
-          },
-          {
-            question: 'Stolicą Polski jest:',
-            answers: [
-              { text: 'Kraków', isCorrect: false },
-              { text: 'Warszawa', isCorrect: true },
-              { text: 'Gdańsk', isCorrect: false }
-            ]
-          }
-        ],
-        comments: [
-          {
-            _id: 'c4',
-            user: 'KasiaW',
-            language: 'pl',
-            text: 'Bardzo przydatny test do powtórki przed egzaminem.',
-            createdAt: new Date('2024-01-13'),
-            canEdit: false,
-            edited: false,
-            canDelete: false,
-            canReply: true,
-            replies: []
-          }
-        ],
-        ratings: {
-          'user1': 5,
-          'user2': 4,
-          'wasd': 4,
+   
+  async function loadUserTests() {
+    const container = document.getElementById('testsList');
+    container.innerHTML = '';
 
-        },
-        ratingCount: 3,
-        difficultyRatings: {
-          'u1': 1,
-          'u2': 1,
-          'u3': 2
-        },
+    const sortMode = document.getElementById('sortSelect')?.value || 'none';
+    const currentLang = getCurrentLanguage();
+    const query = document.getElementById('searchInput')?.value.trim() || '';
 
-      },
-      {
-        _id: '4',
-        title: 'Test z chemii',
-        user: 'KasiaW',
-        language: 'pl',
-        questions: [
-          {
-            question: 'Symbol chemiczny złota to:',
-            answers: [
-              { text: 'Au', isCorrect: true },
-              { text: 'Ag', isCorrect: false },
-              { text: 'Fe', isCorrect: false }
-            ]
-          },
-          {
-            question: 'Woda ma wzór chemiczny:',
-            answers: [
-              { text: 'H₂O', isCorrect: true },
-              { text: 'CO₂', isCorrect: false },
-              { text: 'NaCl', isCorrect: false }
-            ]
-          }
-        ],
-        comments: [],
-        ratings: {
-          'user1': 5,
-          'user2': 4,
-          'user3': 4,
-          'wasd': 1
-        },
-        ratingCount: 4,
-        difficultyRatings: {
-          'u1': 2,
-          'u2': 3
-        },
-      },
-      {
-        _id: '5',
-        title: 'Test z biologii',
-        user: 'TomaszZ',
-        language: 'pl',
-        questions: [
-          {
-            question: 'Ile nóg ma pająk?',
-            answers: [
-              { text: '6', isCorrect: false },
-              { text: '8', isCorrect: true },
-              { text: '10', isCorrect: false }
-            ]
-          }
-        ],
-        comments: [
-          {
-            _id: 'c5',
-            user: 'AnnaM',
-            text: 'Krótki ale treściwy test!',
-            createdAt: new Date('2024-01-12'),
-            canEdit: false,
-            edited: false,
-            canDelete: false,
-            canReply: true,
-            replies: []
-          }
-        ],
-        ratings: {
-          'user1': 5,
-          'user2': 4,
-          'user3': 4,
-          'wasd': 5
-        },
-        ratingCount: 4,
-        difficultyRatings: {
-          'u1': 3,
-          'u2': 3,
-          'u3': 2
-        },
-      }
-    ];
+    // Pokaż loader
+    container.innerHTML = `<div class="text-center py-4">Ładowanie testów...</div>`;
 
-    function loadUserTests() {
-      const container = document.getElementById('testsList');
-      container.innerHTML = '';
+    try {
+      const res = await fetch(`/api/tests/all?q=${encodeURIComponent(query)}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+        }
+      });
+      if (!res.ok) throw new Error('Błąd pobierania testów');
 
-      // Pobierz aktualny tryb sortowania (domyślnie 'none')
-      const sortMode = document.getElementById('sortSelect')?.value || 'none';
-      const currentLang = getCurrentLanguage();
-
-
-      const tests = testsMock;
-      // Tutaj w przyszłości będzie pobieranie z API/backendu
+      const tests = await res.json();
 
       if (!tests || tests.length === 0) {
         const t9n = translations[currentLang]?.userTestList || {};
@@ -307,130 +66,90 @@
         return;
       }
 
-    window.onLanguageChange = function (lang) {
-      console.log('Język zmieniony na:', lang);
-
-      updateSortSelect(lang);
-      // Jeśli wyniki są wyświetlane, przetłumacz je
-      const resultArea = document.getElementById('resultArea');
-      if (resultArea && !resultArea.classList.contains('d-none')) {
-        translateResults();
-        refreshLanguageBadges();
-      }
-
-      // Aktualizuj język testu
-      refreshLanguageBadges();
-    };
-
-    // Zachowaj też istniejącą funkcję updateDynamicContent dla kompatybilności
-    window.updateDynamicContent = function (lang) {
-      window.onLanguageChange(lang);
-    };
-
-    // Funkcja pomocnicza do pobrania aktualnego języka
-    function getCurrentLanguage() {
-      return localStorage.getItem('language') || 'pl';
-    }
-
-    function refreshLanguageBadges() {
-      const currentLang = getCurrentLanguage();
-
-      document.querySelectorAll('.testLanguageName').forEach(span => {
-        const lang = span.textContent.trim().toLowerCase();
-
-        // JEŚLI test był w PL → zostaje PL
-        // JEŚLI test był w EN → zostaje EN
-        // tłumaczymy tylko "Język / Language"
-        if (lang === 'polski' || lang === 'pl') {
-          span.textContent = 'Polski';
-        } else {
-          span.textContent = 'English';
-        }
-      });
-    }
-
-      // Zastosuj sortowanie
+      // Sortowanie
       const sortedTests = applySorting(tests, sortMode, currentLang);
 
-      // Pobierz tłumaczenia
       const t9n = translations[currentLang]?.userTestList || {};
-
+      container.innerHTML = '';
 
       sortedTests.forEach(t => {
         const a = document.createElement('a');
-        const avgRating = calculateAverageFromObject(t.ratings);
-        const avgDifficulty = calculateAverageFromObject(t.difficultyRatings);
+        const avgRating = t.averageRating || 0;
+        const avgDifficulty = t.averageDifficultyRating || 0;
 
-        a.href = `/user-test-details?testId=${t._id}&lang=${getCurrentLanguage()}`;
+        a.href = `/user-test-details?testId=${t.testId}&lang=${currentLang}`;
         a.className = 'list-group-item list-group-item-action d-flex justify-content-between align-items-center';
 
-
-
-        // Określ język testu - używamy prostego warunku
-        const testLanguage = t.language === 'pl' ? 'Polski' : 'English';
-        const testLanguageBadge = t.language === 'pl' ? 'Język: Polski' : 'Language: English';
-
+        const testLanguage = 'Polski'; // Default, endpoint does not return language
         a.innerHTML = `
-              <div class="flex-grow-1">
-                <div class="d-flex justify-content-between align-items-start mb-2">
-                  <h6 class="mb-0">${t.title} – ${t.user}</h6>
-                  <span class="badge bg-secondary">
-                      <span data-translate="language">${t9n.language}</span>:
-                      <span class="testLanguageName">${testLanguage}</span>
-                  </span>
+          <div class="flex-grow-1">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <h6 class="mb-0">${t.title} – ${t.owner?.name || 'Unknown'}</h6>
+              <span class="badge bg-secondary">
+                <span data-translate="language">${t9n.language}</span>:
+                <span class="testLanguageName">${testLanguage}</span>
+              </span>
+            </div>
+            ${avgRating > 0 ? `
+              <div class="mt-2">
+                <div class="mt-1">
+                  <small class="me-1 fw-bold" data-translate="difficulty">${t9n.difficulty}</small>
+                  <small class="difficultyStars">
+                    ${'&#9733;'.repeat(Math.round(avgDifficulty || 0))}
+                    ${'&#9734;'.repeat(3 - Math.round(avgDifficulty || 0))}
+                  </small>
+                  <small class="difficulty-value ms-1">(${avgDifficulty || 0})</small>
                 </div>
-                
-                ${avgRating > 0 ? `
-          <div class="mt-2">
-
-            <!-- 🔥 Trudność (3 gwiazdki) -->
-            <div class="mt-1">
-              <small class="me-1 fw-bold" data-translate="difficulty">${t9n.difficulty}</small>
-              <small class="difficultyStars">
-                ${'&#9733;'.repeat(Math.round(avgDifficulty || 0))}
-                ${'&#9734;'.repeat(3 - Math.round(avgDifficulty || 0))}
-              </small>
-              <small class="difficulty-value ms-1">
-                (${(avgDifficulty || 0)})
-              </small>
-            </div>
-            <!-- ⭐ Ocena jakości -->
-            <div class="mt-1">
-              <small class="averageStars">
-                ${'&#9733;'.repeat(Math.round(avgRating || 0))}
-                ${'&#9734;'.repeat(5 - Math.round(avgRating || 0))}
-              </small>
-              <small class="rating-value ms-1">(${avgRating})</small>
-              <small class="rating-count ms-2"> 
-                <span data-translate="ratings">${t9n.ratings} </span> 
-                <span class="ratingCount">${Object.keys(t.ratings || {}).length}</span> 
-              </small>
-            </div>
+                <div class="mt-1">
+                  <small class="averageStars">
+                    ${'&#9733;'.repeat(Math.round(avgRating || 0))}
+                    ${'&#9734;'.repeat(5 - Math.round(avgRating || 0))}
+                  </small>
+                  <small class="rating-value ms-1">(${avgRating})</small>
+                  <small class="rating-count ms-2"> 
+                    <span data-translate="ratings">${t9n.ratings}</span> 
+                    <span class="ratingCount">${t.numberOfRatings || 0}</span> 
+                  </small>
+                </div>
+              </div>
+            ` : `<div class="mt-2"><small class="no-ratings">${t9n.noRatings}</small></div>`}
           </div>
-        ` : `<div class="mt-2"><small class="no-ratings">${t9n.noRatings}</small></div>`}
+          <div class="text-end ms-3">
+            <span class="badge bg-primary rounded-pill">
+              <span class="q-count">${t.numberOfQuestions}</span>
+              <span data-translate="questions"> ${t9n.questions}</span>
+            </span>
+            <small class="comments-count d-block mt-1">
+              <span class="c-lenght">${t.numberOfComments}</span> 
+              <span data-translate="comments">${t9n.comments}</span>
+            </small>
+          </div>
+        `;
 
-              </div>
-              <div class="text-end ms-3">
-                <span class="badge bg-primary rounded-pill">
-                  <span class="q-count">${t.questions.length}</span>
-                  <span data-translate="questions"> ${t9n.questions}</span>
-                </span>
-                <small class="comments-count d-block mt-1">
-                  <span class="c-lenght">${t.comments.length}</span> 
-                  <span data-translate="comments">${t9n.comments}</span>
-                </small>
-              </div>
-            `;
-
-        // Debugowanie - sprawdź czy kliknięcie działa
-        a.addEventListener('click', (e) => {
+        a.addEventListener('click', () => {
           localStorage.setItem('currentTestData', JSON.stringify(t));
-          console.log('Zapisano dane testu:', t._id);
         });
 
         container.appendChild(a);
       });
+
+    } catch (err) {
+      console.error(err);
+      container.innerHTML = `<div class="text-center py-4">Błąd pobierania testów</div>`;
     }
+  }
+
+  // Search input listener
+  document.getElementById('searchInput')?.addEventListener('input', debounce(loadUserTests, 400));
+
+  // Debounce helper
+  function debounce(fn, delay) {
+    let timer;
+    return function () {
+      clearTimeout(timer);
+      timer = setTimeout(() => fn.apply(this, arguments), delay);
+    };
+  }
 
     function setupSorting() {
       const sortSelect = document.getElementById('sortSelect');
@@ -441,19 +160,7 @@
         });
       }
     }
-
-
-
-
-    // Dark/Light Toggle
-    document.addEventListener('DOMContentLoaded', () => {
-
-      const currentLang = getCurrentLanguage();
-      setupSorting();
-      loadUserTests();
-      updateDynamicContent(currentLang);
-      refreshLanguageBadges();
-    });
+    loadUserTests()
   </script>
 
   <script src="/static/javascripts/translations.js"></script>
