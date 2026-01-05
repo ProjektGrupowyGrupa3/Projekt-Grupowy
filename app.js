@@ -23,7 +23,7 @@ const setPasswordRouter = require('./routes/set-password');
 const flashcardsRouter = require('./routes/flashcards');
 const createtestRouter = require('./routes/create-test');
 const adminPanelRouter = require("./routes/adminPanel");
-
+const userTestRouter = require('./routes/tests')
 const userTestDetailsRouter = require('./routes/user-test-details');
 const userTestListRouter = require('./routes/user-test-list');
 const administrationPanelRouter = require("./routes/administrationPanel");
@@ -66,8 +66,7 @@ app.use('/quiz/learn', quizLearnRouter);
 app.use('/quiz/test', quizTestRouter);
 app.use('/api/questions',questionsRouter)
 app.use('/api/subjects', subjectsRouter);
-
-//User Progress
+app.use('/api/tests',userTestRouter);
 app.use('/api/user-progress', userProgressRouter);
 //User Progress Page
 app.use('/dashboard', dashboardRouter);
