@@ -278,7 +278,7 @@ const translations = {
       startButton: "Start test",
       question: "Question",
       previousQuestion: "Previous question",
-      nextQuest: "Next question",
+      nextQuestion: "Next question",
       quiz_progress: "Progress",
       quiz_finished: "Finished!",
       quiz_btn_show_answer: "👀 Show correct answer",

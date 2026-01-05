@@ -39,25 +39,20 @@
             <button id="start" class="btn btn-primary btn-lg mt-2" data-translate="startButton">Rozpocznij naukę</button>
           </div>
         </div>
+        <div id="cardArea" class="d-none mt-4">     
+            <div class="mb-3 d-flex justify-content-end">
+                <span id="progress-label" class="badge bg-secondary fs-6 p-2">
+                    </span>
+            </div>
 
-        <div id="cardArea" class="d-none mt-4">    
-          <div class="mb-3">
-            <div class="d-flex justify-content-between">
-              <span id="progress-label"></span>
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title mb-4" id="qText">Treść pytania...</h5>
+                    <div id="opts" class="list-group">
+                        </div>
+                </div>
+                <div class="card-footer bg-transparent border-0" id="explain"></div>
             </div>
-            <div class="progress" style="height: 20px;">
-              <div id="progress-bar" class="progress-bar bg-success" role="progressbar"
-                  style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
-            </div>
-          </div>
-
-          <div class="card">
-            <div class="card-body">
-              <h5 id="qText"></h5>
-              <div id="opts" class="list-group mt-3"></div>
-              <div id="explain" class="mt-3 explain d-none"></div>
-            </div>
-          </div>
 
           <div class="mt-3 d-flex justify-content-center">
             <button id="next" class="btn btn-secondary btn-lg" data-translate="nextQuest">Następne</button>
@@ -67,7 +62,6 @@
       </div>
     </div>
   </main>
-  <script src="/static/javascripts/translations.js"></script>
   <script src="/static/javascripts/script.js"></script>
   <script src="/static/javascripts/translations.js"></script>
   <script>
@@ -77,7 +71,7 @@
 let queue = [];
 let answered = false;
 let correct = false;
-let totalQuestions = 0; // Usunąłem answeredCount, bo lepiej liczyć z queue.length
+let totalQuestions = 0;
 
 // Elementy DOM
 let subjectSelect, startBtn, nextBtn, qText, opts, explain, progressLabel, progressBar, cardArea;
@@ -87,6 +81,9 @@ let subjectSelect, startBtn, nextBtn, qText, opts, explain, progressLabel, progr
 // ==========================================
 function getGlobalT() {
     const lang = localStorage.getItem('language') || 'pl';
+    // Upewniamy się, że obiekt translations istnieje
+    if (typeof translations === 'undefined') return {};
+    
     const langObj = translations[lang] || translations['pl'];
 
     if (langObj && langObj.quizLearn) {
@@ -121,21 +118,25 @@ function resetQuizState() {
     if (cArea) cArea.classList.add('d-none');
     if (pBar) pBar.style.width = '0%';
     if (sBtn) sBtn.disabled = false;
+    
+    // Pokaż z powrotem wybór przedmiotów jeśli resetujemy
+    const subjectsContainer = document.getElementById('subjectsContainer');
+    if(subjectsContainer) subjectsContainer.classList.remove('d-none');
 }
-
 function renderProgress(currentNumber) {
       const t = getGlobalT();
       const total = totalQuestions || 0;
 
-      const percent = total ? Math.round((currentNumber / total) * 100) : 0;
+      const current = currentNumber || '?';
+    //   const percent = total ? Math.round((currentNumber / total) * 100) : 0;
 
       progressLabel.textContent = `${t.quiz_progress || 'Pytanie nr'} ${currentNumber}${total ? ' / ' + total : ''}`;
       // progressLabel.textContent = `Pytanie nr ${currentNumber}${total ? ' / ' + total : ''}`;
 
 
-      progressBar.style.width = `${percent}%`;
+    //   progressBar.style.width = `${percent}%`;
 
-      progressBar.setAttribute('aria-valuenow', percent);
+    //   progressBar.setAttribute('aria-valuenow', percent);
 
     }
 
@@ -198,9 +199,16 @@ async function loadQuestions(subjectId, mode = 'all') {
             headers: getAuthHeaders()
         });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        
         const { totalCount, questions } = await res.json();
-        totalQuestions = totalCount; // Zapisujemy całkowitą liczbę pytań na start
+        
+        // Zapisujemy całkowitą liczbę (sumę wszystkich pytań w kolekcji dla tego przedmiotu)
+        totalQuestions = totalCount; 
+        
+        // --- USUNIĘTO SZTUCZNE NUMEROWANIE ---
+        // Zwracamy surowe obiekty, bo one mają już pole 'number' z bazy
         return questions;
+
     } catch (e) {
         console.error('Błąd pobierania pytań:', e);
         return [];
@@ -226,8 +234,8 @@ function createShowCorrectButton(q) {
     const showBtn = document.createElement('button');
     showBtn.className = 'btn btn-outline-success mt-2';
     showBtn.textContent = t.quiz_btn_show_answer || "Pokaż poprawną odpowiedź";
-    // showBtn.textContent = '👀 Pokaż poprawną odpowiedź';
     showBtn.setAttribute('data-translate', 'quiz_btn_show_answer');
+    
     showBtn.onclick = () => {
         const correctAns = q.answers.find(a => a.isCorrect);
         if (!correctAns) return;
@@ -238,13 +246,13 @@ function createShowCorrectButton(q) {
         const infoDiv = document.createElement('div');
         infoDiv.className = 'alert alert-info mt-2';
         const headerText = t.quiz_header_correct || "Poprawna odpowiedź:";
+        
         infoDiv.innerHTML = `
             <strong><span data-translate="quiz_header_correct">${headerText}</span></strong> ${correctAns.text}<br>
             <em>${correctAns.explanation}</em>
         `;
 
         explain.appendChild(infoDiv);
-
         showBtn.disabled = true;
     };
     return showBtn;
@@ -257,45 +265,38 @@ function createSaveButton(q) {
     saveBtn.className = 'btn btn-outline-primary mt-2 ms-2';
     saveBtn.textContent = t.quiz_btn_save || "💾 Zapamiętaj pytanie";
     saveBtn.setAttribute('data-translate', 'quiz_btn_save');
-    // saveBtn.textContent = '💾 Zapamiętaj pytanie';
 
-      saveBtn.onclick = async () => {
-
+    saveBtn.onclick = async () => {
         const token = localStorage.getItem('token');
-
         if (!token) return;
+        
         const currentT = getGlobalT();
-        const res = await fetch('/api/user-progress/toggle-save', {
+        
+        try {
+            const res = await fetch('/api/user-progress/toggle-save', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ questionId: q._id })
+            });
 
-          method: 'POST',
+            const data = await res.json();
+            const isSaved = data.saved || data.isSaved || data.success;
 
-          headers: getAuthHeaders(),
-
-          body: JSON.stringify({ questionId: q._id })
-
-        });
-
-        const data = await res.json();
-
-        if (data.saved) {
-
-          saveBtn.classList.replace('btn-outline-primary', 'btn-success');
-          saveBtn.textContent = currentT.quiz_btn_saved || "✅ Zapamiętano";
-          saveBtn.setAttribute('data-translate', 'quiz_btn_saved');
-        } else {
-
-          saveBtn.classList.replace('btn-success', 'btn-outline-primary');
-          saveBtn.textContent = currentT.quiz_btn_save || "💾 Zapamiętaj";
-          saveBtn.setAttribute('data-translate', 'quiz_btn_save');
-          // saveBtn.textContent = '💾 Zapamiętaj pytanie';
-
+            if (isSaved) {
+                saveBtn.classList.replace('btn-outline-primary', 'btn-success');
+                saveBtn.textContent = currentT.quiz_btn_saved || "✅ Zapamiętano";
+                saveBtn.setAttribute('data-translate', 'quiz_btn_saved');
+            } else {
+                saveBtn.classList.replace('btn-success', 'btn-outline-primary');
+                saveBtn.textContent = currentT.quiz_btn_save || "💾 Zapamiętaj pytanie";
+                saveBtn.setAttribute('data-translate', 'quiz_btn_save');
+            }
+        } catch(err) {
+            console.error(err);
         }
-
-      };
-
-      return saveBtn;
-
-    }
+    };
+    return saveBtn;
+}
 
 function renderQuestion(q) {
     if (!qText || !opts) return;
@@ -304,10 +305,12 @@ function renderQuestion(q) {
     opts.innerHTML = '';
     explain.classList.add('d-none');
     if(nextBtn) nextBtn.disabled = true;
+    
+    // WAŻNE: Resetujemy stan odpowiedzi dla bieżącego widoku,
+    // aby przyciski i logika kliknięć odświeżyły się w nowym języku
     answered = false;
     correct = false;
 
-    // Aktualizujemy pasek postępu przy każdym renderowaniu pytania
     renderProgress(q.number || '?');
 
     q.answers.forEach((ans) => {
@@ -332,22 +335,17 @@ async function handleAnswerClick(q, ans, btn) {
             btn.classList.add('list-group-item-success');
             explain.textContent = t.quiz_feedback_correct || "✅ Dobrze!";
             explain.setAttribute('data-translate', 'quiz_feedback_correct');
-            // explain.textContent = '✅ Dobrze!';
 
             await saveAnswerToDB(q._id, true);
-
-            // Wywołujemy poprawioną funkcję addPointsAPI
             const apiResult = await addPointsAPI("quiz_correct", 5, q._id);
 
             if (apiResult && apiResult.success) {
-                console.log("Punkty przyznane");
-                if (typeof updateUserPointsUI === 'function') {
-                    updateUserPointsUI(5);
-                }
+                if (typeof updateUserPointsUI === 'function') updateUserPointsUI(5);
             }
         } else {
             await addPointsAPI("quiz_wrong", 0, q._id);
             btn.classList.add('list-group-item-danger');
+            
             explain.innerHTML = `
                 <div class="alert alert-warning">
                     ❌ ${ans.explanation || 'Niepoprawna odpowiedź.'}
@@ -360,7 +358,7 @@ async function handleAnswerClick(q, ans, btn) {
             await saveAnswerToDB(q._id, false);
         }
     } catch (err) {
-        console.error("Błąd podczas zapisywania:", err);
+        console.error("Błąd zapisu:", err);
     }
 
     explain.classList.remove('d-none');
@@ -378,6 +376,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (protectedContent) protectedContent.style.display = 'block';
     }
 
+    // Przypisanie elementów
     subjectSelect = document.getElementById('subject');
     startBtn = document.getElementById('start');
     nextBtn = document.getElementById('next');
@@ -398,15 +397,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const subj = subjectSelect.value;
             const mode = document.getElementById('mode')?.value || 'all';
             
-            if (!subj) return alert(t.quiz_alert_select);
+            if (!subj) return alert(t.quiz_alert_select || "Wybierz przedmiot");
 
             queue = await loadQuestions(subj, mode);
-            if (!queue.length) return alert(t.quiz_alert_empty);
-            // if (!queue.length) return alert('Brak pytań.');
+            if (!queue.length) return alert(t.quiz_alert_empty || "Brak pytań");
 
             if (cardArea) cardArea.classList.remove('d-none');
             
-            // Ukrywamy selekt przedmiotów podczas testu
             const subjectsContainer = document.getElementById('subjectsContainer');
             if(subjectsContainer) subjectsContainer.classList.add('d-none');
             
@@ -414,13 +411,12 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- DALEJ (POPRAWIONE) ---
+    // --- DALEJ ---
     if (nextBtn) {
         nextBtn.addEventListener('click', () => {
             const t = getGlobalT();
             if (!answered) return;
 
-            // Pobieramy pierwsze pytanie z kolejki
             const current = queue.shift();
 
             // Jeśli błędna odpowiedź -> wraca na koniec kolejki
@@ -430,18 +426,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Sprawdzamy czy koniec
             if (queue.length === 0) {
-                qText.textContent = t.quiz_congrats;
+                qText.textContent = t.quiz_congrats || "Brawo!";
                 qText.setAttribute('data-translate', 'quiz_congrats');
-                // qText.textContent = '🎉 Brawo — przerobione wszystkie pytania!';
                 
                 opts.innerHTML = '';
                 explain.classList.add('d-none');
                 nextBtn.disabled = true;
                 
-                progressLabel.textContent = t.quiz_finished;
+                progressLabel.textContent = t.quiz_finished || "Zakończono!";
                 progressLabel.setAttribute('data-translate', 'quiz_finished');
                 
-                //progressLabel.textContent = 'Zakończono!';
                 if(progressBar) {
                     progressBar.style.width = '100%';
                     progressBar.classList.add('bg-success');
@@ -453,16 +447,57 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+// ==========================================
 // 4. OBSŁUGA ZMIANY JĘZYKA
+// ==========================================
+
+// ↓↓↓ TU MUSI BYĆ 'async', żeby w środku działało 'await' ↓↓↓
+async function handleLanguageChange(lang) {
+    const savedSubjectId = subjectSelect ? subjectSelect.value : null;
+    // 1. Zawsze odświeżamy listę przedmiotów w tle
+    loadAndRenderSubjects(lang);
+
+    // 2. Sprawdzamy stan quizu
+    const cardArea = document.getElementById('cardArea');
+    // Sprawdzamy czy zmienne istnieją i czy quiz trwa
+    const isQuizActive = cardArea && !cardArea.classList.contains('d-none') && typeof queue !== 'undefined' && queue.length > 0;
+
+    if (isQuizActive) {
+        console.log(`Język zmieniony na ${lang}. Quiz trwa - pobieram tłumaczenia pytań...`);
+        
+        const mode = document.getElementById('mode')?.value || 'all';
+
+        // ↓↓↓ To wywołanie powodowało błąd, bo funkcja-matka nie była async ↓↓↓
+        const newTranslatedQuestions = await loadQuestions(savedSubjectId, mode);
+
+        // Aktualizujemy teksty w OBECNEJ kolejce (queue)
+        if (newTranslatedQuestions && newTranslatedQuestions.length > 0) {
+            queue.forEach(currentQ => {
+                const translatedQ = newTranslatedQuestions.find(nq => nq._id === currentQ._id);
+                if (translatedQ) {
+                    currentQ.question = translatedQ.question;
+                    currentQ.answers = translatedQ.answers;
+                }
+            });
+            console.log("Kolejka zaktualizowana o nowe tłumaczenia.");
+        }
+
+        renderQuestion(queue[0]);
+        
+    } else {
+        console.log(`Język zmieniony na ${lang}. Resetuję stan...`);
+        resetQuizState();
+    }
+}
+
+// Listener zdarzenia
 document.addEventListener('languageChanged', (e) => {
-    const newLang = e.detail.newLang;
-    loadAndRenderSubjects(newLang);
-    resetQuizState();
+    handleLanguageChange(e.detail.newLang);
 });
 
-window.updatePageSpecificContent = function(lang) {
-    loadAndRenderSubjects(lang);
-    resetQuizState();
+// Funkcja globalna - tutaj też warto dodać async jeśli używamy await (lub po prostu wywołać bez await)
+window.updatePageSpecificContent = async function(lang) {
+    await handleLanguageChange(lang);
 };
 </script>
 

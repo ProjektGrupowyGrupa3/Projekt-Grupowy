@@ -455,7 +455,7 @@ body.light-mode .navbar #regBtn:hover {
 
 .btn-theme-toggle {
     background-color: transparent;
-    color: var(--col-neutral);            /* Kolor ikony */
+    color: var(--col-neutral);            
     width: 25px;
     height: 25px;
     display: flex;
