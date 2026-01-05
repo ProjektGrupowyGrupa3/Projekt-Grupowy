@@ -180,6 +180,7 @@
     const MAX_QUESTIONS = 60;
     const STORAGE_KEY = 'learnit_user_tests'; // Klucz w localStorage
     let testID = "";
+    let editingIndex = null;
     // --- ELEMENTY DOM ---
     const creatorSection = document.getElementById('creator-section');
     const quizSection = document.getElementById('quiz-section');
@@ -208,7 +209,7 @@
 
     form.addEventListener('submit', function(e) {
         e.preventDefault();
-        if (questions.length >= MAX_QUESTIONS) return;
+        if (questions.length >= MAX_QUESTIONS && editingIndex === null) return;
 
         const newQ = {
             question: document.getElementById('inputQuestion').value,
@@ -219,12 +220,19 @@
             correct: document.getElementById('correctSelect').value
         };
 
-        questions.push(newQ);
+        if (editingIndex !== null) {
+            questions[editingIndex] = newQ;
+            editingIndex = null;
+            document.querySelector('#add-question-form button[type="submit"]').innerText = "Dodaj pytanie";
+        } else {
+            questions.push(newQ);
+        }
+
         renderQuestionsList();
         form.reset();
-        document.getElementById('inputQuestion').focus();
         checkLimits();
     });
+
 
     function checkLimits() {
         qCounter.innerText = `${questions.length}/${MAX_QUESTIONS}`;
@@ -256,9 +264,16 @@
             const div = document.createElement('div');
             div.className = 'card mb-2 p-3 question-preview bg-dark bg-opacity-10';
             div.innerHTML = `
-                <div class="d-flex justify-content-between">
+                <div class="d-flex justify-content-between align-items-start">
                     <strong>${index + 1}. ${q.question}</strong>
-                    <button class="btn btn-sm btn-outline-danger" onclick="removeQuestion(${index})">Usuń</button>
+                    <div class="btn-group btn-group-sm">
+                        <button class="btn btn-outline-primary" onclick="editQuestion(${index})">
+                            Edytuj
+                        </button>
+                        <button class="btn btn-outline-danger" onclick="removeQuestion(${index})">
+                            Usuń
+                        </button>
+                    </div>
                 </div>
                 <div class="small mt-2 text-muted">
                     Poprawna: <span class="fw-bold text-success">${q.correct}</span>
@@ -267,6 +282,24 @@
             questionsListEl.appendChild(div);
         });
     }
+
+    window.editQuestion = function (index) {
+        const q = questions[index];
+
+        document.getElementById('inputQuestion').value = q.question;
+        document.getElementById('inputA').value = q.answerA;
+        document.getElementById('inputB').value = q.answerB;
+        document.getElementById('inputC').value = q.answerC;
+        document.getElementById('inputD').value = q.answerD;
+        document.getElementById('correctSelect').value = q.correct;
+
+        editingIndex = index;
+
+        // UX hint
+        document.querySelector('#add-question-form button[type="submit"]').innerText = "Zapisz zmiany";
+        document.getElementById('inputQuestion').focus();
+    };
+
 
     window.removeQuestion = function(index) {
         questions.splice(index, 1);

@@ -107,38 +107,69 @@ let selectedDifficulty = 0;
 
 console.log('Ładowanie testu ID:', testId);
 
-let testData = JSON.parse(localStorage.getItem('currentTestData'));
-
-// Jeśli nie ma danych (np. bezpośrednie wejście na stronę), użyj domyślnych
-if (!testData) {
-  console.warn('Brak danych testu, używam domyślnych');
-  testData = {
-    _id: testId || 'unknown',
-    title: 'Test z matematyki',
-    user: 'JanK',
-    questions: [
-      { question:'2+2=?', answers:[{text:'3',isCorrect:false},{text:'4',isCorrect:true},{text:'5',isCorrect:false}] },
-      { question:'5*3=?', answers:[{text:'15',isCorrect:true},{text:'10',isCorrect:false}] }
-    ],
-    comments: [
-      { _id:'c1', user:'AnnaM', text:'Super test!', createdAt: new Date(), canEdit:true, canDelete:true, canReply:true, replies:[] },
-      { _id:'c2', user:'PiotrS', text:'Trudne pytania.', createdAt: new Date(), canEdit:false, canDelete:false, canReply:true, replies:[] }
-    ]
-  };
-}
-
-console.log('Ładowanie testu ID:', testData._id, 'z', (testData.comments || []).length, 'komentarzami');
-
+let testData = null
 let userAnswers = [];
+let commentsMock = [];
 
-let commentsMock = testData.comments || [];
+async function loadTestFromDatabase() {
+  const token = localStorage.getItem("token");
 
+  try {
+    const res = await fetch(`/api/tests/${testId}`, {
+      headers: token ? {
+        "Authorization": `Bearer ${token}`
+      } : {}
+    });
 
+    if (!res.ok) {
+      throw new Error("Nie udało się pobrać testu");
+    }
+
+    const raw = await res.json();
+
+    // 🔁 Map backend → frontend structure (NO UI changes needed)
+    testData = {
+      _id: raw._id,
+      title: raw.title,
+      language: raw.language || "pl",
+      user: raw.creatorId?.name || raw.creatorId?.email || "Użytkownik",
+      rating: raw.rating || {},
+      difficultyRating: raw.difficultiyRating || {},
+      comments: raw.comments || [],
+      questions: raw.questions.map(q => ({
+        question: q.question,
+        answers: [
+          { text: q.answerA, isCorrect: q.correct === "A" },
+          { text: q.answerB, isCorrect: q.correct === "B" },
+          { text: q.answerC, isCorrect: q.correct === "C" },
+          { text: q.answerD, isCorrect: q.correct === "D" }
+        ]
+      }))
+    };
+
+    commentsMock = testData.comments;
+
+    displayTestLanguage();
+    renderTest();
+    initStarRating();
+    initDifficultyStars();
+    updateRatingDisplay();
+    updateDifficultyDisplay();
+    showUserDifficulty();
+
+  } catch (err) {
+    console.error(err);
+    alert("Błąd ładowania testu");
+  }
+} 
+function calculateAverageFromObject(obj){
+  return obj.reduce((partialSum, a) => partialSum + a.rating, 0)/obj.length;
+}
 function updateDifficultyDisplay() {
   const el = document.getElementById('difficultyAverage');
   if (!el) return;
-
-  const avg = calculateAverageFromObject(testData.difficultyRatings);
+  console.log(testData.difficultyRating);
+  const avg = calculateAverageFromObject(testData.difficultyRating);
   el.textContent = avg ? avg : "brak";
 
   if (!avg || avg === 0) {
@@ -165,24 +196,75 @@ function initDifficultyStars() {
   });
 }
 
-document.getElementById('submitDifficultyBtn').addEventListener('click', () => {
+document.getElementById('submitDifficultyBtn').addEventListener('click', async () => {
   if (selectedDifficulty === 0) return alert(t('selectDifficulty'));
 
-  const user = JSON.parse(localStorage.getItem('user'));
-  const userId = user.id || user._id || user.email;
+  try {
+    const user = JSON.parse(localStorage.getItem('user'));
+    const userId = user.id || user._id || user.email;
 
-  if (!testData.difficultyRatings) testData.difficultyRatings = {};
+    const response = await fetch(`/api/tests/${testId}/difficulty-rating`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        // Optionally include auth token if your authMiddleware requires it
+        'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+      },
+      body: JSON.stringify({ rating: selectedDifficulty })
+    });
 
-  testData.difficultyRatings[userId] = selectedDifficulty;
+    const data = await response.json();
 
-  const vals = Object.values(testData.difficultyRatings);
-  //testData.averageDifficulty = (vals.reduce((a,b)=>a+b,0) / vals.length).toFixed(1);
+    if (!response.ok) {
+      return alert(data.message || 'Failed to submit rating.');
+    }
 
-  localStorage.setItem('currentTestData', JSON.stringify(testData));
+    alert('Difficulty rating saved successfully!');
+  try {
+    const token = localStorage.getItem("token");
+    const res = await fetch(`/api/tests/${testId}`, {
+      headers: token ? {
+        "Authorization": `Bearer ${token}`
+      } : {}
+    });
 
-  updateDifficultyDisplay();
+    if (!res.ok) {
+      throw new Error("Nie udało się pobrać testu");
+    }
+
+    const raw = await res.json();
+
+    // 🔁 Map backend → frontend structure (NO UI changes needed)
+    testData = {
+      _id: raw._id,
+      title: raw.title,
+      language: raw.language || "pl",
+      user: raw.creatorId?.name || raw.creatorId?.email || "Użytkownik",
+      rating: raw.rating || {},
+      difficultyRating: raw.difficultiyRating || {},
+      comments: raw.comments || [],
+      questions: raw.questions.map(q => ({
+        question: q.question,
+        answers: [
+          { text: q.answerA, isCorrect: q.correct === "A" },
+          { text: q.answerB, isCorrect: q.correct === "B" },
+          { text: q.answerC, isCorrect: q.correct === "C" },
+          { text: q.answerD, isCorrect: q.correct === "D" }
+        ]
+      }))
+    };
+
+    commentsMock = testData.comments;
+  } catch (err) {
+    console.error(err);
+    alert("Błąd ładowania testu");
+  }
+    updateDifficultyDisplay();
+  } catch (err) {
+    console.error(err);
+    alert('An error occurred while submitting the difficulty rating.');
+  }
 });
-
 
 
 window.onLanguageChange = function(lang) {
@@ -193,7 +275,6 @@ window.onLanguageChange = function(lang) {
   if (resultArea && !resultArea.classList.contains('d-none')) {
     translateResults();
     renderTest();
-    showUserRating();
     showUserDifficulty();
     updateRatingDisplay();
   }
@@ -214,6 +295,7 @@ window.updateDynamicContent = function(lang) {
 
 
 // Render pytań do rozwiązania - UŻYWAJĄC KLAS BOOTSTRAP JAK W TRYBIE TESTOWYM
+
 function renderTest() {
   document.getElementById('testTitle').textContent = `${testData.title} – ${testData.user}`;
   const container = document.getElementById('questionsContainer');
@@ -370,8 +452,7 @@ function showResults() {
   
   if (userFeedbackElem) {
     userFeedbackElem.classList.remove('d-none');
-    renderComments(commentsMock);
-    applyTranslations();
+    renderComments(testData.comments);
     
   } else {
     console.error('Nie znaleziono sekcji komentarzy');
@@ -473,23 +554,21 @@ function renderDifficultyStars(avg) {
 // Komentarze
 function renderComments(comments, container=document.getElementById('commentsContainer')) {
   container.innerHTML='';
-
+  console.log(comments);
   comments.forEach(c=>{
     const div=document.createElement('div');
     div.classList.add('border','p-3','mb-3','rounded');
     div.dataset.id = c._id;
-    c.text = c.text.replace(/\(edytowany\)/gi, '').trim();
     div.innerHTML=`
-    <strong>${c.user}</strong> 
+    <strong>${c.nickname}</strong> 
     <small class="comment-date">${new Date(c.createdAt).toLocaleString()}</small>
       <p class="comment-text mt-2">
-        <span class="textComment">${c.text}</span>
-         ${c.edited ? '<em class="edited-flag" data-translate="edited">(edytowany)</em>' : ''}
+        <span class="textComment">${c.content}</span>
          </p>
       <div class="d-flex gap-2 flex-wrap">
-        ${c.canReply?'<button class="comment-action replyBtn" data-translate="reply">Odpowiedz</button>':''}
-        ${c.canEdit?'<button class="comment-action editBtn" data-translate="edit">Edytuj</button>':''}
-        ${c.canDelete?'<button class="comment-action deleteBtn" data-translate="delete">Usuń</button>':''}
+        ${'<button class="comment-action replyBtn" data-translate="reply">Odpowiedz</button>'}
+        ${'<button class="comment-action editBtn" data-translate="edit">Edytuj</button>'}
+        ${'<button class="comment-action deleteBtn" data-translate="delete">Usuń</button>'}
         <button class="comment-action reportBtn" data-translate="report">Zgłoś</button>
       </div>
       <div class="reply-container mt-2"></div>
@@ -522,28 +601,92 @@ function attachCommentEvents() {
         replyBox.innerHTML = ''; // czyści formularz
     });
 
-      replyBox.querySelector('.submitReplyBtn').addEventListener('click', () => {
+      replyBox.querySelector('.submitReplyBtn').addEventListener('click', async () => {
         const text = replyBox.querySelector('.replyText').value.trim();
         if (!text) return;
 
         const userDataStr = localStorage.getItem('user');
+        const token = localStorage.getItem('token');
+        if (!userDataStr || !token) {
+          alert('Please log in to reply.');
+          return;
+        }
+
         const userData = JSON.parse(userDataStr);
-        const id = commentDiv.dataset.id;
+        const commentId = commentDiv.dataset.id;
+        const testId = testData._id; // Make sure testData has _id
 
-        const comment = findCommentById(id, commentsMock);
-        comment.replies.push({
-          _id: Math.random().toString(),
-          user: userData.name,
-          text: text,
-          createdAt: new Date(),
-          canEdit: true,
-          canDelete: true,
-          canReply: true,
-          replies: []
-        });
+        if (!testId) {
+          alert('Test ID not found.');
+          return;
+        }
 
-        renderComments(commentsMock);
+        try {
+          // POST reply to server
+          const response = await fetch(`/api/tests/${testId}/comments/${commentId}/reply`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ content: text })
+          });
+
+          const data = await response.json();
+
+          if (!response.ok) {
+            return alert(data.message || 'Failed to add reply.');
+          }
+
+          // Optionally update local UI immediately
+        try {
+          const res = await fetch(`/api/tests/${testId}`, {
+            headers: token ? {
+              "Authorization": `Bearer ${token}`
+            } : {}
+          });
+
+          if (!res.ok) {
+            throw new Error("Nie udało się pobrać testu");
+          }
+
+          const raw = await res.json();
+
+          // 🔁 Map backend → frontend structure (NO UI changes needed)
+          testData = {
+            _id: raw._id,
+            title: raw.title,
+            language: raw.language || "pl",
+            user: raw.creatorId?.name || raw.creatorId?.email || "Użytkownik",
+            rating: raw.rating || {},
+            difficultyRating: raw.difficultiyRating || {},
+            comments: raw.comments || [],
+            questions: raw.questions.map(q => ({
+              question: q.question,
+              answers: [
+                { text: q.answerA, isCorrect: q.correct === "A" },
+                { text: q.answerB, isCorrect: q.correct === "B" },
+                { text: q.answerC, isCorrect: q.correct === "C" },
+                { text: q.answerD, isCorrect: q.correct === "D" }
+              ]
+            }))
+          };
+
+          commentsMock = testData.comments;
+
+        } catch (err) {
+          console.error(err);
+          alert("Błąd ładowania testu");
+        }
+
+          renderComments(testData.comments);
+          alert('Reply added successfully!');
+        } catch (err) {
+          console.error('Error adding reply:', err);
+          alert('An error occurred while submitting the reply.');
+        }
       });
+
     });
   });
 
@@ -572,10 +715,10 @@ function attachCommentEvents() {
         comment.edited = true;
         comment.createdAt = new Date();
 
-        renderComments(commentsMock);
+        renderComments(testData.comments);
       });
       commentDiv.querySelector('.cancelEditBtn').addEventListener('click', () => {
-        renderComments(commentsMock);
+        renderComments(testData.comments);
     });
     });
   });
@@ -589,7 +732,7 @@ function attachCommentEvents() {
       const id = e.target.closest('[data-id]').dataset.id;
       deleteCommentById(id, commentsMock);
 
-      renderComments(commentsMock);}
+      renderComments(testData.comments);}
     });
   });
 
@@ -622,27 +765,6 @@ function deleteCommentById(id, list) {
   }
 }
 
-function showUserRating() {
-  const token = localStorage.getItem('token');
-  const userDataStr = localStorage.getItem('user');
-  
-  if (!token || !userDataStr) return;
-  
-  try {
-    const userData = JSON.parse(userDataStr);
-    const userId = userData.id || userData._id || userData.email;
-    
-    if (testData.ratings && testData.ratings[userId]) {
-      const userRating = testData.ratings[userId];
-      selectedRating = userRating;
-      highlightStars(userRating);
-      
-    }
-  } catch (error) {
-    console.error('Błąd podczas ładowania oceny użytkownika:', error);
-  }
-}
-
 function showUserDifficulty() {
   const user = JSON.parse(localStorage.getItem('user') || 'null');
   if (!user) return;
@@ -658,8 +780,9 @@ function showUserDifficulty() {
 
 
 function updateRatingDisplay() {
-  const ratings = testData.ratings ? Object.values(testData.ratings) : [];
-  const avgRating = calculateAverageFromObject(testData.ratings);
+  const ratings = testData.rating ? Object.values(testData.rating) : [];
+  console.log(testData)
+  const avgRating = calculateAverageFromObject(testData.rating);
   const count = ratings.length;
   
   const averageStars = document.getElementById('averageStars');
@@ -699,47 +822,83 @@ function updateRatingDisplay() {
 
 
 // Funkcję do zapisywania oceny
-function saveRating(rating) {
+async function saveRating(rating) {
   const token = localStorage.getItem('token');
   const userDataStr = localStorage.getItem('user');
-  
+
   if (!token || !userDataStr) {
     alert(t('loginToRate'));
     return;
   }
-  
+
+  if (!testData?._id) {
+    alert("Brak ID testu");
+    return;
+  }
+
   try {
-    const userData = JSON.parse(userDataStr);
-    const userId = userData.id || userData._id || userData.email; // Użyj unikalnego ID użytkownika
-    
-    if (!testData.ratings) testData.ratings = {};
-    
-    // Sprawdź czy użytkownik już ocenił
-    const userPreviousRating = testData.ratings[userId];
-    
-    testData.ratings[userId] = rating;
-    
-    // Oblicz nową średnią ocenę
-    const ratingsArray = Object.values(testData.ratings);
-    const sum = ratingsArray.reduce((a, b) => a + b, 0);
-    testData.averageRating = (sum / ratingsArray.length).toFixed(1);
-    
-    // Zapisz
-    localStorage.setItem('currentTestData', JSON.stringify(testData));
-    
-    // Odśwież wyświetlanie oceny
-    updateRatingDisplay();
-    
-    // Komunikat dla użytkownika
-    if (userPreviousRating) {
-      alert(t('ratingUpdated', { oldRating: userPreviousRating, newRating: rating }));
-    } else {
-      alert(t('ratingSaved', { rating }));
+    const res = await fetch(`/api/tests/${testData._id}/rating`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify({ rating })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.message || "Nie udało się zapisać oceny");
     }
-    
+
+    // 🔄 Re-fetch test to refresh ratings & averages
+  
+
+  try {
+    const token = localStorage.getItem("token");
+    const res = await fetch(`/api/tests/${testId}`, {
+      headers: token ? {
+        "Authorization": `Bearer ${token}`
+      } : {}
+    });
+
+    if (!res.ok) {
+      throw new Error("Nie udało się pobrać testu");
+    }
+
+    const raw = await res.json();
+
+    // 🔁 Map backend → frontend structure (NO UI changes needed)
+    testData = {
+      _id: raw._id,
+      title: raw.title,
+      language: raw.language || "pl",
+      user: raw.creatorId?.name || raw.creatorId?.email || "Użytkownik",
+      rating: raw.rating || {},
+      difficultyRating: raw.difficultiyRating || {},
+      comments: raw.comments || [],
+      questions: raw.questions.map(q => ({
+        question: q.question,
+        answers: [
+          { text: q.answerA, isCorrect: q.correct === "A" },
+          { text: q.answerB, isCorrect: q.correct === "B" },
+          { text: q.answerC, isCorrect: q.correct === "C" },
+          { text: q.answerD, isCorrect: q.correct === "D" }
+        ]
+      }))
+    };
+
+    commentsMock = testData.comments;
+  } catch (err) {
+    console.error(err);
+    alert("Błąd ładowania testu");
+  }
+    alert(t('ratingSaved', { rating }));
+
   } catch (error) {
-    console.error('Błąd podczas zapisywania oceny:', error);
-    alert('Error');
+    console.error("Błąd zapisu oceny:", error);
+    alert("Błąd podczas zapisywania oceny");
   }
 }
 
@@ -752,31 +911,49 @@ document.getElementById('submitRatingBtn').addEventListener('click', () => {
   saveRating(selectedRating);
 });
 
-document.getElementById('submitCommentBtn').addEventListener('click', () => {
-  // Sprawdź czy użytkownik jest zalogowany - tak jak w login.html
+document.getElementById('submitCommentBtn').addEventListener('click', async () => {
   const token = localStorage.getItem('token');
   const userDataStr = localStorage.getItem('user');
-  console.log('Dane użytkownika do komentarza:', userDataStr);
-  
+
   if (!token || !userDataStr) {
     alert(t('loginToComment'));
     return;
   }
-  
+
   const commentText = document.getElementById('newCommentText').value.trim();
-  
   if (!commentText) {
     alert(t('enterComment'));
     return;
   }
-  
+
   try {
-    // Pobierz dane użytkownika 
     const userData = JSON.parse(userDataStr);
-    console.log('Dodawanie komentarza przez użytkownika:', userData);
-    // Dodaj nowy komentarz
+    const testId = testData._id; // Make sure testData has _id
+
+    if (!testId) {
+      alert('Test ID not found.');
+      return;
+    }
+
+    // POST comment to server
+    const response = await fetch(`/api/tests/${testId}/comments`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}` // Assuming adminAuth expects JWT
+      },
+      body: JSON.stringify({ content: commentText })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      return alert(data.message || 'Failed to add comment.');
+    }
+
+    // Optionally update local UI immediately
     const newComment = {
-      _id: 'c' + Date.now(),
+      _id: 'c' + Date.now(), // temporary ID for UI
       user: userData.name,
       text: commentText,
       createdAt: new Date(),
@@ -785,26 +962,24 @@ document.getElementById('submitCommentBtn').addEventListener('click', () => {
       canReply: true,
       replies: []
     };
-    
-    // Dodaj komentarz
+
     testData.comments = testData.comments || [];
     testData.comments.unshift(newComment);
-
-    
-    // ZAPISUJEMY ZAKTUALIZOWANE DANE TESTU
     localStorage.setItem('currentTestData', JSON.stringify(testData));
-    
-    // Odśwież wyświetlane komentarze
-    renderComments(commentsMock);
-    
-    // Wyczyść pole tekstowe
+
+    renderComments(testData.comments);
+
+    // Clear input
     document.getElementById('newCommentText').value = '';
-    
-  } catch (error) {
-    console.error('Błąd podczas dodawania komentarza:', error);
-    alert('Error');
+
+    alert('Comment added successfully!');
+
+  } catch (err) {
+    console.error('Error while adding comment:', err);
+    alert('An error occurred while submitting the comment.');
   }
 });
+
 
 
     
@@ -821,14 +996,12 @@ function displayTestLanguage() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  displayTestLanguage();
-  renderTest();
-  initStarRating();
-  initDifficultyStars();
-  updateRatingDisplay();
-  updateDifficultyDisplay();
-  showUserRating();
-  showUserDifficulty();
+  if (!testId) {
+    alert("Brak ID testu");
+    return;
+  }
+
+  loadTestFromDatabase();
 });
 </script>
 <script src="/static/javascripts/translations.js"></script>
