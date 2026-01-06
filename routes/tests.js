@@ -218,25 +218,39 @@ router.get("/:testId", adminAuth(0), async (req, res) => {
       return res.status(404).json({ message: "Test not found" });
     }
 
-    // Populate comment user nicknames
-    if (test.comments && test.comments.length) {
-      // Collect unique userIds from comments
-      const userIds = [...new Set(test.comments.map(c => c.userId.toString()))];
+  // Populate comment user nicknames (including replies)
+  if (test.comments && test.comments.length) {
 
-      // Fetch users once
-      const users = await User.find({ _id: { $in: userIds } }).select("name");
-
-      const userMap = {};
-      users.forEach(u => {
-        userMap[u._id.toString()] = u.name;
+    const collectUserIds = (comments, set = new Set()) => {
+      comments.forEach(c => {
+        if (c.userId) set.add(c.userId.toString());
+        if (c.replies && c.replies.length) {
+          collectUserIds(c.replies, set);
+        }
       });
+      return set;
+    };
 
-      // Add nickname to each comment
-      test.comments = test.comments.map(comment => ({
-        ...comment,
-        nickname: userMap[comment.userId.toString()] || "Unknown"
+    const userIds = [...collectUserIds(test.comments)];
+
+    const users = await User.find({ _id: { $in: userIds } }).select("name");
+
+    const userMap = {};
+    users.forEach(u => {
+      userMap[u._id.toString()] = u.name;
+    });
+
+    const attachNicknames = (comments) =>
+      comments.map(comment => ({
+        ...comment.toObject?.() ?? comment,
+        nickname: userMap[comment.userId?.toString()] || "Unknown",
+        replies: comment.replies && comment.replies.length
+          ? attachNicknames(comment.replies)
+          : []
       }));
-    }
+
+    test.comments = attachNicknames(test.comments);
+  }
 
     res.json(test);
 
@@ -333,16 +347,37 @@ router.post("/:id/comments", adminAuth(0), async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
+// Find comment by id recursively
 function findCommentById(comments, commentId) {
   for (const comment of comments) {
-    if (comment._id.toString() === commentId.toString()) {
-      return comment;
-    }
+    if (comment._id.toString() === commentId) return comment;
     const found = findCommentById(comment.replies || [], commentId);
     if (found) return found;
   }
   return null;
 }
+
+// Remove comment by id recursively
+function removeCommentById(comments, commentId) {
+  const index = comments.findIndex(c => c._id.toString() === commentId);
+  if (index !== -1) {
+    comments.splice(index, 1);
+    return true;
+  }
+  for (const c of comments) {
+    if (removeCommentById(c.replies || [], commentId)) return true;
+  }
+  return false;
+}
+
+// Permission check
+function canModifyComment(user, comment) {
+  return (
+    comment.userId.toString() === user._id.toString() ||
+    user.accessLvl > 1
+  );
+}
+
 router.post("/:testId/comments/:commentId/reply", adminAuth(0), async (req, res) => {
     try {
       const { content } = req.body;
@@ -377,5 +412,66 @@ router.post("/:testId/comments/:commentId/reply", adminAuth(0), async (req, res)
   }
 );
 
+router.put("/:testId/comments/:commentId",adminAuth(0),async (req, res) => {
+    try {
+      const { testId, commentId } = req.params;
+      const { content } = req.body;
+
+      if (!content?.trim()) {
+        return res.status(400).json({ message: "Content required" });
+      }
+
+      const test = await UserTest.findById(testId);
+      if (!test) return res.status(404).json({ message: "Test not found" });
+
+      const comment = findCommentById(test.comments, commentId);
+      if (!comment) return res.status(404).json({ message: "Comment not found" });
+
+      if (!canModifyComment(req.user, comment)) {
+        return res.status(403).json({ message: "Forbidden" });
+      }
+
+      comment.content = content;
+      comment.edited = true; // optional flag
+
+      await test.save();
+
+      res.json({
+        message: "Comment updated",
+        comment
+      });
+
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: "Server error" });
+    }
+  }
+);
+router.delete("/:testId/comments/:commentId",adminAuth(0), async (req, res) => {
+    try {
+      const { testId, commentId } = req.params;
+
+      const test = await UserTest.findById(testId);
+      if (!test) return res.status(404).json({ message: "Test not found" });
+
+      const comment = findCommentById(test.comments, commentId);
+      if (!comment) return res.status(404).json({ message: "Comment not found" });
+
+      if (!canModifyComment(req.user, comment)) {
+        return res.status(403).json({ message: "Forbidden" });
+      }
+
+      removeCommentById(test.comments, commentId);
+
+      await test.save();
+
+      res.json({ message: "Comment deleted" });
+
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: "Server error" });
+    }
+  }
+);
 
 module.exports = router;

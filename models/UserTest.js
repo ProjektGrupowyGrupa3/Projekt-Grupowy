@@ -4,10 +4,13 @@ const CommentSchema = new mongoose.Schema(
   {
     userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     content: { type: String, required: true },
-    replies: [this] // recursive comments
+    replies: [] // recursive comments
   },
   { timestamps: true }
 );
+CommentSchema.add({
+  replies: [CommentSchema]
+});
 
 const QuestionSchema = new mongoose.Schema({
   question: { type: String, required: true },

@@ -17,7 +17,6 @@
     <li class="nav-item"><button class="nav-link" data-tab="users">Użytkownicy</button></li>
     <li class="nav-item"><button class="nav-link" data-tab="questions">Pytania</button></li>
     <li class="nav-item"><button class="nav-link" data-tab="subjects">Przedmioty</button></li>
-    <li class="nav-item"><button class="nav-link" data-tab="comments">Komentarze</button></li>
 </ul>
 
 <!-- Sekcje -->
@@ -58,15 +57,40 @@
         <div id="subjectsContainer"></div>
     </div>
 
-    <!-- komentarze -->
-    <div class="admin-tab d-none" id="tab-comments">
-        <h4>Wszystkie komentarze</h4>
-        <div id="commentsContainer"></div>
-    </div>
-
 </div>
 </main>
+    <div class="modal fade" id="reportModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title">Szczegóły zgłoszenia</h5>
+            <button class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
 
+        <div class="modal-body">
+            <div id="reportDetails"></div>
+
+            <textarea
+            id="adminReason"
+            class="form-control mt-3"
+            placeholder="Powód decyzji (opcjonalnie)"
+            ></textarea>
+        </div>
+
+        <div class="modal-footer">
+            <button class="btn btn-secondary" id="dismissReportBtn">
+            Odrzuć zgłoszenie
+            </button>
+            <button class="btn btn-warning" id="deleteReportBtn">
+            Usuń treść
+            </button>
+            <button class="btn btn-danger" id="banReportBtn">
+            Zbanuj użytkownika
+            </button>
+        </div>
+        </div>
+    </div>
+    </div>
 <script>
 document.querySelectorAll('[data-tab]').forEach(btn=>{
     btn.addEventListener('click',()=>{
@@ -323,6 +347,124 @@ userSearchInput.addEventListener('input', () => {
 });
 
 fetchUsers();
+loadUserReports()
+async function loadUserReports() {
+  const container = document.getElementById('reportsContainer');
+  container.innerHTML = '';
+
+  const res = await fetch('/api/reports', {
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem('token')}`
+    }
+  });
+
+  const reports = await res.json();
+
+  // Active first
+  reports.sort((a, b) => a.status === 'active' ? -1 : 1);
+
+  reports.forEach(report => {
+    const div = document.createElement('div');
+    div.className = `list-group-item list-group-item-action ${report.status === 'active' ? 'fw-bold' : 'opacity-75'}`;
+
+    div.innerHTML = `
+      <div class="d-flex justify-content-between">
+        <span>
+          [${report.type.toUpperCase()}] 
+          ${report.reportedUser.name}
+        </span>
+        <small>${new Date(report.createdAt).toLocaleString()}</small>
+      </div>
+    `;
+
+    div.addEventListener('click', () => openReportDialog(report));
+    container.appendChild(div);
+  });
+}
+
+let currentReport = null;
+function openReportDialog(report) {
+  currentReport = report;
+  const details = document.getElementById('reportDetails');
+
+  let html = `
+    <p><strong>Zgłaszający:</strong> ${report.reporter.name}</p>
+    <p><strong>Zgłoszony:</strong> ${report.reportedUser.name}</p>
+    <p><strong>Data:</strong> ${new Date(report.createdAt).toLocaleString()}</p>
+  `;
+
+  if (report.type === 'comment') {
+    html += `
+      <hr>
+      <p><strong>Komentarz:</strong></p>
+      <blockquote>${report.commentContent}</blockquote>
+      <a href="/user-test-details?testId=${report.testId}#comment-${report.commentId}" target="_blank">
+        Przejdź do komentarza
+      </a>
+    `;
+  }
+
+  if (report.type === 'test') {
+    html += `
+      <hr>
+      <a href="/user-test-details?testId=${report.testId}" target="_blank">
+        Przejdź do testu
+      </a>
+    `;
+  }
+
+  details.innerHTML = html;
+
+  new bootstrap.Modal(document.getElementById('reportModal')).show();
+}
+document.getElementById('dismissReportBtn').onclick = async () => {
+  await fetch(`/api/admin/reports/${currentReport._id}/dismiss`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${localStorage.getItem('token')}`
+    },
+    body: JSON.stringify({
+      reason: document.getElementById('adminReason').value
+    })
+  });
+
+  bootstrap.Modal.getInstance(reportModal).hide();
+  loadUserReports();
+};
+document.getElementById('deleteReportBtn').onclick = async () => {
+  await fetch(`/api/admin/reports/${currentReport._id}/delete`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${localStorage.getItem('token')}`
+    },
+    body: JSON.stringify({
+      reason: document.getElementById('adminReason').value
+    })
+  });
+
+  bootstrap.Modal.getInstance(reportModal).hide();
+  loadUserReports();
+};
+
+document.getElementById('banReportBtn').onclick = async () => {
+  if (!confirm('Czy na pewno zbanować użytkownika?')) return;
+
+  await fetch(`/api/admin/reports/${currentReport._id}/ban`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${localStorage.getItem('token')}`
+    },
+    body: JSON.stringify({
+      reason: document.getElementById('adminReason').value
+    })
+  });
+
+  bootstrap.Modal.getInstance(reportModal).hide();
+  loadUserReports();
+};
 
 
 </script>

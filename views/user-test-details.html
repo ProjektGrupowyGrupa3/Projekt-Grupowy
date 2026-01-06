@@ -559,6 +559,7 @@ function renderComments(comments, container=document.getElementById('commentsCon
     const div=document.createElement('div');
     div.classList.add('border','p-3','mb-3','rounded');
     div.dataset.id = c._id;
+    div.dataset.userId = c.userId
     div.innerHTML=`
     <strong>${c.nickname}</strong> 
     <small class="comment-date">${new Date(c.createdAt).toLocaleString()}</small>
@@ -680,7 +681,6 @@ function attachCommentEvents() {
         }
 
           renderComments(testData.comments);
-          alert('Reply added successfully!');
         } catch (err) {
           console.error('Error adding reply:', err);
           alert('An error occurred while submitting the reply.');
@@ -706,17 +706,82 @@ function attachCommentEvents() {
         </div>
         `;
 
-      commentDiv.querySelector('.saveEditBtn').addEventListener('click', () => {
+      commentDiv.querySelector('.saveEditBtn').addEventListener('click', async () => {
         const newText = commentDiv.querySelector('.editArea').value.trim();
-        const id = commentDiv.dataset.id;
+        const commentId = commentDiv.dataset.id;
 
-        const comment = findCommentById(id, commentsMock);
-        comment.text = newText;
-        comment.edited = true;
-        comment.createdAt = new Date();
+        if (!newText) return alert(t('enterComment'));
 
-        renderComments(testData.comments);
+        const token = localStorage.getItem('token');
+        if (!token) return alert(t('loginToComment'));
+
+        try {
+          const res = await fetch(
+            `/api/tests/${testData._id}/comments/${commentId}`,
+            {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+              },
+              body: JSON.stringify({ content: newText })
+            }
+          );
+
+          if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.message || "Edit failed");
+          }
+
+          const data = await res.json();
+
+        try {
+          const res = await fetch(`/api/tests/${testId}`, {
+            headers: token ? {
+              "Authorization": `Bearer ${token}`
+            } : {}
+          });
+
+          if (!res.ok) {
+            throw new Error("Nie udało się pobrać testu");
+          }
+
+          const raw = await res.json();
+
+          // 🔁 Map backend → frontend structure (NO UI changes needed)
+          testData = {
+            _id: raw._id,
+            title: raw.title,
+            language: raw.language || "pl",
+            user: raw.creatorId?.name || raw.creatorId?.email || "Użytkownik",
+            rating: raw.rating || {},
+            difficultyRating: raw.difficultiyRating || {},
+            comments: raw.comments || [],
+            questions: raw.questions.map(q => ({
+              question: q.question,
+              answers: [
+                { text: q.answerA, isCorrect: q.correct === "A" },
+                { text: q.answerB, isCorrect: q.correct === "B" },
+                { text: q.answerC, isCorrect: q.correct === "C" },
+                { text: q.answerD, isCorrect: q.correct === "D" }
+              ]
+            }))
+          };
+
+          commentsMock = testData.comments;
+
+        } catch (err) {
+          console.error(err);
+          alert("Błąd ładowania testu");
+        }
+          renderComments(testData.comments);
+
+        } catch (error) {
+          console.error("Edit comment error:", error);
+          alert(error.message);
+        }
       });
+
       commentDiv.querySelector('.cancelEditBtn').addEventListener('click', () => {
         renderComments(testData.comments);
     });
@@ -725,25 +790,127 @@ function attachCommentEvents() {
 
   // Usuń
   document.querySelectorAll('.deleteBtn').forEach(btn => {
-    btn.addEventListener('click', e => {
+    btn.addEventListener('click', async e => {
       if (!confirm(t('confirmDelete'))) return;
-      else{
 
-      const id = e.target.closest('[data-id]').dataset.id;
-      deleteCommentById(id, commentsMock);
+      const commentId = e.target.closest('[data-id]').dataset.id;
+      const token = localStorage.getItem('token');
 
-      renderComments(testData.comments);}
-    });
-  });
+      if (!token) {
+        alert(t('loginToComment'));
+        return;
+      }
 
-  // Zgłoś
-  document.querySelectorAll('.reportBtn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      if (confirm(t('confirmReport'))) {
-        alert(t('reportSubmitted'));
+      try {
+        const res = await fetch(
+          `/api/tests/${testData._id}/comments/${commentId}`,
+          {
+            method: "DELETE",
+            headers: {
+              "Authorization": `Bearer ${token}`
+            }
+          }
+        );
+
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.message || "Delete failed");
+        }
+
+        try {
+          const res = await fetch(`/api/tests/${testId}`, {
+            headers: token ? {
+              "Authorization": `Bearer ${token}`
+            } : {}
+          });
+
+          if (!res.ok) {
+            throw new Error("Nie udało się pobrać testu");
+          }
+
+          const raw = await res.json();
+
+          // 🔁 Map backend → frontend structure (NO UI changes needed)
+          testData = {
+            _id: raw._id,
+            title: raw.title,
+            language: raw.language || "pl",
+            user: raw.creatorId?.name || raw.creatorId?.email || "Użytkownik",
+            rating: raw.rating || {},
+            difficultyRating: raw.difficultiyRating || {},
+            comments: raw.comments || [],
+            questions: raw.questions.map(q => ({
+              question: q.question,
+              answers: [
+                { text: q.answerA, isCorrect: q.correct === "A" },
+                { text: q.answerB, isCorrect: q.correct === "B" },
+                { text: q.answerC, isCorrect: q.correct === "C" },
+                { text: q.answerD, isCorrect: q.correct === "D" }
+              ]
+            }))
+          };
+
+          commentsMock = testData.comments;
+
+        } catch (err) {
+          console.error(err);
+          alert("Błąd ładowania testu");
+        }
+        renderComments(testData.comments);
+
+      } catch (error) {
+        console.error("Delete comment error:", error);
+        alert(error.message);
       }
     });
   });
+
+
+  // Zgłoś
+  document.querySelectorAll('.reportBtn').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      if (!confirm(t('confirmReport'))) return;
+
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert(t('loginToReport'));
+        return;
+      }
+
+      const commentDiv = e.target.closest('[data-id]');
+      const commentId = commentDiv.dataset.id;
+      const reportedUserId = commentDiv.dataset.userId; // MUST exist
+      const testId = testData._id;
+
+      try {
+        const res = await fetch('/api/reports', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            type: 'comment',
+            reportedUserId,
+            testId,
+            commentId,
+            reason: t('reportReasonDefault') || 'Reported by user'
+          })
+        });
+
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.message || 'Report failed');
+        }
+
+        alert(t('reportSubmitted'));
+      } catch (err) {
+        console.error('Report error:', err);
+        alert(t('reportFailed'));
+      }
+    });
+  });
+
 }
 
 // Funkcje pomocnicze do znajdowania i usuwania komentarzy
@@ -951,28 +1118,51 @@ document.getElementById('submitCommentBtn').addEventListener('click', async () =
       return alert(data.message || 'Failed to add comment.');
     }
 
-    // Optionally update local UI immediately
-    const newComment = {
-      _id: 'c' + Date.now(), // temporary ID for UI
-      user: userData.name,
-      text: commentText,
-      createdAt: new Date(),
-      canEdit: true,
-      canDelete: true,
-      canReply: true,
-      replies: []
-    };
+        try {
+          const res = await fetch(`/api/tests/${testId}`, {
+            headers: token ? {
+              "Authorization": `Bearer ${token}`
+            } : {}
+          });
 
-    testData.comments = testData.comments || [];
-    testData.comments.unshift(newComment);
-    localStorage.setItem('currentTestData', JSON.stringify(testData));
+          if (!res.ok) {
+            throw new Error("Nie udało się pobrać testu");
+          }
+
+          const raw = await res.json();
+
+          // 🔁 Map backend → frontend structure (NO UI changes needed)
+          testData = {
+            _id: raw._id,
+            title: raw.title,
+            language: raw.language || "pl",
+            user: raw.creatorId?.name || raw.creatorId?.email || "Użytkownik",
+            rating: raw.rating || {},
+            difficultyRating: raw.difficultiyRating || {},
+            comments: raw.comments || [],
+            questions: raw.questions.map(q => ({
+              question: q.question,
+              answers: [
+                { text: q.answerA, isCorrect: q.correct === "A" },
+                { text: q.answerB, isCorrect: q.correct === "B" },
+                { text: q.answerC, isCorrect: q.correct === "C" },
+                { text: q.answerD, isCorrect: q.correct === "D" }
+              ]
+            }))
+          };
+
+          commentsMock = testData.comments;
+
+        } catch (err) {
+          console.error(err);
+          alert("Błąd ładowania testu");
+        }
 
     renderComments(testData.comments);
 
     // Clear input
     document.getElementById('newCommentText').value = '';
 
-    alert('Comment added successfully!');
 
   } catch (err) {
     console.error('Error while adding comment:', err);
