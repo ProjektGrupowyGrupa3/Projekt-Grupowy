@@ -214,7 +214,8 @@ const translations = {
     alert_auth_required: "Musisz się zalogować, aby uzyskać dostęp do tej sekcji!",
     alert_registered: "Rejestracja udana! Otrzymujesz 100 pkt na start! 🎉",
     alert_login_success: "Witaj z powrotem! 👋",
-    alert_login_bonus: "Witaj! Otrzymujesz +2 pkt za codzienne logowanie! 🎉"
+    alert_login_bonus: "Witaj! Otrzymujesz +2 pkt za codzienne logowanie! 🎉",
+    alert_login_failure: "Nieprawidłowy e-mail lub hasło."
   },
   en: {
     login: {
@@ -442,6 +443,7 @@ const translations = {
     alert_registered: "Registration successful! You get 10 points to start! 🎉",
     alert_login_success: "Successfully logged in! Welcome back 👋",
     alert_login_success: "Welcome back! 👋",
-    alert_login_bonus: "Welcome back! You got +2 pts for daily login! 🎉"
+    alert_login_bonus: "Welcome back! You got +2 pts for daily login! 🎉",
+    alert_login_failure: "Invalid email or password."
   }
 };

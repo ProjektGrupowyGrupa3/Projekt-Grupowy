@@ -107,20 +107,29 @@
 
 <script src="/static/javascripts/script.js"></script>
 <script>
-    // Skrypt specyficzny dla Dashboardu
+   let dashboardStats = null;
+
+    function translateSubject(subjectName) {
+        const lang = localStorage.getItem('language') || 'pl';
+
+        if (!subjectName) return 'Nieznany przedmiot';
+
+        return subjectName[lang] || subjectName.pl || 'Nieznany przedmiot';
+    }
+
     document.addEventListener('DOMContentLoaded', async () => {
-        // Sprawdź autoryzację (funkcja ze script.js)
-        if(requireAuth() === false) return; 
+        if (requireAuth() === false) return;
 
         try {
             const token = localStorage.getItem('token');
-            const res = await fetch('/dashboard/api', { // Dostosuj ścieżkę
+            const res = await fetch('/dashboard/api', {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const data = await res.json();
 
             if (data.success) {
-                renderDashboard(data.stats);
+                dashboardStats = data.stats;
+                renderDashboard(dashboardStats);
             }
         } catch (err) {
             console.error("Błąd pobierania danych dashboardu", err);
@@ -156,39 +165,32 @@
         // 2. Renderowanie Podium Popularności
         const popContainer = document.getElementById('popularPodium');
         if (stats.popularCategories && stats.popularCategories.length > 0) {
-        popContainer.innerHTML = stats.popularCategories
-            .map((cat, i) => {
-                // cat.subjectName to obiekt { pl: "...", en: "..." }
-                // Wybieramy nazwę na podstawie języka. 
-                // Jeśli brak tłumaczenia dla wybranego języka, bierzemy 'pl' jako zapas.
-                const name = cat.subjectName[currentLang] || cat.subjectName['pl'] || 'Nieznany przedmiot';
-                
-                // Przekazujemy wyciągniętą nazwę do funkcji tworzącej wiersz
-                // Zauważ, że przekazuję obiekt z polem _id jako nazwa, by pasowało do funkcji createPodiumRow
-                return createPodiumRow({ _id: name }, i, `${cat.count} pytań`);
-            })
-            .join('');
-    } else {
-        popContainer.innerHTML = '<li class="list-group-item text-center text-muted">Brak danych...</li>';
-    }
+            popContainer.innerHTML = stats.popularCategories
+            .map((cat, i) =>
+                createPodiumRow(
+                    { _id: translateSubject(cat.subjectName) },
+                    i,
+                    `${cat.count} pytań`
+                )
+            )
+            .join('')
+        } else {
+            popContainer.innerHTML = '<li class="list-group-item text-center text-muted">Brak danych...</li>';
+        }
 
     
         // 3. Renderowanie Podium Skuteczności
         const bestContainer = document.getElementById('bestPodium');
         if (stats.bestCategories && stats.bestCategories.length > 0) {
             bestContainer.innerHTML = stats.bestCategories
-                .map((cat, i) => {
-                    // A. Bezpieczne wyciągnięcie nazwy
-                    // Sprawdzamy czy subjectName istnieje. Jeśli tak, bierzemy język obecny LUB polski.
-                    const name = cat.subjectName 
-                        ? (cat.subjectName[currentLang] || cat.subjectName['pl']) 
-                        : 'Nieznany przedmiot';
-
-                    // B. Przekazanie do funkcji
-                    // Pakujemy nazwę w obiekt { _id: name }, bo tak oczekuje funkcja createPodiumRow
-                    return createPodiumRow({ _id: name }, i, `${Math.round(cat.avgScore)}%`);
-                })
-                .join('');
+            .map((cat, i) =>
+                createPodiumRow(
+                    { _id: translateSubject(cat.subjectName) },
+                    i,
+                    `${Math.round(cat.avgScore)}%`
+                )
+            )
+            .join('');
         }
         // 4. Tabela historii
         const historyContainer = document.getElementById('activityTable');
@@ -227,7 +229,7 @@
                 let label = '';
 
                 if (act.subjectName) {
-                    const name = act.subjectName[currentLang] || act.subjectName['pl'];
+                    const name = translateSubject(act.subjectName);
                     subjectLabel = `<div class="text-secondary small mt-1"><i class="bi bi-book me-1"></i>${name}</div>`;
                 }
                 if (act.type === 'test_result') {
@@ -279,7 +281,13 @@
         } else {
             historyContainer.innerHTML = '<tr><td colspan="3" class="text-center py-3 text-muted">Brak ostatniej aktywności</td></tr>';
         }
-    }
+    document.addEventListener('languageChanged', () => {
+        if (dashboardStats) {
+            renderDashboard(dashboardStats);
+        }
+    });
+
+}
 </script>
 <script src="/static/javascripts/translations.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

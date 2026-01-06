@@ -61,9 +61,29 @@
             // Sytuacja B: Kolejne logowanie -> Zwykłe powitanie
             window.location.href = '/dashboard?alert=login_success';
           }
-      }
-    } catch(err){
-      alert('Błąd sieci: '+err.message);
+      } else {
+          const currentLang = localStorage.getItem('language') || 'pl';
+          const t = (typeof translations !== 'undefined' && translations[currentLang]) ? translations[currentLang] : {};
+          
+          let alertKey = '';
+
+          // MAPOWANIE: zamieniamy surowe błędy z serwera na Twoje klucze
+          if (data.message === "Invalid credentials") {
+              alertKey = 'alert_login_failure';
+          } else if (data.message === "Please provide email and password") {
+              alertKey = 'alert_provide_data'; // Dodatkowy klucz, jeśli chcesz
+          }
+
+          // Pobieramy tekst z tłumaczeń na podstawie klucza lub używamy oryginału jako fallback
+          const messageToShow = t[alertKey] || data.message;
+
+          // Wywołanie toasta
+          showToast(messageToShow, 'danger');
+          
+          document.getElementById('password').value = '';
+        }
+          } catch(err){
+            alert('Błąd sieci: '+err.message);
     }
   });
 </script>

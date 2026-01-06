@@ -19,38 +19,89 @@
 
   // Kod symulujący backend do przechowywania zestawów w localStorage, wystarczy go zmienić na prawdziwy backend w przyszłości
   const BackendService = {
-    DB_KEY: 'flashcards_decks_db',
+    // DB_KEY: 'flashcards_decks_db',
+    API_URL: '/flashcards/api',
+
     async getDecks() {
-      return new Promise(resolve => {
-        setTimeout(() => {
-          const raw = localStorage.getItem(this.DB_KEY);
-          resolve(raw ? JSON.parse(raw) : []);
-        }, 200);
+    try {
+      const response = await fetch(this.API_URL, {
+        headers: { 'Authorization': 'Bearer ' + localStorage.getItem('token') }
       });
-    },
-    async saveDeck(name, cards) {
-      return new Promise(resolve => {
-        const decks = JSON.parse(localStorage.getItem(this.DB_KEY) || '[]');
-        const existingIndex = decks.findIndex(d => d.name === name);
-        const newDeck = { id: Date.now().toString(), name, cards, updatedAt: new Date().toISOString() };
-        
-        if (existingIndex >= 0) {
-          const msg = formatTpl(tJS('overwriteSetConfirm', 'Zestaw "{name}" już istnieje. Nadpisać?'), { name: name });
-          if(!confirm(msg)) return resolve(null);
-          decks[existingIndex] = newDeck;
-        } else {
-          decks.push(newDeck);
-        }
-        localStorage.setItem(this.DB_KEY, JSON.stringify(decks));
-        resolve(newDeck);
-      });
-    },
-    async deleteDeck(deckId) {
-      const decks = JSON.parse(localStorage.getItem(this.DB_KEY) || '[]');
-      const newDecks = decks.filter(d => d.id !== deckId);
-      localStorage.setItem(this.DB_KEY, JSON.stringify(newDecks));
-      return true;
+      if (!response.ok) throw new Error('Błąd pobierania');
+      return await response.json();
+    } catch (error) {
+      console.error(error);
+      return [];
     }
+  },
+    // async getDecks() {
+    //   return new Promise(resolve => {
+    //     setTimeout(() => {
+    //       const raw = localStorage.getItem(this.DB_KEY);
+    //       resolve(raw ? JSON.parse(raw) : []);
+    //     }, 200);
+    //   });
+    // },
+    async saveDeck(name, cards) {
+      try {
+        const response = await fetch(this.API_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + localStorage.getItem('token')
+          },
+          body: JSON.stringify({ name, cards })
+        });
+
+        if(response.status === 409) {
+
+        }
+
+        if(!response.ok) throw new Error('Błąd zapisu');
+        return await response.json();
+      } catch(error) {
+        console.log(error);   ////////////////////////
+        return null;
+      }
+    },
+
+    // async saveDeck(name, cards) {
+    //   return new Promise(resolve => {
+    //     const decks = JSON.parse(localStorage.getItem(this.DB_KEY) || '[]');
+    //     const existingIndex = decks.findIndex(d => d.name === name);
+    //     const newDeck = { id: Date.now().toString(), name, cards, updatedAt: new Date().toISOString() };
+        
+    //     if (existingIndex >= 0) {
+    //       const msg = formatTpl(tJS('overwriteSetConfirm', 'Zestaw "{name}" już istnieje. Nadpisać?'), { name: name });
+    //       if(!confirm(msg)) return resolve(null);
+    //       decks[existingIndex] = newDeck;
+    //     } else {
+    //       decks.push(newDeck);
+    //     }
+    //     localStorage.setItem(this.DB_KEY, JSON.stringify(decks));
+    //     resolve(newDeck);
+    //   });
+    // },
+
+    async deleteDeck(deckId) {
+      try {
+        const response = await fetch(`${this.API_URL}/${deckId}`, {
+          method: 'DELETE',
+          headers: {'Authorization': 'Bearer ' + localStorage.getItem('token') }
+        });
+        return response.ok;
+      } catch(error) {
+        console.error(error);
+        return false;
+      }
+    }
+
+    // async deleteDeck(deckId) {
+    //   const decks = JSON.parse(localStorage.getItem(this.DB_KEY) || '[]');
+    //   const newDecks = decks.filter(d => d.id !== deckId);
+    //   localStorage.setItem(this.DB_KEY, JSON.stringify(newDecks));
+    //   return true;
+    // }
   };
 
   // Główna logika aplikacji, koniec symulacji backendu
@@ -204,7 +255,10 @@
           e.stopPropagation();
           const msg = formatTpl(tJS('deleteSetConfirm', 'Usunąć zestaw "{name}"?'), { name: deck.name });
           if (confirm(msg)) {
-            await BackendService.deleteDeck(deck.id);
+            const idToDelete = deck._id || deck.id;
+
+            console.log("Próba usunięcia ID:", idToDelete);
+            await BackendService.deleteDeck(idToDelete);
             loadAndRenderDecks();
           }
         });
