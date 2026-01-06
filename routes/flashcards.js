@@ -24,7 +24,7 @@ router.post('/api', auth, async (req, res) => {
   try {
     const { name, cards } = req.body;
     
-    // Szukamy czy zestaw o tej nazwie już istnieje dla tego użytkownika
+    
     let deck = await FlashcardDeck.findOne({ name, creatorId: req.user._id });
 
     if (deck) {

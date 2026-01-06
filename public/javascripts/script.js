@@ -1,5 +1,3 @@
-// --- 1. Funkcje Pomocnicze i Logika Ogólna ---
-
 // Funkcja obliczająca średnią dla tablic z ocenami i trudnością
 function calculateAverageFromObject(obj) {
     const values = Object.values(obj || {});
@@ -14,15 +12,6 @@ if(user){
   if(user.userType<2){
     document.getElementById('adminPanel').style.display = 'none';
   }
-//   const btn = document.getElementById('authBtn');
-//   btn.textContent = 'Wyloguj';
-//   btn.href = '#';
-//   btn.addEventListener('click', ()=> {
-//     localStorage.removeItem('token');
-//     localStorage.removeItem('user');
-//     window.location.reload();
-//   });
-//   document.getElementById('regBtn').style.display = 'none';
 }
 else{
   document.getElementById('adminPanel').style.display = 'none';
@@ -77,7 +66,6 @@ function setupThemeToggle(toggleBtnId) {
     });
 }
 
-// --- 2. Obsługa Języka ---
 
 // Funkcja pomocnicza do aktualizacji wyglądu przycisku języka
 function updateLangButtonUI(lang) {
@@ -105,11 +93,6 @@ function changeLanguage(lang) {
     updatePageContent(lang);
     updateLangButtonUI(lang);
 
-    // Aktualizacja dynamicznych treści (jeśli funkcja istnieje)
-    // if (typeof updateDynamicContent === 'function') {
-    //     updateDynamicContent(lang);
-    // }
-
     // Wyślij zdarzenie globalne
     const event = new CustomEvent('languageChanged', { detail: { newLang: lang } });
     document.dispatchEvent(event);
@@ -134,7 +117,7 @@ function updatePageContent(lang) {
     else if (path.includes('dashboard')) currentPage = 'dashboard';
 
 
-    // Bezpieczne pobieranie tłumaczeń
+    // Pobieranie tłumaczeń
     const transObj = window.translations || (typeof translations !== 'undefined' ? translations : {});
     const pageTranslations = (transObj[lang] && transObj[lang][currentPage]) || {};
     const layoutTranslations = (transObj[lang] && transObj[lang].layout) || {};
@@ -158,11 +141,10 @@ function updatePageContent(lang) {
                 element.textContent = text;
             }
         }
-  });
-  
+  });  
 }
 
-// --- Funkcje Globalne (Wymagane przez inne skrypty) ---
+// Funkcje Globalne (Wymagane przez inne skrypty) 
 
 function updateDynamicContent(lang, currentPage) {
     if (window.updateDynamicContent) {
@@ -205,12 +187,10 @@ window.applyTranslations = function() {
 // Funkcja pomocnicza dostępna globalnie
 function renderSubjectsCommon(containerId, mode, lang) {
     const container = document.getElementById(containerId);
-    if (!container) return; // Jeśli nie ma kontenera, nic nie rób
+    if (!container) return; 
 
-    container.innerHTML = ''; // Czyścimy
+    container.innerHTML = ''; 
 
-    // Pobierz dane (zakładam, że masz je w zmiennej globalnej lub pobierasz z API)
-    // Tutaj dla przykładu używam mocka, ale Ty pewnie masz fetch()
     const subjects = window.subjectsData || []; 
 
     if (subjects.length === 0) {
@@ -219,13 +199,11 @@ function renderSubjectsCommon(containerId, mode, lang) {
     }
 
     subjects.forEach(subject => {
-        // Tłumaczenie nazwy (użyj swojej logiki tłumaczeń)
         let name = subject.name;
         if (translations[lang] && translations[lang].subjects && translations[lang].subjects[subject._id]) {
             name = translations[lang].subjects[subject._id];
         }
 
-        // Ustal link w zależności od trybu
         const linkHref = mode === 'learn' 
             ? `/quiz-learn?id=${subject._id}` 
             : `/quiz-test?id=${subject._id}`;
@@ -245,7 +223,7 @@ function renderSubjectsCommon(containerId, mode, lang) {
     });
 }
 
-// --- 3. Obsługa Sesji i Bezpieczeństwa ---
+// Obsługa Sesji i Bezpieczeństwa (Użytkownik niezalogowany nie ma dostępu do podstrony)
 
 function requireAuth() {
     const token = localStorage.getItem('token');
@@ -275,23 +253,23 @@ function checkUserSession() {
     const logoutLink = document.getElementById('logoutLink');
 
     if (user) {
-        // --- UŻYTKOWNIK ZALOGOWANY ---
+        // Gdy użytkownik jest zalogowany
         
-        // 1. Przełącz widoczność sekcji
+        // Przełącz widoczność sekcji
         if(userNav) userNav.style.display = 'flex';
         if(guestNav) guestNav.style.setProperty('display', 'none', 'important');
         
 
 
-        // 2. Ustaw nazwę użytkownika w przycisku Dropdown
+        // Ustaw nazwę użytkownika w przycisku Dropdown
         if (userEmail) userEmail.textContent = user.name;
 
-        // 3. Ustaw punkty
+        // Ustaw punkty
         if (userPointsValue) {
             userPointsValue.textContent = user.points || 0;
         }
 
-        // 4. Obsługa Wylogowania (podpięta pod element w menu)
+        // Obsługa Wylogowania (podpięta pod element w menu)
         if (logoutLink) {
             logoutLink.onclick = (e) => {
                 e.preventDefault();
@@ -302,9 +280,9 @@ function checkUserSession() {
         }
 
     } else {
-        // --- UŻYTKOWNIK NIEZALOGOWANY ---
+        // Gdy użytkownik nie jest zalogowany
         
-        // Pokaż przyciski logowania/rejestracji, ukryj menu usera
+        // Pokaż przyciski logowania/rejestracji
         if(guestNav) guestNav.style.display = 'flex'; // lub 'block' zależnie od stylów
         if(userNav) userNav.style.setProperty('display', 'none', 'important');
     }
@@ -341,7 +319,7 @@ function updateUserPointsUI(addedPoints) {
     const messageTemplate = t.toast_points_gained || "Zdobyłeś +{points} pkt!";
     const message = messageTemplate.replace('{points}', addedPoints);
     
-    // Pokaż Toast (Powiadomienie)
+    // Pokaż Powiadomienie
     showToast(message, 'success');
 }
 
@@ -407,7 +385,7 @@ function checkUrlAlerts() {
     const urlParams = new URLSearchParams(window.location.search);
     const alertType = urlParams.get('alert');
 
-    if (!alertType) return; // Jeśli nie ma alertu, kończymy od razu
+    if (!alertType) return; 
 
     const currentLang = localStorage.getItem('language') || 'pl';
 
@@ -415,24 +393,21 @@ function checkUrlAlerts() {
     const alertConfig = {
         auth_required: { key: 'alert_auth_required', type: 'warning' },
         registered:    { key: 'alert_registered',    type: 'success' },
-        login_success: { key: 'alert_login_success', type: 'success' }, // Zwykłe
+        login_success: { key: 'alert_login_success', type: 'success' }, 
         login_bonus:   { key: 'alert_login_bonus',   type: 'success' }
-        // Tutaj łatwo dodasz nowe typy w przyszłości, np.:
-        // error_generic: { key: 'alert_error', type: 'danger' }
     };
 
     const config = alertConfig[alertType];
 
     if (config) {
-        // Pobieramy tłumaczenie (z fallbackiem)
+        // Pobieranie tłumaczenia
         const t = (typeof translations !== 'undefined' && translations[currentLang]) 
                   ? translations[currentLang] 
                   : {}; 
         
-        // Pobieramy tekst lub używamy domyślnego, jeśli tłumaczenie zawiedzie
+        
         const messageText = t[config.key] || "Wystąpił komunikat systemowy.";
 
-        // Wywołujemy Twoją uniwersalną funkcję
         showToast(messageText, config.type);
 
         // Czyszczenie URL (bez przeładowania strony)
@@ -441,17 +416,16 @@ function checkUrlAlerts() {
     }
 }
 
-// --- 4. Główna Inicjalizacja ---
+// Główna Inicjalizacja 
 
 document.addEventListener('DOMContentLoaded', () => {
-    // A. Strażnik (Najważniejsze)
     if (requireAuth() === false) return;
     
-    // B. Ustawienia początkowe
+    // Ustawienia początkowe
     applySavedTheme();
-    setupThemeToggle('themeToggleBtn'); // Obsługa przycisku z ikoną
+    setupThemeToggle('themeToggleBtn'); 
     
-    // C. Język
+    // Język
     const currentLang = localStorage.getItem('language') || 'pl';
     updateLangButtonUI(currentLang);
     updatePageContent(currentLang);
@@ -460,7 +434,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const langBtn = document.getElementById('langDropdown');
     
     if (langContainer && langBtn) {
-        // Inicjalizacja instancji dropdowna Bootstrapa
         const bsDropdown = new bootstrap.Dropdown(langBtn);
 
         langContainer.addEventListener('mouseenter', () => {
@@ -468,7 +441,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         langContainer.addEventListener('mouseleave', () => {
-            // Mały timeout zapobiega migotaniu przy szybkich ruchach myszy
             setTimeout(() => {
                 if (!langContainer.matches(':hover')) {
                     bsDropdown.hide();
@@ -487,7 +459,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // D. Sesja i Powiadomienia
+    // Sesja i Powiadomienia
     checkUserSession();
     checkUrlAlerts();
 });

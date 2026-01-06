@@ -9,18 +9,16 @@ router.post('/add', auth, async (req, res) => {
         const { type, amount, questionId } = req.body;
         const userId = req.user._id;
 
-        // addPoints zwraca TRUE (dodano) lub FALSE (nie dodano/duplikat)
+        // addPoints zwraca TRUE (dodano) 
+        // lub FALSE (zabezpieczenie aby użytkownik za pytanie w trybie nauki dostał punkty tylko 1 raz)
         const wasAdded = await addPoints(userId, type, amount, questionId);
 
         if (wasAdded) {
-            // Sukces - punkty faktycznie dodane
             res.json({ 
                 success: true, 
                 message: "Punkty zostały przyznane." 
             });
         } else {
-            // Porażka - punkty nie zostały dodane (np. już były przyznane)
-            // Zwracamy success: false, żeby frontend NIE aktualizował licznika
             res.json({ 
                 success: false, 
                 message: "Punkty za tę akcję zostały już przyznane wcześniej." 

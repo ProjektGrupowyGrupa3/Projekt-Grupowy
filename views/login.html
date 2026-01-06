@@ -55,10 +55,10 @@
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data.user));
           if (data.pointsAdded === true) {
-            // Sytuacja A: Pierwsze logowanie dzisiaj -> Bonus
+            // Pierwsze logowanie dzisiaj -> Bonus
             window.location.href = '/dashboard?alert=login_bonus';
           } else {
-            // Sytuacja B: Kolejne logowanie -> Zwykłe powitanie
+            // Kolejne logowanie -> Zwykłe powitanie
             window.location.href = '/dashboard?alert=login_success';
           }
       } else {
@@ -66,18 +66,18 @@
           const t = (typeof translations !== 'undefined' && translations[currentLang]) ? translations[currentLang] : {};
           
           let alertKey = '';
-
-          // MAPOWANIE: zamieniamy surowe błędy z serwera na Twoje klucze
+        
+          // MAPOWANIE: zamiana błędów na odpowiednie treści do powiadomien 
           if (data.message === "Invalid credentials") {
               alertKey = 'alert_login_failure';
           } else if (data.message === "Please provide email and password") {
-              alertKey = 'alert_provide_data'; // Dodatkowy klucz, jeśli chcesz
+              alertKey = 'alert_provide_data'; 
           }
 
-          // Pobieramy tekst z tłumaczeń na podstawie klucza lub używamy oryginału jako fallback
+          // Pobieramy tekst z tłumaczeń na podstawie klucza lub używamy oryginału 
           const messageToShow = t[alertKey] || data.message;
 
-          // Wywołanie toasta
+          // Wywołanie powiadomienia
           showToast(messageToShow, 'danger');
           
           document.getElementById('password').value = '';

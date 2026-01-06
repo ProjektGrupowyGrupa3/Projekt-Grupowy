@@ -6,7 +6,7 @@ exports.getRanking = async (req, res) => {
     const top = parseInt(req.query.limit) || 50;
     const period = req.query.period || 'all';
 
-    // --- SCENARIUSZ 1: Ranking Całkowity ("Od początku") ---
+    // Ranking Całkowity ("Od początku") 
     if (period === 'all') {
       const ranking = await User.find({}, "name points")
         .sort({ points: -1 })
@@ -16,7 +16,7 @@ exports.getRanking = async (req, res) => {
       return res.json({ success: true, ranking });
     }
 
-    // --- SCENARIUSZ 2: Ranking Okresowy (Bieżący/Zeszły tydzień) ---
+    // Ranking Okresowy (Bieżący/Zeszły tydzień)
     
     let startDate = new Date();
     let endDate = new Date();
@@ -38,49 +38,42 @@ exports.getRanking = async (req, res) => {
       endDate = new Date(currentMonday);
       endDate.setMilliseconds(-1);
     } else {
-        // Fallback
         const ranking = await User.find({}, "name points").sort({ points: -1 }).limit(top).lean();
         return res.json({ success: true, ranking });
     }
 
     const ranking = await User.aggregate([
-      // 1. Łączenie użytkownika z jego akcjami (LEFT JOIN)
+      // Łączenie użytkownika z jego akcjami 
       {
         $lookup: {
-          from: "userearnedactions", // Nazwa kolekcji w bazie
-          let: { userId: "$_id" },   // Zmienna z ID użytkownika
+          from: "userearnedactions", 
+          let: { userId: "$_id" },   
           pipeline: [
             { 
               $match: { 
                 $expr: {
                   $and: [
-                    { $eq: ["$userId", "$$userId"] }, // Dopasuj ID usera
-                    { $gte: ["$createdAt", startDate] }, // Data >= start
-                    { $lte: ["$createdAt", endDate] }    // Data <= koniec
+                    { $eq: ["$userId", "$$userId"] }, 
+                    { $gte: ["$createdAt", startDate] }, 
+                    { $lte: ["$createdAt", endDate] }    
                   ]
                 }
               } 
             },
-            // pobierz tylko pole points dla wydajności
             { $project: { points: 1 } } 
           ],
-          as: "periodActions" // Wynik wpadnie do tablicy 'periodActions'
+          as: "periodActions" 
         }
       },
-      // 2. Dodajemy pole 'points', sumując punkty z tablicy 'periodActions'
-      // Jeśli tablica jest pusta (brak akcji), $sum zwróci 0.
       {
         $addFields: {
           points: { $sum: "$periodActions.points" }
         }
       },
-      // 3. Usuwamy tablicę akcji, żeby nie przesyłać zbędnych danych
       { $project: { name: 1, points: 1 } },
       
-      // 4. Sortujemy (najpierw ci co mają punkty, potem 0)
       { $sort: { points: -1 } },
       
-      // 5. Limitujemy wynik
       { $limit: top }
     ]);
 

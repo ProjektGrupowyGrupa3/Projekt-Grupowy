@@ -65,444 +65,410 @@
   <script src="/static/javascripts/script.js"></script>
   <script src="/static/javascripts/translations.js"></script>
   <script>
-// ==========================================
-// 1. ZMIENNE GLOBALNE
-// ==========================================
-let queue = [];
-let answered = false;
-let correct = false;
-let totalQuestions = 0;
 
-// Elementy DOM
-let subjectSelect, startBtn, nextBtn, qText, opts, explain, progressLabel, progressBar, cardArea;
+    let queue = [];
+    let answered = false;
+    let correct = false;
+    let totalQuestions = 0;
 
-// ==========================================
-// FUNKCJA POMOCNICZA DO TŁUMACZEŃ
-// ==========================================
-function getGlobalT() {
-    const lang = localStorage.getItem('language') || 'pl';
-    // Upewniamy się, że obiekt translations istnieje
-    if (typeof translations === 'undefined') return {};
-    
-    const langObj = translations[lang] || translations['pl'];
-
-    if (langObj && langObj.quizLearn) {
-        return langObj.quizLearn;
-    }
-    
-    console.warn(`⚠️ OSTRZEŻENIE: Brak sekcji 'quizLearn' dla języka: ${lang}`);
-    return {};
-}
-
-// ==========================================
-// 2. FUNKCJE LOGICZNE (Dostępne globalnie)
-// ==========================================
-
-function getAuthHeaders() {
-    const token = localStorage.getItem('token');
-    const headers = { 'Content-Type': 'application/json' };
-    if (token) headers['Authorization'] = 'Bearer ' + token;
-    return headers;
-}
-
-function resetQuizState() {
-    console.log('Resetowanie stanu quizu...');
-    queue = [];
-    answered = false;
-    correct = false;
-
-    const cArea = document.getElementById('cardArea');
-    const pBar = document.getElementById('progress-bar');
-    const sBtn = document.getElementById('start');
-    
-    if (cArea) cArea.classList.add('d-none');
-    if (pBar) pBar.style.width = '0%';
-    if (sBtn) sBtn.disabled = false;
-    
-    // Pokaż z powrotem wybór przedmiotów jeśli resetujemy
-    const subjectsContainer = document.getElementById('subjectsContainer');
-    if(subjectsContainer) subjectsContainer.classList.remove('d-none');
-}
-function renderProgress(currentNumber) {
-      const t = getGlobalT();
-      const total = totalQuestions || 0;
-
-      const current = currentNumber || '?';
-    //   const percent = total ? Math.round((currentNumber / total) * 100) : 0;
-
-      progressLabel.textContent = `${t.quiz_progress || 'Pytanie nr'} ${currentNumber}${total ? ' / ' + total : ''}`;
-      // progressLabel.textContent = `Pytanie nr ${currentNumber}${total ? ' / ' + total : ''}`;
+    let subjectSelect, startBtn, nextBtn, qText, opts, explain, progressLabel, progressBar, cardArea;
 
 
-    //   progressBar.style.width = `${percent}%`;
-
-    //   progressBar.setAttribute('aria-valuenow', percent);
-
-    }
-
-
-async function addPointsAPI(type, amount, questionId) {
-    try {
-        const token = localStorage.getItem("token");
-        const res = await fetch("/api/points/add", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": "Bearer " + token
-            },
-            body: JSON.stringify({ type, amount, questionId })
-        });
-        return await res.json();
-    } catch (err) {
-        console.error("❌ Błąd API:", err);
-        return { success: false };
-    }
-}
-
-async function loadAndRenderSubjects(lang) {
-    const select = document.getElementById('subject');
-    const selectedLang = lang || 'pl';
-    
-    if (!select) return;
-
-    select.innerHTML = '<option disabled selected>Wczytywanie...</option>';
-
-    try {
-        const res = await fetch(`/api/subjects?lang=${selectedLang}`);
-        if (!res.ok) throw new Error(`Błąd HTTP: ${res.status}`);
-        
-        const subjects = await res.json();
-        select.innerHTML = '';
-
-        if (!subjects || subjects.length === 0) {
-            select.innerHTML = '<option value="">Brak przedmiotów w bazie</option>';
-            return;
-        }
-
-        subjects.forEach(subj => {
-            const option = document.createElement('option');
-            option.value = subj._id;
-            option.textContent = `${subj.name} (sem. ${subj.semester})`;
-            select.appendChild(option);
-        });
-
-    } catch (err) {
-        console.error('Błąd podczas pobierania przedmiotów:', err);
-        select.innerHTML = '<option value="">Błąd połączenia z bazą</option>';
-    }
-}
-
-async function loadQuestions(subjectId, mode = 'all') {
-    try {
+    function getGlobalT() {
         const lang = localStorage.getItem('language') || 'pl';
-        const res = await fetch(`/api/questions?subject=${encodeURIComponent(subjectId)}&mode=${mode}&lang=${lang}`, {
-            headers: getAuthHeaders()
-        });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        
-        const { totalCount, questions } = await res.json();
-        
-        // Zapisujemy całkowitą liczbę (sumę wszystkich pytań w kolekcji dla tego przedmiotu)
-        totalQuestions = totalCount; 
-        
-        // --- USUNIĘTO SZTUCZNE NUMEROWANIE ---
-        // Zwracamy surowe obiekty, bo one mają już pole 'number' z bazy
-        return questions;
-
-    } catch (e) {
-        console.error('Błąd pobierania pytań:', e);
-        return [];
-    }
-}
-
-async function saveAnswerToDB(questionId, isCorrect) {
-    const token = localStorage.getItem('token');
-    if (!token) return;
-    try {
-        await fetch('/api/user-progress/save', {
-            method: 'POST',
-            headers: getAuthHeaders(),
-            body: JSON.stringify({ questionId, correct: isCorrect })
-        });
-    } catch (err) {
-        console.error('❌ Błąd zapisu odpowiedzi:', err);
-    }
-}
-
-function createShowCorrectButton(q) {
-    const t = getGlobalT();
-    const showBtn = document.createElement('button');
-    showBtn.className = 'btn btn-outline-success mt-2';
-    showBtn.textContent = t.quiz_btn_show_answer || "Pokaż poprawną odpowiedź";
-    showBtn.setAttribute('data-translate', 'quiz_btn_show_answer');
     
-    showBtn.onclick = () => {
-        const correctAns = q.answers.find(a => a.isCorrect);
-        if (!correctAns) return;
-        Array.from(opts.children).forEach(b => {
-            if (b.textContent === correctAns.text) b.classList.add('list-group-item-success');
-        });
-
-        const infoDiv = document.createElement('div');
-        infoDiv.className = 'alert alert-info mt-2';
-        const headerText = t.quiz_header_correct || "Poprawna odpowiedź:";
+        if (typeof translations === 'undefined') return {};
         
-        infoDiv.innerHTML = `
-            <strong><span data-translate="quiz_header_correct">${headerText}</span></strong> ${correctAns.text}<br>
-            <em>${correctAns.explanation}</em>
-        `;
+        const langObj = translations[lang] || translations['pl'];
 
-        explain.appendChild(infoDiv);
-        showBtn.disabled = true;
-    };
-    return showBtn;
-}
+        if (langObj && langObj.quizLearn) {
+            return langObj.quizLearn;
+        }
+        
+        console.warn(`⚠️ OSTRZEŻENIE: Brak sekcji 'quizLearn' dla języka: ${lang}`);
+        return {};
+    }
 
-function createSaveButton(q) {
-    const t = getGlobalT();
-    const saveBtn = document.createElement('button');
-    
-    saveBtn.className = 'btn btn-outline-primary mt-2 ms-2';
-    saveBtn.textContent = t.quiz_btn_save || "💾 Zapamiętaj pytanie";
-    saveBtn.setAttribute('data-translate', 'quiz_btn_save');
 
-    saveBtn.onclick = async () => {
+    function getAuthHeaders() {
         const token = localStorage.getItem('token');
-        if (!token) return;
+        const headers = { 'Content-Type': 'application/json' };
+        if (token) headers['Authorization'] = 'Bearer ' + token;
+        return headers;
+    }
+
+    function resetQuizState() {
+        console.log('Resetowanie stanu quizu...');
+        queue = [];
+        answered = false;
+        correct = false;
+
+        const cArea = document.getElementById('cardArea');
+        const pBar = document.getElementById('progress-bar');
+        const sBtn = document.getElementById('start');
         
-        const currentT = getGlobalT();
+        if (cArea) cArea.classList.add('d-none');
+        if (pBar) pBar.style.width = '0%';
+        if (sBtn) sBtn.disabled = false;
         
+        // Pokaż z powrotem wybór przedmiotów jeśli resetujemy
+        const subjectsContainer = document.getElementById('subjectsContainer');
+        if(subjectsContainer) subjectsContainer.classList.remove('d-none');
+    }
+    function renderProgress(currentNumber) {
+        const t = getGlobalT();
+        const total = totalQuestions || 0;
+
+        const current = currentNumber || '?';
+
+        progressLabel.textContent = `${t.quiz_progress || 'Pytanie nr'} ${currentNumber}${total ? ' / ' + total : ''}`;
+
+    }
+
+
+    async function addPointsAPI(type, amount, questionId) {
         try {
-            const res = await fetch('/api/user-progress/toggle-save', {
-                method: 'POST',
-                headers: getAuthHeaders(),
-                body: JSON.stringify({ questionId: q._id })
+            const token = localStorage.getItem("token");
+            const res = await fetch("/api/points/add", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + token
+                },
+                body: JSON.stringify({ type, amount, questionId })
             });
-
-            const data = await res.json();
-            const isSaved = data.saved || data.isSaved || data.success;
-
-            if (isSaved) {
-                saveBtn.classList.replace('btn-outline-primary', 'btn-success');
-                saveBtn.textContent = currentT.quiz_btn_saved || "✅ Zapamiętano";
-                saveBtn.setAttribute('data-translate', 'quiz_btn_saved');
-            } else {
-                saveBtn.classList.replace('btn-success', 'btn-outline-primary');
-                saveBtn.textContent = currentT.quiz_btn_save || "💾 Zapamiętaj pytanie";
-                saveBtn.setAttribute('data-translate', 'quiz_btn_save');
-            }
-        } catch(err) {
-            console.error(err);
+            return await res.json();
+        } catch (err) {
+            console.error("❌ Błąd API:", err);
+            return { success: false };
         }
-    };
-    return saveBtn;
-}
-
-function renderQuestion(q) {
-    if (!qText || !opts) return;
-
-    qText.textContent = q.question || 'Brak treści pytania';
-    opts.innerHTML = '';
-    explain.classList.add('d-none');
-    if(nextBtn) nextBtn.disabled = true;
-    
-    // WAŻNE: Resetujemy stan odpowiedzi dla bieżącego widoku,
-    // aby przyciski i logika kliknięć odświeżyły się w nowym języku
-    answered = false;
-    correct = false;
-
-    renderProgress(q.number || '?');
-
-    q.answers.forEach((ans) => {
-        const btn = document.createElement('button');
-        btn.className = 'list-group-item list-group-item-action';
-        btn.textContent = ans.text;
-        btn.onclick = async () => handleAnswerClick(q, ans, btn);
-        opts.appendChild(btn);
-    });
-}
-
-async function handleAnswerClick(q, ans, btn) {
-    if (answered) return;
-    const t = getGlobalT();
-
-    answered = true;
-    correct = ans.isCorrect;
-    Array.from(opts.children).forEach(b => (b.disabled = true));
-
-    try {
-        if (correct) {
-            btn.classList.add('list-group-item-success');
-            explain.textContent = t.quiz_feedback_correct || "✅ Dobrze!";
-            explain.setAttribute('data-translate', 'quiz_feedback_correct');
-
-            await saveAnswerToDB(q._id, true);
-            const apiResult = await addPointsAPI("quiz_correct", 5, q._id);
-
-            if (apiResult && apiResult.success) {
-                if (typeof updateUserPointsUI === 'function') updateUserPointsUI(5);
-            }
-        } else {
-            await addPointsAPI("quiz_wrong", 0, q._id);
-            btn.classList.add('list-group-item-danger');
-            
-            explain.innerHTML = `
-                <div class="alert alert-warning">
-                    ❌ ${ans.explanation || 'Niepoprawna odpowiedź.'}
-                </div>
-            `;
-            
-            if(typeof createShowCorrectButton === 'function') explain.appendChild(createShowCorrectButton(q));
-            if(typeof createSaveButton === 'function') explain.appendChild(createSaveButton(q));
-
-            await saveAnswerToDB(q._id, false);
-        }
-    } catch (err) {
-        console.error("Błąd zapisu:", err);
     }
 
-    explain.classList.remove('d-none');
-    if(nextBtn) nextBtn.disabled = false;
-}
+    async function loadAndRenderSubjects(lang) {
+        const select = document.getElementById('subject');
+        const selectedLang = lang || 'pl';
+        
+        if (!select) return;
 
-// ==========================================
-// 3. INICJALIZACJA (Po załadowaniu strony)
-// ==========================================
+        select.innerHTML = '<option disabled selected>Wczytywanie...</option>';
 
-document.addEventListener('DOMContentLoaded', () => {
-    const token = localStorage.getItem('token');
-    if (token) {
-        const protectedContent = document.getElementById('protectedContent');
-        if (protectedContent) protectedContent.style.display = 'block';
-    }
-
-    // Przypisanie elementów
-    subjectSelect = document.getElementById('subject');
-    startBtn = document.getElementById('start');
-    nextBtn = document.getElementById('next');
-    qText = document.getElementById('qText');
-    opts = document.getElementById('opts');
-    explain = document.getElementById('explain');
-    progressLabel = document.getElementById('progress-label');
-    progressBar = document.getElementById('progress-bar');
-    cardArea = document.getElementById('cardArea');
-
-    const currentLang = localStorage.getItem('language') || 'pl';
-    loadAndRenderSubjects(currentLang);
-
-    // --- START ---
-    if (startBtn) {
-        startBtn.addEventListener('click', async () => {
-            const t = getGlobalT();
-            const subj = subjectSelect.value;
-            const mode = document.getElementById('mode')?.value || 'all';
+        try {
+            const res = await fetch(`/api/subjects?lang=${selectedLang}`);
+            if (!res.ok) throw new Error(`Błąd HTTP: ${res.status}`);
             
-            if (!subj) return alert(t.quiz_alert_select || "Wybierz przedmiot");
+            const subjects = await res.json();
+            select.innerHTML = '';
 
-            queue = await loadQuestions(subj, mode);
-            if (!queue.length) return alert(t.quiz_alert_empty || "Brak pytań");
-
-            if (cardArea) cardArea.classList.remove('d-none');
-            
-            const subjectsContainer = document.getElementById('subjectsContainer');
-            if(subjectsContainer) subjectsContainer.classList.add('d-none');
-            
-            renderQuestion(queue[0]); 
-        });
-    }
-
-    // --- DALEJ ---
-    if (nextBtn) {
-        nextBtn.addEventListener('click', () => {
-            const t = getGlobalT();
-            if (!answered) return;
-
-            const current = queue.shift();
-
-            // Jeśli błędna odpowiedź -> wraca na koniec kolejki
-            if (!correct) {
-                queue.push(current);
-            }
-
-            // Sprawdzamy czy koniec
-            if (queue.length === 0) {
-                qText.textContent = t.quiz_congrats || "Brawo!";
-                qText.setAttribute('data-translate', 'quiz_congrats');
-                
-                opts.innerHTML = '';
-                explain.classList.add('d-none');
-                nextBtn.disabled = true;
-                
-                progressLabel.textContent = t.quiz_finished || "Zakończono!";
-                progressLabel.setAttribute('data-translate', 'quiz_finished');
-                
-                if(progressBar) {
-                    progressBar.style.width = '100%';
-                    progressBar.classList.add('bg-success');
-                }
+            if (!subjects || subjects.length === 0) {
+                select.innerHTML = '<option value="">Brak przedmiotów w bazie</option>';
                 return;
             }
-            renderQuestion(queue[0]);
+
+            subjects.forEach(subj => {
+                const option = document.createElement('option');
+                option.value = subj._id;
+                option.textContent = `${subj.name} (sem. ${subj.semester})`;
+                select.appendChild(option);
+            });
+
+        } catch (err) {
+            console.error('Błąd podczas pobierania przedmiotów:', err);
+            select.innerHTML = '<option value="">Błąd połączenia z bazą</option>';
+        }
+    }
+
+    async function loadQuestions(subjectId, mode = 'all') {
+        try {
+            const lang = localStorage.getItem('language') || 'pl';
+            const res = await fetch(`/api/questions?subject=${encodeURIComponent(subjectId)}&mode=${mode}&lang=${lang}`, {
+                headers: getAuthHeaders()
+            });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            
+            const { totalCount, questions } = await res.json();
+            
+            totalQuestions = totalCount; 
+            
+            return questions;
+
+        } catch (e) {
+            console.error('Błąd pobierania pytań:', e);
+            return [];
+        }
+    }
+
+    async function saveAnswerToDB(questionId, isCorrect) {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+        try {
+            await fetch('/api/user-progress/save', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ questionId, correct: isCorrect })
+            });
+        } catch (err) {
+            console.error('❌ Błąd zapisu odpowiedzi:', err);
+        }
+    }
+
+    function createShowCorrectButton(q) {
+        const t = getGlobalT();
+        const showBtn = document.createElement('button');
+        showBtn.className = 'btn btn-outline-success mt-2';
+        showBtn.textContent = t.quiz_btn_show_answer || "Pokaż poprawną odpowiedź";
+        showBtn.setAttribute('data-translate', 'quiz_btn_show_answer');
+        
+        showBtn.onclick = () => {
+            const correctAns = q.answers.find(a => a.isCorrect);
+            if (!correctAns) return;
+            Array.from(opts.children).forEach(b => {
+                if (b.textContent === correctAns.text) b.classList.add('list-group-item-success');
+            });
+
+            const infoDiv = document.createElement('div');
+            infoDiv.className = 'alert alert-info mt-2';
+            const headerText = t.quiz_header_correct || "Poprawna odpowiedź:";
+            
+            infoDiv.innerHTML = `
+                <strong><span data-translate="quiz_header_correct">${headerText}</span></strong> ${correctAns.text}<br>
+                <em>${correctAns.explanation}</em>
+            `;
+
+            explain.appendChild(infoDiv);
+            showBtn.disabled = true;
+        };
+        return showBtn;
+    }
+
+    function createSaveButton(q) {
+        const t = getGlobalT();
+        const saveBtn = document.createElement('button');
+        
+        saveBtn.className = 'btn btn-outline-primary mt-2 ms-2';
+        saveBtn.textContent = t.quiz_btn_save || "💾 Zapamiętaj pytanie";
+        saveBtn.setAttribute('data-translate', 'quiz_btn_save');
+
+        saveBtn.onclick = async () => {
+            const token = localStorage.getItem('token');
+            if (!token) return;
+            
+            const currentT = getGlobalT();
+            
+            try {
+                const res = await fetch('/api/user-progress/toggle-save', {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify({ questionId: q._id })
+                });
+
+                const data = await res.json();
+                const isSaved = data.saved || data.isSaved || data.success;
+
+                if (isSaved) {
+                    saveBtn.classList.replace('btn-outline-primary', 'btn-success');
+                    saveBtn.textContent = currentT.quiz_btn_saved || "✅ Zapamiętano";
+                    saveBtn.setAttribute('data-translate', 'quiz_btn_saved');
+                } else {
+                    saveBtn.classList.replace('btn-success', 'btn-outline-primary');
+                    saveBtn.textContent = currentT.quiz_btn_save || "💾 Zapamiętaj pytanie";
+                    saveBtn.setAttribute('data-translate', 'quiz_btn_save');
+                }
+            } catch(err) {
+                console.error(err);
+            }
+        };
+        return saveBtn;
+    }
+
+    function renderQuestion(q) {
+        if (!qText || !opts) return;
+
+        qText.textContent = q.question || 'Brak treści pytania';
+        opts.innerHTML = '';
+        explain.classList.add('d-none');
+        if(nextBtn) nextBtn.disabled = true;
+        
+        // WAŻNE: Resetujemy stan odpowiedzi dla bieżącego widoku,
+        // aby przyciski i logika kliknięć odświeżyły się w nowym języku
+        answered = false;
+        correct = false;
+
+        renderProgress(q.number || '?');
+
+        q.answers.forEach((ans) => {
+            const btn = document.createElement('button');
+            btn.className = 'list-group-item list-group-item-action';
+            btn.textContent = ans.text;
+            btn.onclick = async () => handleAnswerClick(q, ans, btn);
+            opts.appendChild(btn);
         });
     }
-});
 
-// ==========================================
-// 4. OBSŁUGA ZMIANY JĘZYKA
-// ==========================================
+    async function handleAnswerClick(q, ans, btn) {
+        if (answered) return;
+        const t = getGlobalT();
 
-// ↓↓↓ TU MUSI BYĆ 'async', żeby w środku działało 'await' ↓↓↓
-async function handleLanguageChange(lang) {
-    const savedSubjectId = subjectSelect ? subjectSelect.value : null;
-    // 1. Zawsze odświeżamy listę przedmiotów w tle
-    loadAndRenderSubjects(lang);
+        answered = true;
+        correct = ans.isCorrect;
+        Array.from(opts.children).forEach(b => (b.disabled = true));
 
-    // 2. Sprawdzamy stan quizu
-    const cardArea = document.getElementById('cardArea');
-    // Sprawdzamy czy zmienne istnieją i czy quiz trwa
-    const isQuizActive = cardArea && !cardArea.classList.contains('d-none') && typeof queue !== 'undefined' && queue.length > 0;
+        try {
+            if (correct) {
+                btn.classList.add('list-group-item-success');
+                explain.textContent = t.quiz_feedback_correct || "✅ Dobrze!";
+                explain.setAttribute('data-translate', 'quiz_feedback_correct');
 
-    if (isQuizActive) {
-        console.log(`Język zmieniony na ${lang}. Quiz trwa - pobieram tłumaczenia pytań...`);
-        
-        const mode = document.getElementById('mode')?.value || 'all';
+                await saveAnswerToDB(q._id, true);
+                const apiResult = await addPointsAPI("quiz_correct", 5, q._id);
 
-        // ↓↓↓ To wywołanie powodowało błąd, bo funkcja-matka nie była async ↓↓↓
-        const newTranslatedQuestions = await loadQuestions(savedSubjectId, mode);
-
-        // Aktualizujemy teksty w OBECNEJ kolejce (queue)
-        if (newTranslatedQuestions && newTranslatedQuestions.length > 0) {
-            queue.forEach(currentQ => {
-                const translatedQ = newTranslatedQuestions.find(nq => nq._id === currentQ._id);
-                if (translatedQ) {
-                    currentQ.question = translatedQ.question;
-                    currentQ.answers = translatedQ.answers;
+                if (apiResult && apiResult.success) {
+                    if (typeof updateUserPointsUI === 'function') updateUserPointsUI(5);
                 }
-            });
-            console.log("Kolejka zaktualizowana o nowe tłumaczenia.");
+            } else {
+                await addPointsAPI("quiz_wrong", 0, q._id);
+                btn.classList.add('list-group-item-danger');
+                
+                explain.innerHTML = `
+                    <div class="alert alert-warning">
+                        ❌ ${ans.explanation || 'Niepoprawna odpowiedź.'}
+                    </div>
+                `;
+                
+                if(typeof createShowCorrectButton === 'function') explain.appendChild(createShowCorrectButton(q));
+                if(typeof createSaveButton === 'function') explain.appendChild(createSaveButton(q));
+
+                await saveAnswerToDB(q._id, false);
+            }
+        } catch (err) {
+            console.error("Błąd zapisu:", err);
         }
 
-        renderQuestion(queue[0]);
-        
-    } else {
-        console.log(`Język zmieniony na ${lang}. Resetuję stan...`);
-        resetQuizState();
+        explain.classList.remove('d-none');
+        if(nextBtn) nextBtn.disabled = false;
     }
-}
 
-// Listener zdarzenia
-document.addEventListener('languageChanged', (e) => {
-    handleLanguageChange(e.detail.newLang);
-});
+    document.addEventListener('DOMContentLoaded', () => {
+        const token = localStorage.getItem('token');
+        if (token) {
+            const protectedContent = document.getElementById('protectedContent');
+            if (protectedContent) protectedContent.style.display = 'block';
+        }
 
-// Funkcja globalna - tutaj też warto dodać async jeśli używamy await (lub po prostu wywołać bez await)
-window.updatePageSpecificContent = async function(lang) {
-    await handleLanguageChange(lang);
-};
+        subjectSelect = document.getElementById('subject');
+        startBtn = document.getElementById('start');
+        nextBtn = document.getElementById('next');
+        qText = document.getElementById('qText');
+        opts = document.getElementById('opts');
+        explain = document.getElementById('explain');
+        progressLabel = document.getElementById('progress-label');
+        progressBar = document.getElementById('progress-bar');
+        cardArea = document.getElementById('cardArea');
+
+        const currentLang = localStorage.getItem('language') || 'pl';
+        loadAndRenderSubjects(currentLang);
+
+        // START 
+        if (startBtn) {
+            startBtn.addEventListener('click', async () => {
+                const t = getGlobalT();
+                const subj = subjectSelect.value;
+                const mode = document.getElementById('mode')?.value || 'all';
+                
+                if (!subj) return alert(t.quiz_alert_select || "Wybierz przedmiot");
+
+                queue = await loadQuestions(subj, mode);
+                if (!queue.length) return alert(t.quiz_alert_empty || "Brak pytań");
+
+                if (cardArea) cardArea.classList.remove('d-none');
+                
+                const subjectsContainer = document.getElementById('subjectsContainer');
+                if(subjectsContainer) subjectsContainer.classList.add('d-none');
+                
+                renderQuestion(queue[0]); 
+            });
+        }
+
+        // DALEJ 
+        if (nextBtn) {
+            nextBtn.addEventListener('click', () => {
+                const t = getGlobalT();
+                if (!answered) return;
+
+                const current = queue.shift();
+
+                // Jeśli błędna odpowiedź -> wraca na koniec kolejki
+                if (!correct) {
+                    queue.push(current);
+                }
+
+                // Sprawdzamy czy koniec
+                if (queue.length === 0) {
+                    qText.textContent = t.quiz_congrats || "Brawo!";
+                    qText.setAttribute('data-translate', 'quiz_congrats');
+                    
+                    opts.innerHTML = '';
+                    explain.classList.add('d-none');
+                    nextBtn.disabled = true;
+                    
+                    progressLabel.textContent = t.quiz_finished || "Zakończono!";
+                    progressLabel.setAttribute('data-translate', 'quiz_finished');
+                    
+                    if(progressBar) {
+                        progressBar.style.width = '100%';
+                        progressBar.classList.add('bg-success');
+                    }
+                    return;
+                }
+                renderQuestion(queue[0]);
+            });
+        }
+    });
+
+    async function handleLanguageChange(lang) {
+        const savedSubjectId = subjectSelect ? subjectSelect.value : null;
+        // Odświeżanie listy przedmiotów w tle
+        loadAndRenderSubjects(lang);
+
+        // Stan quizu
+        const cardArea = document.getElementById('cardArea');
+        const isQuizActive = cardArea && !cardArea.classList.contains('d-none') && typeof queue !== 'undefined' && queue.length > 0;
+
+        if (isQuizActive) {
+            console.log(`Język zmieniony na ${lang}. Quiz trwa - pobieram tłumaczenia pytań...`);
+            
+            const mode = document.getElementById('mode')?.value || 'all';
+
+            const newTranslatedQuestions = await loadQuestions(savedSubjectId, mode);
+
+            // Aktualizujemy treści pytań w OBECNEJ kolejce (queue)
+            if (newTranslatedQuestions && newTranslatedQuestions.length > 0) {
+                queue.forEach(currentQ => {
+                    const translatedQ = newTranslatedQuestions.find(nq => nq._id === currentQ._id);
+                    if (translatedQ) {
+                        currentQ.question = translatedQ.question;
+                        currentQ.answers = translatedQ.answers;
+                    }
+                });
+                console.log("Kolejka zaktualizowana o nowe tłumaczenia.");
+            }
+
+            renderQuestion(queue[0]);
+            
+        } else {
+            console.log(`Język zmieniony na ${lang}. Resetuję stan...`);
+            resetQuizState();
+        }
+    }
+
+    // Listener zdarzenia
+    document.addEventListener('languageChanged', (e) => {
+        handleLanguageChange(e.detail.newLang);
+    });
+
+    window.updatePageSpecificContent = async function(lang) {
+        await handleLanguageChange(lang);
+    };
 </script>
-
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-  
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
-
 </html>

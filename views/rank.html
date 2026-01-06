@@ -76,7 +76,7 @@
             let rowClass = "";
             let rankDisplay = index + 1;
             
-            // 1. Logika Podium (Medale)
+            // Logika Podium 
             if (index === 0) { 
                 rowClass = "rank-gold"; 
                 rankDisplay = "🥇"; 
@@ -88,19 +88,17 @@
                 rankDisplay = "🥉"; 
             }
 
-            // 2. Sprawdzenie zalogowanego użytkownika (POPRAWKA: Bezpieczne ID i zmienna)
-            // Używamy String(), aby uniknąć problemów typu "123" !== 123
+            // 2. Sprawdzenie zalogowanego użytkownika 
             const isCurrentUser = loggedInUser && (
                 String(user._id) === String(loggedInUser._id) || 
                 user.name === loggedInUser.name
             );
 
             if (isCurrentUser) {
-                // Dodajemy klasę (spacja na początku jest ważna)
                 rowClass += " current-user-row"; 
             }
 
-            // 3. Logika Trendów
+            // Logika Trendów
             let changeVal = user.change || 0; 
             let trendHtml = '';
 
@@ -110,7 +108,7 @@
                 trendHtml = `<small class="trend-down ms-2">▼${Math.abs(changeVal)}</small>`;
             } 
 
-            // 4. Generowanie wiersza
+            // Generowanie wiersza
             htmlContent += `
                 <tr class="${rowClass}">
                     <th scope="row" class="align-middle">

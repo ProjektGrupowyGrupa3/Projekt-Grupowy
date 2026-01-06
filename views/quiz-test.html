@@ -70,18 +70,15 @@ document.addEventListener('languageChanged', (e) => {
 
 async function loadAndRenderSubjects(lang) {
     const subjectSelect = document.getElementById('subject');
-    // Ustawiamy domyślny język jeśli 'lang' jest pusty
     const selectedLang = lang || 'pl'; 
     
     console.log(`Pobieranie przedmiotów dla języka: ${selectedLang}`);
 
     if (!subjectSelect) return;
 
-    // Pokaż status ładowania
     subjectSelect.innerHTML = '<option disabled selected>Wczytywanie...</option>';
 
     try {
-      // Wywołanie API
       const res = await fetch(`/api/subjects?lang=${selectedLang}`);
       
       if (!res.ok) throw new Error(`Błąd HTTP: ${res.status}`);
@@ -89,7 +86,7 @@ async function loadAndRenderSubjects(lang) {
       const subjects = await res.json();
       console.log('Pobrane przedmioty:', subjects);
 
-      subjectSelect.innerHTML = ''; // Wyczyść listę
+      subjectSelect.innerHTML = ''; 
 
       if (!subjects || subjects.length === 0) {
         subjectSelect.innerHTML = '<option value="">Brak przedmiotów w bazie</option>';
@@ -130,7 +127,6 @@ async function initQuizTest() {
     timeLeft: 0
   };
 
-  
   const currentLang = localStorage.getItem('language') || 'pl';
   await loadAndRenderSubjects(currentLang);
 
@@ -293,27 +289,21 @@ async function saveTestResultAPI(data) {
     }
 }
 
-// --- ZMODYFIKOWANA FUNKCJA finishTest ---
 async function finishTest(state) {
   if (state.timer) clearInterval(state.timer);
 
-  // 1. Obliczanie wyniku
   let correct = 0;
-  
-  // Zmienne do statystyk trudności
 
   state.questions.forEach((q, i) => {
     const ans = state.answers[i];
     const correctIndex = q.answers?.findIndex(a => a.isCorrect);
     
-    // Sprawdzamy poprawność
     if (ans === correctIndex) correct++;
   });
 
   const percent = Math.round((correct / state.questions.length) * 100);
 
-  // 2. ZAPIS WYNIKU DO BAZY (TestResult)
-  // Wywołujemy to ZAWSZE, niezależnie od wyniku (0% czy 100%)
+  // Zapisanie wyniku w bazie 
   const resultData = {
       subjectId: state.testId,
       score: percent,
@@ -321,15 +311,12 @@ async function finishTest(state) {
       correctAnswers: correct,
   };
 
-  // Wysyłamy w tle (nie czekamy z renderowaniem wyniku)
   const savedResult = await saveTestResultAPI(resultData);
   const resultId = savedResult && savedResult.resultId ? savedResult.resultId : state.testId;
   
-  // 3. Wyświetlanie wyniku (UI)
   const res = document.getElementById('resultArea');
   res.classList.remove('d-none');
   
-  // Budowanie HTML z wynikiem
   let alertClass = percent > 50 ? 'alert-info' : 'alert-warning';
   
   res.innerHTML = `
@@ -344,7 +331,6 @@ async function finishTest(state) {
   // 4. Naliczanie punktów (UserEarnedAction) - tylko gdy > 50%
   try {
     if (percent > 50) {
-      // Wywołanie API punktów
       await addPointsAPI("test_passed", 20, resultId);
       
       // Aktualizacja licznika w navbarze
@@ -372,8 +358,7 @@ async function finishTest(state) {
       </div>
     `;
   }
-
-  // Ukryj obszar pytań
+  
   document.getElementById('quizArea').classList.add('d-none');
 }
 </script>

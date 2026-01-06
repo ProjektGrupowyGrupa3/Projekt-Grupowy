@@ -117,12 +117,12 @@ body {
 
 .navbar #userMenuBtn:hover,
 .navbar #userMenuBtn:focus,
-.navbar .dropdown.show #userMenuBtn, /* Bootstrap 4/5 dodaje klasę .show przy otwarciu */
+.navbar .dropdown.show #userMenuBtn, 
 .navbar #userMenuBtn[aria-expanded="true"] {
     background-color: var(--col-highlight);
     color: var(--text-dark);
-    box-shadow: 0 0 12px 3px var(--col-accent); /* Twój efekt poświaty */
-    outline: none; /* Usuwa brzydką ramkę focusu przeglądarki */
+    box-shadow: 0 0 12px 3px var(--col-accent); 
+    outline: none; 
 }
 
 .navbar .dropdown-menu {
@@ -362,41 +362,46 @@ body.light-mode .navbar #regBtn:hover {
   border-color: var(--col-reg-btn-hover-light);
 }
 
+/* Rank */
+.medal-gold { color: #FFD700; text-shadow: 0px 0px 5px rgba(255, 215, 0, 0.5); }
+.medal-silver { color: #C0C0C0; text-shadow: 0px 0px 5px rgba(192, 192, 192, 0.5); }
+.medal-bronze { color: #CD7F32; text-shadow: 0px 0px 5px rgba(205, 127, 50, 0.5); }
+        
+.dashboard-card {
+    transition: transform 0.2s;
+    border: none;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+.dashboard-card:hover { transform: translateY(-5px); }
 
 
+/* --- STYLIZACJA DROPDOWN MENU --- */
 
-/* 1. Otwieranie po najechaniu myszką (tylko na komputerach - min-width) */
 @media (min-width: 992px) {
    .lang-dropdown-container:hover .dropdown-menu {
         display: block;
-        margin-top: 0; /* Usuwamy odstęp, żeby myszka nie "uciekła" */
+        margin-top: 0; 
     }
 }
 
 .lang-dropdown-container .dropdown-menu {
-    right: 0 !important;  /* Przyklej do prawej krawędzi przycisku */
-    left: auto !important; /* Odczep od lewej */
-    min-width: 100px; /* Opcjonalnie: minimalna szerokość, żeby tekst się nie łamał */
+    right: 0 !important;  
+    left: auto !important; 
+    min-width: 100px; 
 }
 
-/* --- STYLIZACJA DROPDOWN MENU --- */
-
-/* Domyślne ukrycie menu */
 .lang-dropdown-container .dropdown-menu {
-    /* Upewniamy się, że menu jest domyślnie ukryte i poza zasięgiem kliknięć */
     visibility: hidden;
     opacity: 0;
     transition: visibility 0s, opacity 0.2s linear;
-    
-    /* Pozycjonowanie (możesz potrzebować 'position: absolute;' jeśli używasz niestandardowych ustawień) */
     position: absolute; 
-    top: 100%; /* Menu pojawi się pod przyciskiem */
-    z-index: 1000; /* Upewnij się, że jest na wierzchu */
+    top: 100%; 
+    z-index: 1000; 
 }
 
-/* Stan: Najazd myszką na cały kontener (rodzic) */
+
 .lang-dropdown-container:hover .dropdown-menu {
-    /* Zmień te właściwości, aby menu się pokazało */
+    
     visibility: visible;
     opacity: 1;
 }
@@ -411,20 +416,11 @@ body.light-mode .navbar #regBtn:hover {
     background: transparent;
 }
 
-/* --- Modyfikacja aktywnego języka (szary kolor) --- */
 
-/* Zmodyfikowany stan aktywnego języka (Ten wybrany) */
 .lang-dropdown-container .dropdown-item.active-lang {
-    /* Tło: Usuwamy akcentowe tło */
     background-color: transparent !important; 
-    
-    /* Tekst: Używamy szarego, przygaszonego koloru */
     color: var(--col-neutral-faded, #888888) !important; 
-    
-    /* Zmniejszamy lub usuwamy pogrubienie */
     font-weight: 500; 
-    
-    /* Zablokowanie najazdu na aktywny element */
     pointer-events: none;
     cursor: default;
 }
@@ -435,7 +431,6 @@ body.light-mode .navbar #regBtn:hover {
     color: var(--col-neutral-faded, #888888) !important; 
 }
 
-/* --- Stylizacja głównego przycisku (tego widocznego przed rozwinięciem) --- */
 #langDropdown {
     color: var(--col-neutral) !important; 
     border: none !important;            
@@ -447,7 +442,7 @@ body.light-mode .navbar #regBtn:hover {
 #langDropdown:focus,
 #langDropdown.show,
 #langDropdown[aria-expanded="true"] {
-    color: var(--col-accent) !important; /* Po najechaniu na skrót PL/EN */
+    color: var(--col-accent) !important; 
     border: none !important;
     outline: none !important;
     box-shadow: none !important;
@@ -466,9 +461,6 @@ body.light-mode .navbar #regBtn:hover {
 }
 
 .btn-theme-toggle:hover {
-    /* background-color: var(--col-highlight); Podświetlenie tła */
-    color: var(--col-accent);               /* Zmiana koloru ikony na akcent */
-    /* transform: rotate(15deg);               Mały obrót dla bajeru */
-    /* border-color: var(--col-accent); */
+    color: var(--col-accent);               
 }
 
