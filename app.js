@@ -24,6 +24,7 @@ const flashcardsRouter = require('./routes/flashcards');
 const createtestRouter = require('./routes/create-test');
 const adminPanelRouter = require("./routes/adminPanel");
 const userTestRouter = require('./routes/tests')
+const reportsRouter = require('./routes/reports')
 const userTestDetailsRouter = require('./routes/user-test-details');
 const userTestListRouter = require('./routes/user-test-list');
 const administrationPanelRouter = require("./routes/administrationPanel");
@@ -88,6 +89,8 @@ app.use("/adminPanel",administrationPanelRouter)
 //Reset Password Page
 app.use('/reset-password', resetPasswordRouter);
 app.use('/set-password/:id',setPasswordRouter)
+//Reporting
+app.use('/api/reports', reportsRouter)
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   next(createError(404));
