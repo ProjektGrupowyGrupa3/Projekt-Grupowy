@@ -1,0 +1,87 @@
+/* ===== MODALE – DARK / LIGHT FIX ===== */
+.modal-content {
+    background-color: var(--col-dark);
+    color: var(--text-light);
+    border: 1px solid var(--col-accent);
+    border-radius: 14px;
+  }
+  
+  .modal-header,
+  .modal-footer {
+    border-color: var(--col-contrast);
+  }
+  
+  .modal-title {
+    color: var(--text-light);
+  }
+  
+  /* inputy / textarea */
+  .modal input,
+  .modal textarea,
+  .modal select {
+    background-color: var(--col-base);
+    color: var(--text-light);
+    border: 1px solid var(--col-contrast);
+  }
+  
+  .modal input::placeholder,
+  .modal textarea::placeholder {
+    color: var(--col-highlight);
+  }
+  
+  /* focus */
+  .modal input:focus,
+  .modal textarea:focus,
+  .modal select:focus {
+    background-color: var(--col-base);
+    color: var(--text-light);
+    border-color: var(--col-accent);
+    box-shadow: 0 0 0 0.15rem rgba(138,109,230,.35);
+  }
+  
+  /* LIGHT MODE – delikatna korekta */
+  body.light-mode .modal-content {
+    background-color: var(--col-base-light);
+    color: var(--col-neutral-light);
+  }
+  
+  /* === ADMIN TABS === */
+
+.admin-tabs {
+  border-bottom: 2px solid var(--col-contrast);
+}
+
+.admin-tabs .nav-link {
+  background: transparent;
+  color: var(--col-neutral);
+  border: none;
+  border-radius: 10px 10px 0 0;
+  padding: 10px 18px;
+  margin-right: 6px;
+  font-weight: 500;
+  transition: 
+    background 0.25s ease,
+    color 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+/* Hover */
+.admin-tabs .nav-link:hover {
+  background: var(--col-contrast);
+
+}
+
+/* Active tab */
+.admin-tabs .nav-link.active {
+  background: var(--col-dark);
+  color: var(--col-accent);
+  box-shadow: 0 -2px 0 var(--col-accent) inset;
+}
+
+/* Content under tabs */
+.admin-tab {
+  background: var(--col-base);
+  color: var(--col-neutral);
+  border-radius: 0 12px 12px 12px;
+  padding: 16px;
+}

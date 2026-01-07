@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="pl">
 <head>
     <meta charset='utf-8'>
     <meta http-equiv='X-UA-Compatible' content='IE=edge'>
@@ -7,65 +7,90 @@
     <meta name='viewport' content='width=device-width, initial-scale=1'>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="/static/stylesheets/style.css">
+    <link rel="stylesheet" href="/static/stylesheets/rank.css">
 </head>
 <body>
-    <div class="container py-5">
-    <h2 class="mb-4 text-center">Najlepsi użytkownicy</h2>
+    <main class="container py-4">
 
-    <!-- Tabela rankingu -->
-    <div class="table-responsive" style="display:none;" id="rankingContainer">
-        <table class="table table-striped table-hover">
-            <thead class="table-dark">
-                <tr>
-                    <th scope="col">#</th>
-                    <th scope="col">Użytkownik</th>
-                    <th scope="col">Punkty</th>
+        <div class="container py-5">
+            <h2 class="mb-4 text-center" data-translate="bestUsers">Najlepsi użytkownicy</h2>
+            
+            <!-- Tabela rankingu -->
+            <div class="table-responsive" style="display:none;" id="rankingContainer">
+                <table>
+                    <thead class="ranking-head">
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col" data-translate="user">Użytkownik</th>
+                            <th scope="col" data-translate="points">Punkty</th>
                 </tr>
             </thead>
             <tbody id="rankingTableBody">
             </tbody>
         </table>
     </div>
-
+    
     <!-- Komunikat błędu -->
-    <div id="errorBox" class="alert alert-danger mt-4" style="display:none;">
+    <div id="errorBox" class="alert alert-danger mt-4" style="display:none;" data-translate="error">
         Nie udało się pobrać rankingu. Spróbuj ponownie później.
     </div>
 </div>
+</main>
 <script src="/static/javascripts/script.js"></script>
+<script src="/static/javascripts/translations.js"></script>
 <script>
     async function loadRanking() {
-        try {
-            const res = await fetch("rank/api");
+    try {
+        const res = await fetch("rank/api");
 
-            if (!res.ok) {
-                throw new Error("Błąd po stronie serwera");
+        if (!res.ok) {
+            throw new Error("Błąd po stronie serwera");
+        }
+
+        const data = await res.json();
+        const tbody = document.getElementById("rankingTableBody");
+
+        const currentUser =
+            JSON.parse(localStorage.getItem('user') || 'null');
+
+        tbody.innerHTML = "";
+
+        data.ranking.forEach((user, index) => {
+
+            const isCurrentUser =
+                currentUser &&
+                (user._id === currentUser._id ||
+                 user.name === currentUser.name);
+
+            const tr = document.createElement('tr');
+
+            if (isCurrentUser) {
+                tr.classList.add('current-user-row');
             }
 
-            const data = await res.json();
-            const tbody = document.getElementById("rankingTableBody");
+            tr.innerHTML =
+                "<th scope='row'>" + (index + 1) + "</th>" +
+                "<td>" + user.name + "</td>" +
+                "<td>" + user.points + "</td>";
 
-            tbody.innerHTML = "";
+            tbody.appendChild(tr);
+        });
 
-            data.ranking.forEach((user, index) => {
-                tbody.innerHTML += `
-                    <tr>
-                        <th scope="row">${index + 1}</th>
-                        <td>${user.name}</td>
-                        <td>${user.points}</td>
-                    </tr>
-                `;
-            });
+        document.getElementById("rankingContainer").style.display = "block";
 
-            document.getElementById("rankingContainer").style.display = "block";
-
-        } catch (err) {
-            console.error(err);
-            document.getElementById("errorBox").style.display = "block";
-        }
+    } catch (err) {
+        console.error(err);
+        document.getElementById("errorBox").style.display = "block";
     }
+}
 
     window.onload = loadRanking;
+
+    // --- DARK MODE TOGGLE ---
+const themeBtn = document.getElementById('toggleTheme');
+    themeBtn.addEventListener('click', () => {
+        document.body.classList.toggle('light-mode');
+    });
 </script>
 
     <!-- <ul id="rankingList"></ul>
@@ -91,6 +116,6 @@
     </script> -->
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="/static/javascripts/translations.js"></script>
+    
 </body>
 </html>

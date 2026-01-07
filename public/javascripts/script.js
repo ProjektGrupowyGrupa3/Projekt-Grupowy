@@ -81,6 +81,8 @@ function updatePageContent(lang) {
     currentPage = 'userTestList';
   } else if (path.includes('user-test-details')) {
     currentPage = 'userTestDetails';
+  } else if (path.includes('rank')) {
+    currentPage = 'rank';
   }
 
   // Pobranie tłumaczeń (zakładam, że zmienna 'translations' jest dostępna globalnie)
@@ -165,7 +167,7 @@ window.t = function(key, params = {}) {
   return text;
 }
 
-// DODAJ: Funkcja pomocnicza do pobrania aktualnego języka
+// Funkcja pomocnicza do pobrania aktualnego języka
 window.getCurrentLanguage = function() {
   return localStorage.getItem('language') || 'pl';
 }
