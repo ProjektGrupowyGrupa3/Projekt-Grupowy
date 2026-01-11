@@ -8,10 +8,10 @@
   <link rel="stylesheet" href="/static/stylesheets/style.css">
 </head>
 <body>
-<main class="container py-4">
+<main class="container py-4" id="protectedContent" style="display: none;">
   <div class="row">
     <div class="col-md-8 mx-auto">
-      <h3 data-translate="title">Tryb testowy</h3>
+      <h3 data-translate="title">Tryb testu</h3>
       <form id="settingsForm" class="row g-3">
         <div class="col-md-4">
           <label class="form-label" data-translate="subject">Przedmiot</label>
@@ -33,8 +33,11 @@
 
       <div id="quizArea" class="mt-4 d-none">
         <div class="d-flex justify-content-between align-items-center mb-2">
-          <div>Timer: <span id="timer">00:00</span></div>
-          <div data-translate="question">Pytanie <span id="curIdx">0</span>/<span id="total">0</span></div>
+          <div>Timer: <span id="timer">15:00</span></div>
+          <div>
+            <span data-translate="question">Pytanie</span> 
+            <span id="curIdx">0</span>/<span id="total">0</span>
+          </div>
         </div>
         <div id="questionCard" class="card">
           <div class="card-body">
@@ -53,11 +56,62 @@
   </div>
 </main>
 
-<script src="/static/javascripts/translations.js"></script>
-<script src="/static/javascripts/script.js"></script>
-<script>
 
+<script>
 document.addEventListener('DOMContentLoaded', initQuizTest);
+
+// Nasłuchiwanie na globalną zmianę języka
+document.addEventListener('languageChanged', (e) => {
+    const newLang = e.detail.newLang;
+    console.log(`Język zmieniony na ${newLang}. Odświeżam przedmioty...`);
+    loadAndRenderSubjects(newLang);
+    resetQuizState();
+});
+
+async function loadAndRenderSubjects(lang) {
+    const subjectSelect = document.getElementById('subject');
+    const selectedLang = lang || 'pl'; 
+    
+    console.log(`Pobieranie przedmiotów dla języka: ${selectedLang}`);
+
+    if (!subjectSelect) return;
+
+    subjectSelect.innerHTML = '<option disabled selected>Wczytywanie...</option>';
+
+    try {
+      const res = await fetch(`/api/subjects?lang=${selectedLang}`);
+      
+      if (!res.ok) throw new Error(`Błąd HTTP: ${res.status}`);
+      
+      const subjects = await res.json();
+      console.log('Pobrane przedmioty:', subjects);
+
+      subjectSelect.innerHTML = ''; 
+
+      if (!subjects || subjects.length === 0) {
+        subjectSelect.innerHTML = '<option value="">Brak przedmiotów w bazie</option>';
+        return;
+      }
+
+      subjects.forEach(subj => {
+        const option = document.createElement('option');
+        option.value = subj._id;
+        option.textContent = `${subj.name} (sem. ${subj.semester})`;
+        subjectSelect.appendChild(option);
+      });
+
+    } catch (err) {
+      console.error('Błąd podczas pobierania przedmiotów:', err);
+      subjectSelect.innerHTML = '<option value="">Błąd połączenia z bazą</option>';
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+        const token = localStorage.getItem('token');
+        if (token) {
+            document.getElementById('protectedContent').style.display = 'block';
+        }
+    });
 
 async function initQuizTest() {
   const subjectSelect = document.getElementById('subject');
@@ -73,27 +127,8 @@ async function initQuizTest() {
     timeLeft: 0
   };
 
-
-
-  try {
-    const res = await fetch('/api/subjects?lang=pl');
-    const subjects = await res.json();
-    subjectSelect.innerHTML = '';
-
-    if (!subjects.length) {
-      subjectSelect.innerHTML = '<option value="">Brak przedmiotów w bazie</option>';
-    } else {
-      subjects.forEach(subj => {
-        const opt = document.createElement('option');
-        opt.value = subj._id;
-        opt.textContent = `${subj.name} (sem. ${subj.semester})`;
-        subjectSelect.appendChild(opt);
-      });
-    }
-  } catch (err) {
-    console.error('Błąd ładowania przedmiotów:', err);
-    subjectSelect.innerHTML = '<option value="">Błąd ładowania danych</option>';
-  }
+  const currentLang = localStorage.getItem('language') || 'pl';
+  await loadAndRenderSubjects(currentLang);
 
   
   startBtn.addEventListener('click', async () => {
@@ -105,6 +140,8 @@ async function initQuizTest() {
       alert('❗ Wybierz przedmiot.');
       return;
     }
+
+    state.testId = subj;
 
     let pool = [];
     try {
@@ -181,6 +218,27 @@ function updateTimer(state) {
   document.getElementById('timer').textContent = `${m}:${s}`;
 }
 
+async function addPointsAPI(type, amount, questionId) {
+      try {
+          const token = localStorage.getItem("token");
+
+          const res = await fetch("/api/points/add", {
+              method: "POST",
+              headers: {
+                  "Content-Type": "application/json",
+                  "Authorization": "Bearer " + token
+              },
+              body: JSON.stringify({ type, amount, questionId })
+          });
+
+          return await res.json();
+          
+      } catch (err) {
+          console.error("❌ Błąd API:", err);
+      }
+  }
+
+
 
 function renderQuestion(state) {
   const q = state.questions[state.cur];
@@ -211,34 +269,103 @@ function highlightSelected(state) {
   if (selected !== null && btns[selected]) btns[selected].classList.add('active');
 }
 
+// Wysyłanie wyniku do bazy (statystyki) 
+async function saveTestResultAPI(data) {
+    try {
+        const token = localStorage.getItem("token");
+        const res = await fetch("/quiz/test/save-result", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + token
+            },
+            body: JSON.stringify(data)
+        });
 
-function finishTest(state) {
+        if (!res.ok) throw new Error("Błąd zapisu wyniku");
+        return await res.json();
+    } catch (err) {
+        console.error("❌ Nie udało się zapisać historii testu:", err);
+    }
+}
+
+async function finishTest(state) {
   if (state.timer) clearInterval(state.timer);
 
   let correct = 0;
+
   state.questions.forEach((q, i) => {
     const ans = state.answers[i];
     const correctIndex = q.answers?.findIndex(a => a.isCorrect);
+    
     if (ans === correctIndex) correct++;
   });
 
   const percent = Math.round((correct / state.questions.length) * 100);
+
+  // Zapisanie wyniku w bazie 
+  const resultData = {
+      subjectId: state.testId,
+      score: percent,
+      totalQuestions: state.questions.length,
+      correctAnswers: correct,
+  };
+
+  const savedResult = await saveTestResultAPI(resultData);
+  const resultId = savedResult && savedResult.resultId ? savedResult.resultId : state.testId;
+  
   const res = document.getElementById('resultArea');
   res.classList.remove('d-none');
+  
+  let alertClass = percent > 50 ? 'alert-info' : 'alert-warning';
+  
   res.innerHTML = `
-    <div class="alert alert-info text-center">
+    <div class="alert ${alertClass} text-center">
       <h4>🎓 Wynik testu</h4>
       <p>Poprawne odpowiedzi: <strong>${correct}</strong> / ${state.questions.length}</p>
       <p>Wynik procentowy: <strong>${percent}%</strong></p>
     </div>
   `;
 
+
+  // 4. Naliczanie punktów (UserEarnedAction) - tylko gdy > 50%
+  try {
+    if (percent > 50) {
+      await addPointsAPI("test_passed", 20, resultId);
+      
+      // Aktualizacja licznika w navbarze
+      if (typeof updateUserPointsUI === 'function') {
+        updateUserPointsUI(20);
+      }  
+      
+      res.innerHTML += `
+        <div class="alert alert-success text-center mt-3">
+          🎉 Gratulacje! Zdobywasz <strong>20 punktów</strong> za zaliczenie testu!
+        </div>
+      `;
+    } else {
+      res.innerHTML += `
+        <div class="alert alert-secondary text-center mt-3">
+          😞 Wynik poniżej 50% — punkty nie zostały przyznane. Spróbuj ponownie!
+        </div>
+      `;
+    }
+  } catch (err) {
+    console.error("Błąd naliczania punktów:", err);
+    res.innerHTML += `
+      <div class="alert alert-danger text-center mt-3">
+        ⚠️ Wynik zapisany, ale wystąpił problem z naliczeniem punktów.
+      </div>
+    `;
+  }
+  
   document.getElementById('quizArea').classList.add('d-none');
 }
 
 setupThemeToggle('toggleTheme');
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-
+<script src="/static/javascripts/translations.js"></script>
+<script src="/static/javascripts/script.js"></script>
 </body>
 </html>

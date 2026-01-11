@@ -6,8 +6,13 @@ const bcrypt = require("bcryptjs");
 const crypto = require('crypto');
 const ResetToken = require('../models/ResetToken');
 const nodemailer = require('nodemailer');
+const { addPoints } = require("../services/pointsService");
 
 
+// Upewnij się, że masz zaimportowaną funkcję addPoints! 
+// Jeśli jest w innym pliku (np. utils/pointsSystem.js), dodaj require na górze.
+// Jeśli nie masz importu, dodaj go tutaj (przykład):
+// const { addPoints } = require('../utils/pointsSystem'); 
 
 // @route   POST /api/auth/register
 // @desc    Register a new user
@@ -32,7 +37,11 @@ router.post("/register", async (req, res) => {
     }
 
     // Create user
-    const user = await User.create({ name, email, password });
+    const user = await User.create({ name, email, password, points: 0 });
+
+    // --- TWOJA ZMIANA: Przyznajemy punkt na start (10pkt za rejestracje) ---
+    // Zakładam, że funkcja addPoints jest dostępna w tym pliku lub zaimportowana
+    await addPoints(user._id, 'registration', 10);
 
     // Generate JWT
     const token = jwt.sign(
@@ -40,22 +49,27 @@ router.post("/register", async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: "7d" }
     );
+
+    // --- ZMIANA Z GITHUB (UPSTREAM): Obsługa Cookies ---
     res.cookie("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       maxAge: 3600000 // 1 hour
     });
-    // Respond with token + user data
+
+    // --- POŁĄCZENIE: Struktura z GitHuba + Twoje punkty ---
     res.status(201).json({
       message: "User registered successfully",
       user: {
         id: user._id,
         name: user.name,
         email: user.email,
-        userType: user.accessLvl
+        userType: user.accessLvl, // Pole wymagane przez script.js (z main)
+        points: 10                // Twoje punkty (skoro to rejestracja, wiemy że jest 10)
       },
       token
     });
+
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });
@@ -85,22 +99,42 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
 
+    // --- Naliczanie punktów ---
+    const pointsAdded = await addPoints(user._id, 'login', 2);
+
     // Generate JWT
     const token = jwt.sign(
       { id: user._id, email: user.email },
       process.env.JWT_SECRET,
       { expiresIn: '7d' }
     );
+
+    // --- ZMIANA Z GITHUB (UPSTREAM): Obsługa Cookies ---
     res.cookie("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       maxAge: 3600000 // 1 hour
     });
+
+    // --- LOGIKA PUNKTÓW (Obliczamy, co wysłać) ---
+    const currentPoints = user.points || 0;
+    // Jeśli pointsAdded=true, to znaczy że baza ma już o 2 więcej niż obiekt 'user' pobrany wcześniej
+    const pointsToSend = pointsAdded ? currentPoints + 2 : currentPoints;
+
+    // --- POŁĄCZENIE ODPOWIEDZI ---
     res.status(200).json({
       message: 'Login successful',
-      user: { id: user._id, name: user.name, email: user.email, userType: user.accessLvl},
+      user: { 
+          id: user._id, 
+          name: user.name, 
+          email: user.email, 
+          userType: user.accessLvl, // Pole wymagane przez nowy layout
+          points: pointsToSend      // Twoje obliczone punkty
+      },
       token,
+      pointsAdded: pointsAdded 
     });
+
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Server error' });
@@ -169,7 +203,6 @@ router.post('/reset-password', async (req, res) => {
 });
 
 // POST /api/auth/reset-password-confirm
-
 router.post("/reset-password-confirm", async (req, res) => {
   try {
     const { token, newPassword } = req.body;
@@ -205,6 +238,5 @@ router.post("/reset-password-confirm", async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
-
 
 module.exports = router;

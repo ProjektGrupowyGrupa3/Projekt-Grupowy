@@ -6,7 +6,7 @@ const userSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   accessLvl:{type: String, default:0},
-  points: { type: Number, default: 0, index: true }
+  points: { type: Number, default: 0, index: true },
 }, { timestamps: true }, { collection : "users" });
   
 

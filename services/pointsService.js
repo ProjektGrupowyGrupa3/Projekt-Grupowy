@@ -6,29 +6,41 @@ async function addPoints(userId, actionType, points, targetId = null) {
   try {
     console.log("addPoints wywołane:", userId, actionType, points);
 
-    // Czy użytkownik już dostał punkty za tę akcję?
-    const exists = await UserEarnedAction.findOne({ userId, actionType, targetId });
+    let exists = null;
+
+    // Logika sprawdzania duplikatów 
+    
+    if (actionType === 'login') {
+      // Za logowanie punkty tylko raz na dobę
+      const startOfDay = new Date();
+      startOfDay.setHours(0, 0, 0, 0);
+      exists = await UserEarnedAction.findOne({
+        userId,
+        actionType,
+        createdAt: { $gte: startOfDay } 
+      });
+
+    } else if (actionType === 'test_passed' || actionType === 'quiz_wrong' ) {
+  
+      exists = null; 
+
+    } else {
+      // Dla innych sprawdz czy już istnieje w historii
+      exists = await UserEarnedAction.findOne({ userId, actionType, targetId });
+    }
+
+    
     if (exists) {
-      console.log("Punkty już przyznane — pomijam.");
+      console.log(`Punkty za ${actionType} już przyznane (pomijam).`);
       return false;
     }
 
-    // Zapisujemy wpis w historii punktów
-    await UserEarnedAction.create({
-      userId,
-      actionType,
-      points,
-      targetId
-    });
-
-    // Zwiększamy liczbę punktów użytkownika
+    await UserEarnedAction.create({ userId, actionType, points, targetId });
     await User.findByIdAndUpdate(userId, { $inc: { points } });
 
-    console.log("PARAMS in addPoints:", userId, actionType, points, targetId);
-
     console.log("Punkty dodane poprawnie!");
-
     return true;
+
   } catch (err) {
     console.error("Error in addPoints:", err);
     return false;

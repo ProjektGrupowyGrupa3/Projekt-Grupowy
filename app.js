@@ -28,6 +28,9 @@ const reportsRouter = require('./routes/reports')
 const userTestDetailsRouter = require('./routes/user-test-details');
 const userTestListRouter = require('./routes/user-test-list');
 const administrationPanelRouter = require("./routes/administrationPanel");
+const dashboardRouter = require("./routes/dashboard")
+const rankRouter = require("./routes/rank");
+const pointsRouter = require("./routes/points");
 var app = express();
 
 // 🔹 Load environment variables
@@ -65,23 +68,21 @@ app.use('/quiz/test', quizTestRouter);
 app.use('/api/questions',questionsRouter)
 app.use('/api/subjects', subjectsRouter);
 app.use('/api/tests',userTestRouter);
-//Ranking of Users
-//app.use("/rank", require("./routes/ranking"));
-//app.use('/api/points', require('./routes/points'));
-//User Progress
 app.use('/api/user-progress', userProgressRouter);
+//User Progress Page
+app.use('/dashboard', dashboardRouter);
 //Flashcards Page
 app.use('/flashcards', flashcardsRouter);
-
 //User test details
 app.use('/user-test-details', userTestDetailsRouter);
 //User test list
 app.use('/user-test-list', userTestListRouter);
+
 //Create Test Page
 app.use('/create-test', createtestRouter);
-//Ranking of Users
-app.use("/rank", require("./routes/ranking"));
-app.use('/api/points', require('./routes/points'));
+//Rank of Users
+app.use("/rank", rankRouter);
+app.use('/api/points', pointsRouter);
 // Admin stuff
 app.use("/api/adminPanel", adminPanelRouter);
 app.use("/adminPanel",administrationPanelRouter)
@@ -94,6 +95,7 @@ app.use('/api/reports', reportsRouter)
 app.use(function(req, res, next) {
   next(createError(404));
 });
+
 
 // error handler
 app.use(function(err, req, res, next) {

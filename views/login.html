@@ -54,12 +54,36 @@
       if(res.ok){
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data.user));
-        window.location.href = '/';
+          if (data.pointsAdded === true) {
+            // Pierwsze logowanie dzisiaj -> Bonus
+            window.location.href = '/dashboard?alert=login_bonus';
+          } else {
+            // Kolejne logowanie -> Zwykłe powitanie
+            window.location.href = '/dashboard?alert=login_success';
+          }
       } else {
-        alert(data.message || 'Błąd logowania');
-      }
-    } catch(err){
-      alert('Błąd sieci: '+err.message);
+          const currentLang = localStorage.getItem('language') || 'pl';
+          const t = (typeof translations !== 'undefined' && translations[currentLang]) ? translations[currentLang] : {};
+          
+          let alertKey = '';
+        
+          // MAPOWANIE: zamiana błędów na odpowiednie treści do powiadomien 
+          if (data.message === "Invalid credentials") {
+              alertKey = 'alert_login_failure';
+          } else if (data.message === "Please provide email and password") {
+              alertKey = 'alert_provide_data'; 
+          }
+
+          // Pobieramy tekst z tłumaczeń na podstawie klucza lub używamy oryginału 
+          const messageToShow = t[alertKey] || data.message;
+
+          // Wywołanie powiadomienia
+          showToast(messageToShow, 'danger');
+          
+          document.getElementById('password').value = '';
+        }
+          } catch(err){
+            alert('Błąd sieci: '+err.message);
     }
   });
 </script>
