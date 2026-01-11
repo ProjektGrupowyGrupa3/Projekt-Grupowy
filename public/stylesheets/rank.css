@@ -1,15 +1,12 @@
 .rank-gold {
-    /* background-color: rgba(255, 215, 0, 0.4) !important; Złoty półprzezroczysty */
     border-left: 5px solid #FFD700;
 }
 
 .rank-silver {
-    background-color: rgba(192, 192, 192, 0.4) !important; /* Srebrny półprzezroczysty */
     border-left: 5px solid #C0C0C0;
 }
 
 .rank-bronze {
-    background-color: rgba(205, 127, 50, 0.4) !important; /* Brązowy półprzezroczysty */
     border-left: 5px solid #CD7F32;
 }
 
@@ -20,14 +17,133 @@
 .trend-icon { font-size: 0.9em; margin-right: 4px; }
 
 
-/* Wyróżnienie zalogowanego użytkownika */
-/* Używamy > * aby nadpisać styl komórek Bootstrapa */
-.current-user-row > * {
-    background-color: #cfe2ff !important; /* Jasny niebieski */
-    color: #084298 !important; /* Ciemny niebieski tekst */
-    font-weight: bold;
-    box-shadow: inset 0 0 0 9999px #cfe2ff !important; /* Hack na table-striped/hover */
+/* === RANKING === */
+
+#rankingContainer {
+    background-color: var(--col-dark);
+    border-radius: 14px;
+    padding: 1rem;
+    border: 1px solid var(--col-accent);
+    box-shadow: 0 0 18px 4px rgba(0,0,0,0.3);
+  }
+
+
+/* Tabela */
+  #rankingContainer table {
+    margin-bottom: 0;
+    color: var(--text-light);
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  #rankingContainer table.table > :not(caption) > * > * {
+    color: var(--text-light);
+    background-color: transparent;
+  }
+
+  #rankingContainer table.table-hover tbody tr:hover > * {
+    background-color: inherit;
 }
+
+  /* Header tabeli */
+  #rankingContainer thead {
+    background-color: var(--col-contrast);
+    color: var(--text-light);
+    border-bottom: 2px solid var(--col-accent);
+  }
+  
+  /* Komórki */
+  #rankingContainer th,
+  #rankingContainer td {
+    vertical-align: middle;
+    padding: 0.75rem;
+    border-color: var(--col-contrast);
+  }
+  
+  /* Wiersze */
+  #rankingContainer tbody tr {
+    background-color: var(--col-base);
+    transition: all 0.25s ease;
+  }
+  
+  #rankingContainer tbody tr:hover {
+    background-color: var(--col-highlight);
+    color: var(--text-dark);
+    transform: scale(1.01);
+    box-shadow: 0 0 12px 2px var(--col-accent);
+  }
+
+/* Error box */
+  #errorBox {
+    background-color: rgba(180, 60, 80, 0.15);
+    border: 1px solid #b63c50;
+    color: var(--text-light);
+    border-radius: 10px;
+  }
+
+/* === LIGHT MODE === */
+  body.light-mode #rankingContainer {
+    background-color: var(--col-base-light);
+    border-color: var(--col-accent-light);
+    box-shadow: 0 0 18px 4px rgba(120, 90, 200, 0.25);
+  }
+  
+  body.light-mode #rankingContainer thead {
+    background-color: var(--col-contrast-light);
+    color: var(--text-light);
+  }
+  
+  body.light-mode #rankingContainer tbody tr {
+    background-color: var(--col-base-light);
+  }
+  
+  body.light-mode #rankingContainer tbody tr:hover {
+    background-color: var(--col-accent-light);
+    color: white;
+    box-shadow: 0 0 12px 3px var(--col-accent-light);
+  }
+  
+  /* === RANKING HEAD === */
+.ranking-head {
+    background-color: var(--col-contrast);
+    color: var(--text-light);
+    border-bottom: 2px solid var(--col-accent);
+  }
+  
+  .ranking-head th {
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    border-color: var(--col-accent);
+  }
+  
+  /* LIGHT MODE */
+  body.light-mode .ranking-head {
+    background-color: var(--col-contrast-light);
+    color: var(--text-light);
+    border-bottom: 2px solid var(--col-accent-light);
+  }
+
+
+/* === CURRENT USER === */
+.current-user-row {
+    background-color: rgba(140, 110, 255, 0.25) !important;
+    box-shadow: inset 0 0 0 2px var(--col-accent);
+    font-weight: 700;
+  }
+  
+  .current-user-row td:first-child::after {
+    content: " ← to Ty";
+    color: var(--col-accent);
+    font-size: 0.85em;
+    margin-left: 6px;
+  }
+  
+  /* LIGHT MODE */
+  body.light-mode .current-user-row {
+    background-color: rgba(120, 90, 200, 0.25) !important;
+    box-shadow: inset 0 0 0 2px var(--col-accent-light);
+  }
+
 
 
 

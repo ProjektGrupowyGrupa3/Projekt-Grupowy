@@ -174,6 +174,7 @@ window.t = function(key, params = {}) {
     return text;
 }
 
+// Funkcja pomocnicza do pobrania aktualnego języka
 window.getCurrentLanguage = function() {
     return localStorage.getItem('language') || 'pl';
 }
