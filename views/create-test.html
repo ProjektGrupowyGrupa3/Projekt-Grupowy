@@ -15,7 +15,6 @@
         <div class="row mb-4">
             <div class="col-12 text-center">
                 <h1 class="display-6" data-t="headerTitle">Stwórz własny test</h1>
-                <p class="lead" data-t="headerDesc">Zapisz test lokalnie i wróć do niego kiedy chcesz.</p>
             </div>
         </div>
 
@@ -34,6 +33,11 @@
                                     data-placeholder="tagsPlaceholder" placeholder='przykład "Matematyka..."'>
                                 <small class="text-muted" data-t="tagsHint">Oddziel tagi przecinkami</small>
                             </div>
+
+                            <div class="mt-3 form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="publicSwitch">
+                            </div>
+
                         </div>
                         <div class="d-flex flex-column gap-2 mt-3 mt-md-0">
                             <button class="btn btn-outline-warning" onclick="resetCreator()" data-t="btnNew">Nowy</button>
@@ -104,8 +108,7 @@
                         <h4 class="mb-0" data-t="libraryHeader">Twoja Biblioteka</h4>
                         <button class="btn btn-sm btn-outline-info" onclick="renderSavedTestsList()" data-t="btnRefresh">Odśwież 🔄</button>
                     </div>
-                    <div id="saved-tests-list" class="list-group list-group-flush" style="max-height: 600px; overflow-y: auto;">
-                        </div>
+                    <div id="saved-tests-list" class="list-group list-group-flush" style="max-height: 600px; overflow-y: auto;"></div>
                     <p id="no-saved-tests-msg" class="text-center text-muted mt-5" data-t="noSavedTests">Brak zapisanych testów.</p>
                 </div>
             </div>
@@ -168,6 +171,9 @@
         tagsLabel: "Tagi testu",
         tagsPlaceholder: 'przykład "Matematyka, Miejsca Zerowe..."',
         tagsHint: "Oddziel tagi przecinkami",
+        publicLabel: "Test publiczny (widoczny dla innych)", 
+        statusPublic: "Publiczny (Kliknij aby ukryć)",
+        statusPrivate: "Prywatny (Kliknij aby upublicznić)",
         btnNew: "Nowy",
         btnSave: "💾 Zapisz Test",
         newQuestionHeader: "Nowe pytanie",
@@ -216,6 +222,9 @@
         tagsLabel: "Test Tags",
         tagsPlaceholder: 'e.g. "Math, Zero Points..."',
         tagsHint: "Separate tags with commas",
+        publicLabel: "Public Test (visible to others)", 
+        statusPublic: "Public (Click to hide)",
+        statusPrivate: "Private (Click to publish)",
         btnNew: "New",
         btnSave: "💾 Save Test",
         newQuestionHeader: "New Question",
@@ -261,7 +270,6 @@
     // --- 2. SYSTEM TŁUMACZEŃ ---
     
     function getLang() {
-        // Pobieramy język z localStorage lub domyślnie 'pl'
         return (localStorage.getItem('language') || document.documentElement.lang || 'pl').toLowerCase();
     }
 
@@ -274,12 +282,10 @@
     }
 
     function applyTranslations() {
-        // Tłumaczenie tekstów
         document.querySelectorAll('[data-t]').forEach(el => {
             el.innerText = t(el.getAttribute('data-t'));
         });
         
-        // Tłumaczenie placeholderów
         document.querySelectorAll('[data-placeholder]').forEach(el => {
             const key = el.getAttribute('data-placeholder');
             const suffix = el.id.includes('input') && ['A','B','C','D'].includes(el.id.slice(-1)) 
@@ -287,39 +293,32 @@
             el.placeholder = t(key) + suffix;
         });
 
-        // Aktualizacja przycisku (Edytuj/Dodaj)
         const btn = document.getElementById('add-q-btn');
         if (btn) {
             btn.innerText = (editingIndex !== null) ? t('btnSaveChanges') : t('btnAddQuestion');
         }
 
-        // Odświeżenie listy pytań (żeby zaktualizować przyciski wewnątrz listy)
         renderQuestionsList();
         
-        // Jeśli biblioteka testów jest załadowana, odśwież ją też
         const noTestsMsg = document.getElementById('no-saved-tests-msg');
         if (noTestsMsg && noTestsMsg.style.display !== 'none') {
              noTestsMsg.innerText = t('noSavedTests');
         }
-        // Jeśli chcesz odświeżyć listę biblioteki (uwaga: to może wywołać API), odkomentuj:
-        // renderSavedTestsList(); 
         
         checkLimits();
     }
 
-    // --- 3. AUTODETEKCJA ZMIANY JĘZYKA (ROZWIĄZANIE TWOJEGO PROBLEMU) ---
+    // --- 3. AUTODETEKCJA ZMIANY JĘZYKA ---
     let lastKnownLang = getLang();
 
-    // Nasłuchujemy każdego kliknięcia na stronie
     document.addEventListener('click', () => {
-        // Czekamy 50ms, żeby przycisk zmiany języka zdążył zapisać nową wartość w localStorage
         setTimeout(() => {
             const currentLang = getLang();
-            // Jeśli język w pamięci jest inny niż ten, który zapamiętaliśmy
             if (currentLang !== lastKnownLang) {
-                lastKnownLang = currentLang; // Aktualizujemy zapamiętany
-                applyTranslations();       // Tłumaczymy stronę
-                console.log("Język zmieniony na:", currentLang); // Log dla sprawdzenia
+                lastKnownLang = currentLang;
+                applyTranslations();
+                renderSavedTestsList(); 
+                console.log("Język zmieniony na:", currentLang);
             }
         }, 50);
     });
@@ -342,6 +341,7 @@
     const limitWarning = document.getElementById('limit-warning');
     const testTitleInput = document.getElementById('test-title');
     const tagsInput = document.getElementById('tagsInput');
+    const publicSwitch = document.getElementById('publicSwitch');
     const startTestBtn = document.getElementById('start-test-btn');
     const quizTitleEl = document.getElementById('quiz-title');
     const quizContainer = document.getElementById('quiz-container');
@@ -455,6 +455,8 @@
         if(confirm(t('alertClearConfirm'))) {
             questions = [];
             testTitleInput.value = "";
+            tagsInput.value = "";
+            publicSwitch.checked = false;
             testID = "";
             renderQuestionsList();
             checkLimits();
@@ -471,6 +473,8 @@
 
         const tags = tagsInput.value.split(",").map(t => t.trim());
         const title = testTitleInput.value.trim() || t('userTestTitle') + " (" + new Date().toLocaleDateString() + ")";
+        
+        const isPublic = publicSwitch.checked;
         const lang = getLang();
 
         try {
@@ -481,7 +485,7 @@
                     "Authorization": `Bearer ${token}`,
                     "X-Language": lang 
                 },
-                body: JSON.stringify({ title, tags, questions, testID })
+                body: JSON.stringify({ title, tags, questions, testID, isPublic })
             });
 
             if (!res.ok) {
@@ -493,6 +497,7 @@
         } catch (err) { alert(err.message); }
     };
 
+    // --- NOWA FUNKCJA DO RENDEROWANIA LISTY Z PRZYCISKIEM ZMIANY STATUSU ---
     window.renderSavedTestsList = async function () {
         const listContainer = document.getElementById('saved-tests-list');
         const noTestsMsg = document.getElementById('no-saved-tests-msg');
@@ -512,16 +517,28 @@
                 return;
             }
             noTestsMsg.style.display = 'none';
+            
             savedTests.reverse().forEach(test => {
+                // Sprawdzamy status publiczny (domyślnie false, jeśli brak pola)
+                const isPub = test.isPublic || false;
+                
+                // Konfiguracja wyglądu przycisku statusu
+                const visIcon = isPub ? '🌐' : '🔒';
+                const visTitle = isPub ? t('statusPublic') : t('statusPrivate');
+                const visClass = isPub ? 'btn-info' : 'btn-secondary'; // Niebieski dla publicznego, szary dla prywatnego
+
                 const item = document.createElement('div');
                 item.className = 'list-group-item bg-transparent border-secondary mb-2 rounded p-3';
                 item.innerHTML = `
                     <div class="d-flex justify-content-between align-items-center">
-                        <div style="max-width: 65%;">
+                        <div style="max-width: 55%;">
                             <h6 class="mb-1 fw-bold text-primary text-truncate">${test.title}</h6>
                             <small class="text-muted">${t('questionsCount')}: ${test.numberOfQuestions ?? 0}</small>
                         </div>
                         <div class="btn-group btn-group-sm">
+                            <button class="btn ${visClass}" onclick="toggleTestStatus('${test.testId}', ${isPub})" title="${visTitle}">
+                                ${visIcon}
+                            </button>
                             <button class="btn btn-success" onclick="loadTest('${test.testId}')">${t('loadBtn')}</button>
                             <button class="btn btn-outline-danger" onclick="deleteTest('${test.testId}')">${t('deleteBtn')}</button>
                         </div>
@@ -529,6 +546,31 @@
                 listContainer.appendChild(item);
             });
         } catch (err) { console.error(err); }
+    };
+
+    // --- NOWA FUNKCJA ZMIENIAJĄCA STATUS TESTU ---
+    window.toggleTestStatus = async function(id, currentStatus) {
+        const token = localStorage.getItem("token");
+        const newStatus = !currentStatus; // Odwracamy status
+
+        try {
+            // Wysyłamy żądanie PATCH z nowym statusem
+            const res = await fetch(`/api/tests/${id}`, {
+                method: "PATCH",
+                headers: { 
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify({ isPublic: newStatus })
+            });
+
+            if (!res.ok) throw new Error("Nie udało się zmienić statusu.");
+            
+            // Odświeżamy listę, żeby zaktualizować ikonkę
+            await renderSavedTestsList(); 
+        } catch (err) {
+            alert(err.message);
+        }
     };
 
     window.loadTest = async function (id) {
@@ -542,6 +584,12 @@
             const testToLoad = await res.json();
             questions = testToLoad.questions;
             testTitleInput.value = testToLoad.title;
+            
+            publicSwitch.checked = testToLoad.isPublic || false;
+            if(testToLoad.tags) {
+                tagsInput.value = Array.isArray(testToLoad.tags) ? testToLoad.tags.join(', ') : testToLoad.tags;
+            }
+
             testID = testToLoad._id;
 
             renderQuestionsList();
