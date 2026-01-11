@@ -396,7 +396,7 @@ function checkUrlAlerts() {
         auth_required: { key: 'alert_auth_required', type: 'warning' },
         registered:    { key: 'alert_registered',    type: 'success' },
         login_success: { key: 'alert_login_success', type: 'success' }, 
-        login_bonus:   { key: 'alert_login_bonus',   type: 'success' }
+        login_bonus:   { key: 'alert_login_bonus',   type: 'success' } 
     };
 
     const config = alertConfig[alertType];

@@ -20,7 +20,8 @@ router.post("/create", adminAuth(0), async (req, res) => {
       testID,
       title,
       tags = [],
-      questions = []
+      questions = [],
+      isPublic = false
     } = req.body;
 
     if (!title || !questions.length) {
@@ -39,6 +40,7 @@ router.post("/create", adminAuth(0), async (req, res) => {
         tags,
         language,
         questions,
+        isPublic,
         rating: [],
         difficultiyRating: [],
         comments: []
@@ -72,6 +74,10 @@ router.post("/create", adminAuth(0), async (req, res) => {
     existingTest.questions = questions;
     existingTest.language = language;
 
+    if (isPublic !== undefined) {
+        existingTest.isPublic = isPublic;
+    }
+
     await existingTest.save();
 
     res.json(existingTest);
@@ -86,14 +92,18 @@ router.get("/all", adminAuth(0), async (req, res) => {
   try {
     const { q } = req.query;
     console.log(q);
-    const filter = q
-      ? {
-          $or: [
+
+    const filter = {
+      isPublic: true
+    };
+
+    if(q){
+      filter.$or [
             { title: { $regex: q, $options: "i" } }, // priority
             { tags: { $in: [new RegExp(q, "i")] } }
-          ]
-        }
-      : {};
+          ];
+    }
+
 
     const tests = await UserTest.find(filter)
       .populate("creatorId", "name email")
@@ -144,6 +154,7 @@ router.get("/userTest", adminAuth(0), async (req, res) => {
     const result = tests.map(t => ({
       testId: t._id,
       title: t.title,
+      isPublic: t.isPublic,
       numberOfQuestions: t.questions.length,
       averageDifficultyRating: calcAverage(t.difficultiyRating),
       averageRating: calcAverage(t.rating),
@@ -473,5 +484,35 @@ router.delete("/:testId/comments/:commentId",adminAuth(0), async (req, res) => {
     }
   }
 );
+
+router.patch('/:id', adminAuth(0), async (req, res) => {
+    try {
+        const { isPublic } = req.body;
+
+        if (isPublic === undefined) {
+            return res.status(400).json({ msg: "Brak pola isPublic w żądaniu" });
+        }
+
+        //Wyszukiwanie właściwego testu względem id oraz aktualnie zalogowanego użytkownika 
+        const test = await UserTest.findOneAndUpdate(
+            { _id: req.params.id, creatorId: req.user._id }, 
+            { $set: { isPublic: isPublic } },
+            { new: true } 
+        );
+
+        if (!test) {
+            return res.status(404).json({ msg: "Test nie znaleziony lub brak uprawnień do edycji" });
+        }
+
+        res.json(test);
+
+    } catch (err) {
+        console.error("Błąd zmiany statusu testu:", err.message);
+        if (err.kind === 'ObjectId') {
+            return res.status(404).json({ msg: "Test nie znaleziony" });
+        }
+        res.status(500).send("Błąd serwera");
+    }
+});
 
 module.exports = router;
