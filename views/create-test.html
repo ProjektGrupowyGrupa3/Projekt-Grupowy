@@ -178,9 +178,10 @@
     let currentQuestionIndex = 0;
     let userAnswers = {}; 
     const MAX_QUESTIONS = 60;
-    const STORAGE_KEY = 'learnit_user_tests'; // Klucz w localStorage
+    const STORAGE_KEY = 'learnit_user_tests';
     let testID = "";
     let editingIndex = null;
+    
     // --- ELEMENTY DOM ---
     const creatorSection = document.getElementById('creator-section');
     const quizSection = document.getElementById('quiz-section');
@@ -192,6 +193,7 @@
     const qCounter = document.getElementById('q-counter');
     const limitWarning = document.getElementById('limit-warning');
     const testTitleInput = document.getElementById('test-title');
+    const tagsInput = document.getElementById('tagsInput'); // Dodano definicję
     
     const startTestBtn = document.getElementById('start-test-btn');
     const quizTitleEl = document.getElementById('quiz-title');
@@ -232,7 +234,6 @@
         form.reset();
         checkLimits();
     });
-
 
     function checkLimits() {
         qCounter.innerText = `${questions.length}/${MAX_QUESTIONS}`;
@@ -285,21 +286,16 @@
 
     window.editQuestion = function (index) {
         const q = questions[index];
-
         document.getElementById('inputQuestion').value = q.question;
         document.getElementById('inputA').value = q.answerA;
         document.getElementById('inputB').value = q.answerB;
         document.getElementById('inputC').value = q.answerC;
         document.getElementById('inputD').value = q.answerD;
         document.getElementById('correctSelect').value = q.correct;
-
         editingIndex = index;
-
-        // UX hint
         document.querySelector('#add-question-form button[type="submit"]').innerText = "Zapisz zmiany";
         document.getElementById('inputQuestion').focus();
     };
-
 
     window.removeQuestion = function(index) {
         questions.splice(index, 1);
@@ -317,54 +313,39 @@
         }
     };
 
-    // --- LOGIKA ZAPISYWANIA I WCZYTYWANIA (LOCALSTORAGE) ---
+    // --- LOGIKA ZAPISYWANIA I WCZYTYWANIA ---
 
     window.saveTest = async function() {
-        const tags = tagsInput.value
-            .split(",")
-            .map(t => t.trim());
+        const tags = tagsInput.value.split(",").map(t => t.trim());
         const token = localStorage.token;
         if (questions.length === 0) {
             alert("Dodaj przynajmniej jedno pytanie przed zapisaniem.");
             return;
         }
 
-        let title = testTitleInput.value.trim();
-        if (!title) {
-            title = "Test bez nazwy (" + new Date().toLocaleDateString() + ")";
-        }
+        let title = testTitleInput.value.trim() || "Test bez nazwy (" + new Date().toLocaleDateString() + ")";
 
-        const testObj = {
-            id: Date.now(),
-            title: title,
-            date: new Date().toLocaleString(),
-            questions: questions
-        };
         try {
             const res = await fetch("/api/tests/create", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}`,
-                "X-Language": localStorage.getItem("language") || "PL"
-            },
-            body: JSON.stringify({
-                title: title,
-                tags: tags,
-                questions: questions,
-                testID:testID
-            })
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`,
+                    "X-Language": localStorage.getItem("language") || "PL"
+                },
+                body: JSON.stringify({
+                    title: title,
+                    tags: tags,
+                    questions: questions,
+                    testID: testID
+                })
             });
-
-            const data = await res.json();
 
             if (!res.ok) {
                 alert("Error: " + res.status);
-                return
+                return;
             }
-
             alert("Test został zapisany pomyślnie!");
-
         } catch (err) {
             console.error(err.message);
             alert("Error: " + err.message);
@@ -375,138 +356,83 @@
         const listContainer = document.getElementById('saved-tests-list');
         const noTestsMsg = document.getElementById('no-saved-tests-msg');
         const token = localStorage.getItem("token");
-
         listContainer.innerHTML = '';
         noTestsMsg.style.display = 'none';
 
         try {
             const res = await fetch("/api/tests/userTest", {
-                headers: {
-                    "Authorization": `Bearer ${token}`
-                }
+                headers: { "Authorization": `Bearer ${token}` }
             });
-
-            if (!res.ok) {
-                throw new Error("Nie udało się pobrać zapisanych testów");
-            }
+            if (!res.ok) throw new Error("Błąd pobierania");
 
             const savedTests = await res.json();
-
             if (!savedTests.length) {
                 noTestsMsg.style.display = 'block';
                 return;
             }
             savedTests.reverse().forEach(test => {
                 const item = document.createElement('div');
-                item.className =
-                    'list-group-item d-flex justify-content-between align-items-center flex-column flex-sm-row gap-2';
+                item.className = 'list-group-item d-flex justify-content-between align-items-center flex-column flex-sm-row gap-2';
                 item.style.backgroundColor = 'var(--col-base)';
                 item.style.color = 'var(--text-light)';
                 item.style.borderColor = 'var(--col-contrast)';
-
                 item.innerHTML = `
                     <div>
                         <h5 class="mb-1 fw-bold text-primary">${test.title}</h5>
-                        <small class="text-muted">
-                            Pytań: ${test.numberOfQuestions ?? 0}
-                        </small>
+                        <small class="text-muted">Pytań: ${test.numberOfQuestions ?? 0}</small>
                     </div>
                     <div class="btn-group">
-                        <button class="btn btn-sm btn-success" onclick="loadTest('${test.testId}')">
-                            Wczytaj
-                        </button>
-                        <button class="btn btn-sm btn-outline-danger" onclick="deleteTest('${test.testId}')">
-                            Usuń
-                        </button>
+                        <button class="btn btn-sm btn-success" onclick="loadTest('${test.testId}')">Wczytaj</button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteTest('${test.testId}')">Usuń</button>
                     </div>
                 `;
-
                 listContainer.appendChild(item);
             });
-
-        } catch (err) {
-            console.error(err);
-            listContainer.innerHTML = `
-                <div class="text-danger text-center">
-                    Błąd ładowania zapisanych testów
-                </div>
-            `;
-        }
+        } catch (err) { console.error(err); }
     };
-
 
     window.deleteTest = async function(id) {
         if (!confirm("Czy na pewno usunąć ten test?")) return;
-
         const token = localStorage.getItem("token");
-
         try {
             const res = await fetch(`/api/tests/${id}`, {
                 method: "DELETE",
-                headers: {
-                    "Authorization": `Bearer ${token}`
-                }
+                headers: { "Authorization": `Bearer ${token}` }
             });
-
-            const data = await res.json();
-
-            if (!res.ok) {
-                throw new Error(data.message || "Nie udało się usunąć testu");
-            }
-
-            alert("Test został usunięty pomyślnie!");
-            renderSavedTestsList(); // Odśwież widok modala
-
-        } catch (err) {
-            console.error(err);
-            alert("Błąd podczas usuwania testu: " + err.message);
-        }
+            if (!res.ok) throw new Error("Nie udało się usunąć");
+            alert("Usunięto!");
+            renderSavedTestsList();
+        } catch (err) { alert(err.message); }
     };
-
 
     window.loadTest = async function (id) {
         const token = localStorage.token;
-
         try {
             const res = await fetch(`/api/tests/${id}`, {
-                headers: {
-                    "Authorization": `Bearer ${token}`
-                }
+                headers: { "Authorization": `Bearer ${token}` }
             });
-
-            if (!res.ok) {
-                throw new Error("Nie udało się wczytać testu");
-            }
+            if (!res.ok) throw new Error("Błąd wczytywania");
 
             const testToLoad = await res.json();
-
             questions = testToLoad.questions;
             testTitleInput.value = testToLoad.title;
             testID = testToLoad._id;
 
             renderQuestionsList();
+            checkLimits();
 
-            // Zamknij modal
-            const modalEl = document.getElementById('loadTestModal');
-            const modalInstance = bootstrap.Modal.getInstance(modalEl);
+            const modalInstance = bootstrap.Modal.getInstance(document.getElementById('loadTestModal'));
             modalInstance.hide();
-
-        } catch (err) {
-            console.error(err);
-            alert("Błąd podczas wczytywania testu");
-        }
+        } catch (err) { alert("Błąd wczytywania"); }
     };
 
     // --- LOGIKA TESTU ---
 
     startTestBtn.addEventListener('click', () => {
-        const title = testTitleInput.value.trim() || "Test Użytkownika";
-        quizTitleEl.innerText = title;
-        
+        quizTitleEl.innerText = testTitleInput.value.trim() || "Test Użytkownika";
         creatorSection.classList.add('d-none');
         quizSection.classList.remove('d-none');
-        resultsSection.classList.add('d-none'); // Upewnij się, że wyniki są ukryte
-        
+        resultsSection.classList.add('d-none');
         currentQuestionIndex = 0;
         userAnswers = {};
         renderQuizQuestion();
@@ -515,7 +441,6 @@
     function renderQuizQuestion() {
         const q = questions[currentQuestionIndex];
         progressBadge.innerText = `Pytanie ${currentQuestionIndex + 1} z ${questions.length}`;
-
         prevBtn.style.visibility = currentQuestionIndex === 0 ? 'hidden' : 'visible';
         
         if (currentQuestionIndex === questions.length - 1) {
@@ -531,19 +456,22 @@
             const isChecked = userAnswers[currentQuestionIndex] === opt ? 'checked' : '';
             const activeClass = isChecked ? 'active' : ''; 
             
+            
+            const optionText = q['answer' + opt];
+
             optionsHtml += `
                 <label class="list-group-item d-flex gap-3 align-items-center ${activeClass}" style="cursor: pointer;">
                     <input class="form-check-input flex-shrink-0" type="radio" name="qOption" value="${opt}" ${isChecked} 
                     onchange="selectAnswer('${opt}', this)">
                     <span>
-                        <strong class="me-2">${opt}.</strong> ${q.options[opt]}
+                        <strong class="me-2">${opt}.</strong> ${optionText}
                     </span>
                 </label>
             `;
         });
 
         quizContainer.innerHTML = `
-            <h5 class="mb-4">${q.text}</h5>
+            <h5 class="mb-4">${q.question}</h5>
             <div class="list-group">
                 ${optionsHtml}
             </div>
@@ -557,26 +485,15 @@
         radioElement.closest('label').classList.add('active');
     };
 
-    nextBtn.addEventListener('click', () => {
-        currentQuestionIndex++;
-        renderQuizQuestion();
-    });
-
-    prevBtn.addEventListener('click', () => {
-        currentQuestionIndex--;
-        renderQuizQuestion();
-    });
-
-    finishBtn.addEventListener('click', () => {
-        showResults();
-    });
+    nextBtn.addEventListener('click', () => { currentQuestionIndex++; renderQuizQuestion(); });
+    prevBtn.addEventListener('click', () => { currentQuestionIndex--; renderQuizQuestion(); });
+    finishBtn.addEventListener('click', showResults);
 
     // --- LOGIKA WYNIKÓW ---
 
     function showResults() {
         quizSection.classList.add('d-none');
         resultsSection.classList.remove('d-none');
-
         let score = 0;
         resultsList.innerHTML = '';
 
@@ -587,14 +504,14 @@
 
             const cardClass = isCorrect ? 'correct' : 'wrong';
             const icon = isCorrect ? '✔️' : '❌';
-            const userText = userChoice ? `${userChoice}: ${q.options[userChoice]}` : 'Brak odpowiedzi';
-            const correctText = `${q.correct}: ${q.options[q.correct]}`;
+            const userText = userChoice ? `${userChoice}: ${q['answer' + userChoice]}` : 'Brak odpowiedzi';
+            const correctText = `${q.correct}: ${q['answer' + q.correct]}`;
 
             let detailHtml = `
                 <div class="card mb-3 result-card ${cardClass}">
                     <div class="card-body">
                         <h5 class="card-title d-flex justify-content-between">
-                            <span>${index + 1}. ${q.text}</span>
+                            <span>${index + 1}. ${q.question}</span>
                             <span>${icon}</span>
                         </h5>
                         <div class="mt-3">
@@ -620,19 +537,19 @@
         currentQuestionIndex = 0;
         userAnswers = {};
         renderQuizQuestion();
-    }
+    };
 
     window.backToCreator = function() {
         resultsSection.classList.add('d-none');
         creatorSection.classList.remove('d-none');
-    }
+    };
 
-    // --- DARK MODE TOGGLE ---
     const themeBtn = document.getElementById('toggleTheme');
-    themeBtn.addEventListener('click', () => {
-        document.body.classList.toggle('light-mode');
-    });
-
+    if (themeBtn) {
+        themeBtn.addEventListener('click', () => {
+            document.body.classList.toggle('light-mode');
+        });
+    }
 </script>
 </body>
 </html>
