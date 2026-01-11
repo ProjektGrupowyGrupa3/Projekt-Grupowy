@@ -115,6 +115,7 @@ function updatePageContent(lang) {
     else if (path.includes('user-test-details')) currentPage = 'userTestDetails';
     else if (path.includes('rank')) currentPage = 'rank';
     else if (path.includes('dashboard')) currentPage = 'dashboard';
+    else if (path.includes('notification')) currentPage = 'notification';
 
 
     // Pobieranie tłumaczeń

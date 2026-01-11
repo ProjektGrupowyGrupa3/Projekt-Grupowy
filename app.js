@@ -31,6 +31,8 @@ const administrationPanelRouter = require("./routes/administrationPanel");
 const dashboardRouter = require("./routes/dashboard")
 const rankRouter = require("./routes/rank");
 const pointsRouter = require("./routes/points");
+const notification = require("./routes/notification");
+const notificationPageRouter = require('./routes/notificationPage');
 var app = express();
 
 // 🔹 Load environment variables
@@ -80,6 +82,9 @@ app.use('/user-test-list', userTestListRouter);
 
 //Create Test Page
 app.use('/create-test', createtestRouter);
+//Notifications
+app.use('/api/notification', notification);
+app.use('/notification', notificationPageRouter);
 //Rank of Users
 app.use("/rank", rankRouter);
 app.use('/api/points', pointsRouter);
