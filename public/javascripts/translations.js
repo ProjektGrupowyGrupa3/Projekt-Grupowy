@@ -64,6 +64,7 @@ const translations = {
         register:"Rejestracja",
         learnMode:"Tryb nauki",
         flashcards:"Fiszki",
+        mytest:"Moje testy",
         userTestsList: "Lista testów użytkowników"
     },
     flashcards: {
@@ -283,6 +284,7 @@ const translations = {
         register:"Register",
         learnMode:"Learning Mode",
         flashcards:"Flashcards",
+        mytest:"My Tests",
         userTestsList: "User Tests List"
     },
     flashcards: {
