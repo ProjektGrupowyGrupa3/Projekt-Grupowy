@@ -79,7 +79,8 @@ const translations = {
         mytest:"Moje testy",
         logout: "Wyloguj",
         statistics: "Statystyki",
-        userTestsList: "Lista testów użytkowników"
+        userTestsList: "Lista testów użytkowników",
+        notification: "Powiadomienia"
     },
     flashcards: {
       title: "Fiszki — nauka",
@@ -236,6 +237,20 @@ const translations = {
       deleteContent: "Usuń zawartość",
       banUser: "Zbanuj użytkownika",
     },
+    notification: {
+      notificationsHeader: "Powiadomienia",
+      notificationSettings: "Ustawienia powiadomień",
+      notifCommentTest: "Nowy komentarz pod Twoim testem",
+      notifTestRated: "Twój test został oceniony",
+      notifRanking: "Aktualizacja rankingu tygodniowego",
+      notifCommentReply: "Odpowiedź na Twój komentarz",
+      saveNotificationSettings: "Zapisz ustawienia",
+      notificationHistory: "Historia powiadomień",
+      markAllAsRead: "Oznacz wszystkie jako przeczytane",
+      notifComment: "Nowy komentarz pod Twoim testem",
+      notifModeration: "Moderator podjął decyzję w sprawie zgłoszenia",
+      noNotifications: "Brak powiadomień"
+    },
     dashboard: {
       stats_points: "Twoje Punkty",
       stats_tests: "Rozwiązane Testy",
@@ -344,7 +359,8 @@ const translations = {
         mytest:"My Tests",
         logout: "Logout",
         statistics: "Statistics",
-        userTestsList: "User Tests List"
+        userTestsList: "User Tests List",
+        notification: "Notifications"
     },
     flashcards: {
       title: "Flashcards — learning",
@@ -500,6 +516,20 @@ const translations = {
       dismissReport: "Dismiss Report",
       deleteContent: "Delete Content",
       banUser: "Ban User",
+    },
+    notification: {
+      notificationsHeader: "Notifications",
+      notificationSettings: "Notification Settings",
+      notifCommentTest: "New comment on my test",
+      notifTestRated: "Your test was rated",
+      notifRanking: "Weekly ranking update",
+      notifCommentReply: "Reply to my comment",
+      saveNotificationSettings: "Save Settings",
+      notificationHistory: "Notification History",
+      markAllAsRead: "Mark all as read",
+      notifComment: "New comment on your test",
+      notifModeration: "Moderator has made a decision regarding your report",
+      noNotifications: "No notifications"
     },
     dashboard: {
       stats_points: "Your Points",
