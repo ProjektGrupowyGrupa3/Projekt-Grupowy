@@ -227,6 +227,50 @@ body {
   border-color: var(--col-highlight);
 }
 
+
+#publicSwitch {
+    appearance: none;       
+    width: 3.5em !important;
+    height: 1.8em !important;
+    background-image: none !important; 
+    
+    background-color: var(--col-contrast);
+    border-radius: 2em;
+    position: relative;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    border: none;
+}
+
+#publicSwitch::after {
+    content: '';
+    position: absolute;
+    top: 0.2em;
+    left: 0.2em;
+    width: 1.4em;
+    height: 1.4em;
+    background-color: white; 
+    border-radius: 50%;
+    transition: transform 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2); 
+}
+
+/* --- STAN AKTYWNY (PUBLICZNY) --- */
+#publicSwitch:checked {
+    background-color: var(--col-accent); 
+}
+
+#publicSwitch:checked::after {
+    transform: translateX(1.7em); 
+}
+
+/* --- STAN ZABLOKOWANY (BRAK TYTUŁU) --- */
+#publicSwitch:disabled {
+    background-color: var(--col-base);
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
 /* Karty */
 .card {
   background-color: var(--col-dark);

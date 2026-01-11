@@ -45,6 +45,12 @@ const UserTestSchema = new mongoose.Schema(
 
     title: { type: String, required: true },
 
+    isPublic: { 
+      type: Boolean, 
+      default: false, 
+      required: true 
+    },
+
     date: {
       type: Date,
       default: Date.now
