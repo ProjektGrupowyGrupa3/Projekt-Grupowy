@@ -19,8 +19,6 @@
         <li class="nav-item"><a class="nav-link" href="/quiz/test">Test</a></li>
         <li class="nav-item"><a class="nav-link" href="/quiz/learn" data-translate="learnMode">Tryb nauki</a></li>
         <li class="nav-item"><a class="nav-link" href="/flashcards" data-translate="flashcards">Fiszki</a></li>
-        <li class="nav-item"><a class="nav-link" href="/rank" data-translate="rank">Ranking</a></li>
-        <li class="nav-item"><a class="nav-link" href="/create-test" data-translate="mytest">Utwórz test</a></li>
         <li class="nav-item"><a class="nav-link" href="/user-test-list" data-translate="userTestsList">Lista Testów użytkowników</a></li>
       </ul>
       <div class="d-flex align-items-center gap-3">
@@ -36,17 +34,28 @@
                   <span id="userEmail">User</span>
               </button>
               <ul id="dropdown-menu" class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenuBtn">
+                <li>
                   <li>
-                      <a class="dropdown-item" href="/dashboard" data-translate="statistics">
-                          <i class="bi bi-bar-chart-fill me-2"></i>Statystyki
+                      <a class="dropdown-item" href="/create-test" data-translate="mytest">
+                          <i class="bi bi-bar-chart-fill me-2"></i>Moje testy
                       </a>
                   </li>
-                  <li><hr class="dropdown-divider"></li>
-                  <li>
-                      <a class="dropdown-item text-danger" href="#" id="logoutLink" data-translate="logout">
-                          <i class="bi bi-box-arrow-right me-2"></i>Wyloguj
-                      </a>
-                  </li>
+                <li><li><hr class="dropdown-divider"></li>
+                    <a class="dropdown-item" href="/dashboard" data-translate="statistics">
+                        <i class="bi bi-bar-chart-fill me-2"></i>Statystyki
+                    </a>
+                </li>
+                <li><li><hr class="dropdown-divider"></li>
+                    <a class="dropdown-item" href="/rank" data-translate="rank">
+                        <i class="bi bi-bar-chart-fill me-2"></i>Ranking
+                    </a>
+                </li>
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                    <a class="dropdown-item text-danger" href="#" id="logoutLink" data-translate="logout">
+                        <i class="bi bi-box-arrow-right me-2"></i>Wyloguj
+                    </a>
+                </li>
               </ul>
           </div>
       </div>

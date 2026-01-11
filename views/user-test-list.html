@@ -33,138 +33,194 @@
     <div id="testsList" class="list-group mt-3"></div>
   </main>
 
-  <script src="/static/javascripts/sort.js"></script>
+  
   <script src="/static/javascripts/script.js"></script>
+  
   <script>
     setupThemeToggle('toggleTheme');
-//Przykładowe dane testów użytkowników
-   
-  async function loadUserTests() {
-    const container = document.getElementById('testsList');
-    container.innerHTML = '';
 
-    const sortMode = document.getElementById('sortSelect')?.value || 'none';
-    const currentLang = getCurrentLanguage();
-    const query = document.getElementById('searchInput')?.value.trim() || '';
+    function applySorting(tests, mode, currentLang) {
+        let sorted = [...tests];
 
-    // Pokaż loader
-    container.innerHTML = `<div class="text-center py-4">Ładowanie testów...</div>`;
+        switch (mode) {
+            case 'alphabetical':
+                sorted.sort((a, b) => a.title.localeCompare(b.title));
+                break;
+            case 'rating':
+                sorted.sort((a, b) => (b.averageRating || 0) - (a.averageRating || 0));
+                break;
+            case 'questions':
+                sorted.sort((a, b) => (b.numberOfQuestions || 0) - (a.numberOfQuestions || 0));
+                break;
+            case 'pl_first':
+                sorted.sort((a, b) => {
+                    const langA = a.language || 'pl';
+                    const langB = b.language || 'pl';
+                    return langA === 'pl' ? -1 : 1;
+                });
+                break;
+            case 'en_first':
+                sorted.sort((a, b) => {
+                    const langA = a.language || 'pl';
+                    const langB = b.language || 'pl';
+                    return langA === 'en' ? -1 : 1;
+                });
+                break;
+            case 'pl_only':
+                sorted = sorted.filter(t => (t.language || 'pl') === 'pl');
+                break;
+            case 'en_only':
+                sorted = sorted.filter(t => (t.language === 'en'));
+                break;
+                
+            default:
 
-    try {
-      const res = await fetch(`/api/tests/all?q=${encodeURIComponent(query)}`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+                break;
         }
-      });
-      if (!res.ok) throw new Error('Błąd pobierania testów');
+        return sorted;
+    }
 
-      const tests = await res.json();
+    async function loadUserTests() {
+        const container = document.getElementById('testsList');
+        const sortMode = document.getElementById('sortSelect')?.value || 'none';
+        const currentLang = typeof getCurrentLanguage === 'function' ? getCurrentLanguage() : 'pl';
+        const query = document.getElementById('searchInput')?.value.trim() || '';
 
-      if (!tests || tests.length === 0) {
-        const t9n = translations[currentLang]?.userTestList || {};
-        container.innerHTML = `<div class="text-center py-4">${t9n.noTests || 'Brak testów'}</div>`;
-        return;
-      }
 
-      // Sortowanie
-      const sortedTests = applySorting(tests, sortMode, currentLang);
+        if (!container.hasChildNodes()) {
+             container.innerHTML = `<div class="text-center py-4">Ładowanie testów...</div>`;
+        }
 
-      const t9n = translations[currentLang]?.userTestList || {};
-      container.innerHTML = '';
+        try {
+            const res = await fetch(`/api/tests/all?q=${encodeURIComponent(query)}`, {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+                }
+            });
+            if (!res.ok) throw new Error('Błąd pobierania testów');
 
-      sortedTests.forEach(t => {
-        const a = document.createElement('a');
-        const avgRating = t.averageRating || 0;
-        const avgDifficulty = t.averageDifficultyRating || 0;
+            const tests = await res.json();
 
-        a.href = `/user-test-details?testId=${t.testId}&lang=${currentLang}`;
-        a.className = 'list-group-item list-group-item-action d-flex justify-content-between align-items-center';
+            if (!tests || tests.length === 0) {
+                const msg = (typeof translations !== 'undefined' && translations[currentLang]?.userTestList?.noTests) 
+                            ? translations[currentLang].userTestList.noTests 
+                            : 'Brak testów';
+                container.innerHTML = `<div class="text-center py-4">${msg}</div>`;
+                return;
+            }
 
-        const testLanguage = 'Polski'; // Default, endpoint does not return language
-        a.innerHTML = `
+            const sortedTests = applySorting(tests, sortMode, currentLang);
+
+            const t9n = (typeof translations !== 'undefined' && translations[currentLang]?.userTestList) 
+                        ? translations[currentLang].userTestList 
+                        : {};
+
+            container.innerHTML = '';
+
+            sortedTests.forEach(t => {
+                const a = document.createElement('a');
+                const avgRating = t.averageRating || 0;
+                const avgDifficulty = t.averageDifficultyRating || 0;
+
+                a.href = `/user-test-details?testId=${t.testId}&lang=${currentLang}`;
+                a.className = 'list-group-item list-group-item-action d-flex justify-content-between align-items-center';
+
+
+                const apiLang = t.language || 'pl'; 
+                const displayLang = apiLang === 'en' ? 'English' : 'Polski';
+
+                a.innerHTML = `
           <div class="flex-grow-1">
             <div class="d-flex justify-content-between align-items-start mb-2">
               <h6 class="mb-0">${t.title} – ${t.owner?.name || 'Unknown'}</h6>
               <span class="badge bg-secondary">
-                <span data-translate="language">${t9n.language}</span>:
-                <span class="testLanguageName">${testLanguage}</span>
+                <span data-translate="language">${t9n.language || 'Język'}</span>:
+                <span class="testLanguageName">${displayLang}</span>
               </span>
             </div>
             ${avgRating > 0 ? `
               <div class="mt-2">
                 <div class="mt-1">
-                  <small class="me-1 fw-bold" data-translate="difficulty">${t9n.difficulty}</small>
+                  <small class="me-1 fw-bold" data-translate="difficulty">${t9n.difficulty || 'Trudność'}</small>
                   <small class="difficultyStars">
-                    ${'&#9733;'.repeat(Math.round(avgDifficulty || 0))}
-                    ${'&#9734;'.repeat(3 - Math.round(avgDifficulty || 0))}
+                    ${'&#9733;'.repeat(Math.round(avgDifficulty))}
+                    ${'&#9734;'.repeat(3 - Math.round(avgDifficulty))}
                   </small>
-                  <small class="difficulty-value ms-1">(${avgDifficulty || 0})</small>
+                  <small class="difficulty-value ms-1">(${avgDifficulty})</small>
                 </div>
                 <div class="mt-1">
                   <small class="averageStars">
-                    ${'&#9733;'.repeat(Math.round(avgRating || 0))}
-                    ${'&#9734;'.repeat(5 - Math.round(avgRating || 0))}
+                    ${'&#9733;'.repeat(Math.round(avgRating))}
+                    ${'&#9734;'.repeat(5 - Math.round(avgRating))}
                   </small>
                   <small class="rating-value ms-1">(${avgRating})</small>
                   <small class="rating-count ms-2"> 
-                    <span data-translate="ratings">${t9n.ratings}</span> 
+                    <span data-translate="ratings">${t9n.ratings || 'Oceny'}</span> 
                     <span class="ratingCount">${t.numberOfRatings || 0}</span> 
                   </small>
                 </div>
               </div>
-            ` : `<div class="mt-2"><small class="no-ratings">${t9n.noRatings}</small></div>`}
+            ` : `<div class="mt-2"><small class="no-ratings">${t9n.noRatings || 'Brak ocen'}</small></div>`}
           </div>
           <div class="text-end ms-3">
             <span class="badge bg-primary rounded-pill">
               <span class="q-count">${t.numberOfQuestions}</span>
-              <span data-translate="questions"> ${t9n.questions}</span>
+              <span data-translate="questions"> ${t9n.questions || 'Pytań'}</span>
             </span>
             <small class="comments-count d-block mt-1">
-              <span class="c-lenght">${t.numberOfComments}</span> 
-              <span data-translate="comments">${t9n.comments}</span>
+              <span class="c-lenght">${t.numberOfComments || 0}</span> 
+              <span data-translate="comments">${t9n.comments || 'Komentarzy'}</span>
             </small>
           </div>
         `;
 
-        a.addEventListener('click', () => {
-          localStorage.setItem('currentTestData', JSON.stringify(t));
-        });
+                a.addEventListener('click', () => {
+                    localStorage.setItem('currentTestData', JSON.stringify(t));
+                });
 
-        container.appendChild(a);
-      });
+                container.appendChild(a);
+            });
 
-    } catch (err) {
-      console.error(err);
-      container.innerHTML = `<div class="text-center py-4">Błąd pobierania testów</div>`;
+        } catch (err) {
+            console.error(err);
+            container.innerHTML = `<div class="text-center py-4">Błąd pobierania testów</div>`;
+        }
     }
-  }
 
-  // Search input listener
-  document.getElementById('searchInput')?.addEventListener('input', debounce(loadUserTests, 400));
+    // Debounce helper
+    function debounce(fn, delay) {
+        let timer;
+        return function() {
+            clearTimeout(timer);
+            timer = setTimeout(() => fn.apply(this, arguments), delay);
+        };
+    }
 
-  // Debounce helper
-  function debounce(fn, delay) {
-    let timer;
-    return function () {
-      clearTimeout(timer);
-      timer = setTimeout(() => fn.apply(this, arguments), delay);
-    };
-  }
-
+    // Funkcja podpinająca zdarzenia
     function setupSorting() {
-      const sortSelect = document.getElementById('sortSelect');
-      if (sortSelect) {
-        sortSelect.addEventListener('change', () => {
-          loadUserTests();
-          refreshLanguageBadges();
-        });
-      }
+        const sortSelect = document.getElementById('sortSelect');
+        const searchInput = document.getElementById('searchInput');
+
+        // Obsługa Sortowania
+        if (sortSelect) {
+            sortSelect.addEventListener('change', () => {
+                console.log("Zmieniono sortowanie na:", sortSelect.value); // Debug
+                loadUserTests();
+            });
+        }
+
+        if (searchInput) {
+            searchInput.addEventListener('input', debounce(loadUserTests, 400));
+        }
     }
-    loadUserTests()
-  </script>
+
+
+    setupSorting();
+    loadUserTests();
+
+</script>
 
   <script src="/static/javascripts/translations.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
-
 </html>
