@@ -1,5 +1,5 @@
 :root {
-  /* DARK MODE */
+  /* DARK MODE (Domyślny) */
   --col-base-dark: #1a1525;
   --col-dark-dark: #2a2438;
   --col-accent-dark: #8a6de6;
@@ -34,6 +34,7 @@
   --col-reg-btn-light: #b87cb5;
   --col-reg-btn-hover-light: #c88bc5;
 
+  /* Tekst podstawowy: jasny w dark mode, ciemny w light mode */
   --text-light: var(--col-neutral);
   --text-dark: var(--col-neutral-light);
 
@@ -46,6 +47,11 @@ body {
   color: var(--text-light);
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   transition: background-color 0.3s, color 0.3s;
+}
+
+/* Etykiety formularzy (to naprawia napisy "Przedmiot", "Tryb pytań") */
+.form-label, label {
+  color: var(--text-light);
 }
 
 /* Navbar */
@@ -71,7 +77,7 @@ body {
 }
 .navbar-nav .nav-link:hover {
   background-color: var(--col-highlight);
-  color: var(--text-dark);
+  color: var(--text-dark); /* Tu zostawiamy ciemny, bo tło highlight jest bardzo jasne */
   box-shadow: 0 0 12px 3px var(--col-accent);
 }
 
@@ -84,7 +90,7 @@ body {
 }
 .navbar #authBtn:hover {
   background-color: var(--col-auth-btn-hover-dark);
-  color: var(--text-dark);
+  color: #ffffff; /* FIX: Biały tekst po najechaniu */
   border-color: var(--col-auth-btn-hover-dark);
 }
 
@@ -97,7 +103,7 @@ body {
 }
 .navbar #regBtn:hover {
   background-color: var(--col-reg-btn-hover-dark);
-  color: var(--text-dark);
+  color: #ffffff; /* FIX: Biały tekst po najechaniu */
   border-color: var(--col-reg-btn-hover-dark);
 }
 
@@ -181,7 +187,7 @@ body {
 .btn-primary:hover, .btn-primary:focus {
   background-color: var(--col-highlight);
   border-color: var(--col-highlight);
-  color: var(--text-dark);
+  color: var(--text-dark); /* Tu ciemny tekst, bo highlight jest jasny */
 }
 
 .btn-secondary {
@@ -217,7 +223,7 @@ body {
 }
 #toggleTheme:hover {
   background-color: var(--col-highlight);
-  color: var(--text-dark);
+  color: #ffffff; /* FIX: Biały tekst po najechaniu (opcjonalnie var(--text-dark) jeśli wolisz) */
   border-color: var(--col-highlight);
 }
 
@@ -228,11 +234,13 @@ body {
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.4);
   transition: all 0.3s;
-}
-.card .card-body {
+  
+  /* FIX: Kolor tekstu dla całej karty (nie tylko body) */
   color: var(--text-light);
 }
-.card .card-header {
+
+/* Zachowujemy to dla pewności, ale dziedziczy już z .card */
+.card .card-body {
   color: var(--text-light);
 }
 .card:hover {
@@ -253,7 +261,7 @@ body {
   transform: scale(1.03);
 }
 
-/* W trybie jasnym */
+/* W trybie jasnym - nadpisania dla aktywnej listy */
 body.light-mode .list-group-item.active,
 body.light-mode .list-group-item.active:hover,
 body.light-mode .list-group-item.active:focus {
@@ -307,7 +315,7 @@ a:hover {
   transition: background-color 0.3s, color 0.3s;
 }
 
-/* DARK/LIGHT TOGGLE */
+/* === DARK/LIGHT TOGGLE LOGIC === */
 body.light-mode {
   --col-base: var(--col-base-light);
   --col-dark: var(--col-dark-light);
@@ -340,25 +348,26 @@ body.light-mode .list-group-item:hover {
   box-shadow: 0 0 12px 3px var(--col-accent);
 }
 
+/* Przyciski w Navbarze w Light Mode */
 body.light-mode .navbar #authBtn {
   background-color: var(--col-auth-btn-light);
-  color: white; /* Zmiana na biały tekst dla lepszej czytelności */
+  color: white; 
   border: 1px solid var(--col-auth-btn-light);
 }
 body.light-mode .navbar #authBtn:hover {
   background-color: var(--col-auth-btn-hover-light);
-  color: white; /* Biały tekst również w hover */
+  color: white; 
   border-color: var(--col-auth-btn-hover-light);
 }
 
 body.light-mode .navbar #regBtn {
   background-color: var(--col-reg-btn-light);
-  color: white; /* Zmiana na biały tekst dla lepszej czytelności */
+  color: white; 
   border: 1px solid var(--col-reg-btn-light);
 }
 body.light-mode .navbar #regBtn:hover {
   background-color: var(--col-reg-btn-hover-light);
-  color: white; /* Biały tekst również w hover */
+  color: white; 
   border-color: var(--col-reg-btn-hover-light);
 }
 

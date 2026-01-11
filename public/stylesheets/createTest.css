@@ -116,7 +116,7 @@ strong {
 .result-card .text-success { color: #4dd485 !important; } 
 .result-card .text-danger { color: #ff6b75 !important; }
 
-/* Modal Wczytywania */
+
 .modal-content {
     background-color: #1a1525 !important;
     border: 1px solid var(--col-accent);
@@ -164,7 +164,7 @@ body.light-mode #saved-tests-list .list-group-item {
 }
 body.light-mode #saved-tests-list h5 { color: var(--col-accent) !important; }
 
-/* Quiz Light Mode Reset */
+
 body.light-mode #quiz-container h5 { color: #000000 !important; }
 body.light-mode #quiz-container .list-group-item {
     background-color: #ffffff !important;

@@ -76,6 +76,7 @@ const translations = {
         register:"Rejestracja",
         learnMode:"Tryb nauki",
         flashcards:"Fiszki",
+        mytest:"Moje testy",
         logout: "Wyloguj",
         statistics: "Statystyki",
         userTestsList: "Lista testów użytkowników"
@@ -340,6 +341,7 @@ const translations = {
         register:"Register",
         learnMode:"Learning Mode",
         flashcards:"Flashcards",
+        mytest:"My Tests",
         logout: "Logout",
         statistics: "Statistics",
         userTestsList: "User Tests List"
