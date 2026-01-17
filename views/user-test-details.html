@@ -37,7 +37,7 @@
           </p>
       
           <p>
-            <span data-translate="percentResult">Wynik procentowy:</span>
+            <span data-translate="percentageResult">Wynik procentowy:</span>
             <strong id="percentResult">0%</strong>
           </p>
         </div>
@@ -47,7 +47,7 @@
       <div id="ratingSection" class="mb-3">
         <h6 data-translate="currentRating">Aktualna ocena testu</h6>
         <div id="currentRating" class="d-flex align-items-center">
-          <span id="averageStars" class="star-text-warning fs-5"></span>
+          <span id="averageStars" class="star-text-warning fs-5 stars"></span>
           <span id="averageText" class="ms-2"></span>
           <span id="ratingsCount" class="avgRaitingValue">
             <span data-translate="ratings"></span>
@@ -55,8 +55,12 @@
           </span>
         </div>
         <div id="difficultyDisplay" class="mt-3">
-          <span id="averageStars" class="star-text-warning fs-5"></span>
-          <strong data-translate="averageDifficulty">Średnia trudność:</strong>
+          <h6 data-translate="difficultyRating">Ocena trudności</h6>
+          <div id="currentRating" class="d-flex align-items-center">
+            
+          </div>
+          <span id="avgDifficultyStars" class="star-text-warning fs-5 stars"></span>
+          
           
           <span id="difficultyAverage">nbsp</span>
         </div>
@@ -136,15 +140,22 @@ async function loadTestFromDatabase() {
       rating: raw.rating || {},
       difficultyRating: raw.difficultiyRating || {},
       comments: raw.comments || [],
-      questions: raw.questions.map(q => ({
-        question: q.question,
-        answers: [
-          { text: q.answerA, isCorrect: q.correct === "A" },
-          { text: q.answerB, isCorrect: q.correct === "B" },
-          { text: q.answerC, isCorrect: q.correct === "C" },
-          { text: q.answerD, isCorrect: q.correct === "D" }
-        ]
-      }))
+      questions: raw.questions.map(q => {
+        // Zabezpieczenie: correct może być stringiem ("A") lub tablicą (["A", "C"])
+        const correctArr = Array.isArray(q.correct) ? q.correct : [q.correct];
+        
+        return {
+            question: q.question,
+            explanation: q.explanation || "", 
+            answers: [
+              // Sprawdzamy czy "A" jest w tablicy poprawnych odpowiedzi
+              { text: q.answers[0] || q.answerA, isCorrect: correctArr.includes("A") },
+              { text: q.answers[1] || q.answerB, isCorrect: correctArr.includes("B") },
+              { text: q.answers[2] || q.answerC, isCorrect: correctArr.includes("C") },
+              { text: q.answers[3] || q.answerD, isCorrect: correctArr.includes("D") }
+            ].filter(a => a.text) // Filtrujemy puste, jeśli np. są tylko 2 odpowiedzi
+        };
+      })
     };
 
     commentsMock = testData.comments;
@@ -243,15 +254,22 @@ document.getElementById('submitDifficultyBtn').addEventListener('click', async (
       rating: raw.rating || {},
       difficultyRating: raw.difficultiyRating || {},
       comments: raw.comments || [],
-      questions: raw.questions.map(q => ({
-        question: q.question,
-        answers: [
-          { text: q.answerA, isCorrect: q.correct === "A" },
-          { text: q.answerB, isCorrect: q.correct === "B" },
-          { text: q.answerC, isCorrect: q.correct === "C" },
-          { text: q.answerD, isCorrect: q.correct === "D" }
-        ]
-      }))
+      questions: raw.questions.map(q => {
+        // Zabezpieczenie: correct może być stringiem ("A") lub tablicą (["A", "C"])
+        const correctArr = Array.isArray(q.correct) ? q.correct : [q.correct];
+        
+        return {
+            question: q.question,
+            explanation: q.explanation || "", // <--- NOWE POLE
+            answers: [
+              // Sprawdzamy czy "A" jest w tablicy poprawnych odpowiedzi
+              { text: q.answers[0] || q.answerA, isCorrect: correctArr.includes("A") },
+              { text: q.answers[1] || q.answerB, isCorrect: correctArr.includes("B") },
+              { text: q.answers[2] || q.answerC, isCorrect: correctArr.includes("C") },
+              { text: q.answers[3] || q.answerD, isCorrect: correctArr.includes("D") }
+            ].filter(a => a.text) // Filtrujemy puste, jeśli np. są tylko 2 odpowiedzi
+        };
+      })
     };
 
     commentsMock = testData.comments;
@@ -301,10 +319,24 @@ function renderTest() {
   const container = document.getElementById('questionsContainer');
   container.innerHTML = '';
   
-  testData.questions.forEach((q, idx)=>{
+  // Resetujemy odpowiedzi użytkownika na tablice (dla wielokrotnego wyboru)
+  userAnswers = testData.questions.map(() => []); 
+
+  testData.questions.forEach((q, idx) => {
     const questionCard = document.createElement('div');
     questionCard.className = 'card mb-4';
     
+    // Dodajemy informację o wielokrotnym wyborze
+    const correctCount = q.answers.filter(a => a.isCorrect).length;
+    const hintText = correctCount > 1 
+        ? `<div class="quiz-hint quiz-hint--multi">
+                    <span class="quiz-hint-icon">✔✔</span>
+                    <span class="quiz-hint-text" data-translate='multipleAnsInfo'>
+                      ${t('multipleAnsInfo')}
+                    </span>
+                </div>` 
+        : ``;
+
     const answersDiv = document.createElement('div');
     answersDiv.className = 'list-group list-group-flush';
     answersDiv.id = `answers-${idx}`;
@@ -312,32 +344,57 @@ function renderTest() {
     q.answers.forEach((a, answerIdx) => {
       const answerBtn = document.createElement('button');
       answerBtn.type = 'button';
-      answerBtn.className = 'list-group-item list-group-item-action';
-      answerBtn.textContent = a.text;
+      answerBtn.className = 'list-group-item list-group-item-action d-flex align-items-center gap-2';
+      
+      // Dodajemy checkbox wizualny (opcjonalnie, dla jasności)
+      answerBtn.innerHTML = `
+        <input type="checkbox" class="form-check-input me-2" style="pointer-events: none;">
+        <span>${a.text}</span>
+      `;
+
       answerBtn.onclick = () => {
-        // Usuń aktywność ze wszystkich przycisków w tej grupie
-        const allBtns = answersDiv.querySelectorAll('button');
-        allBtns.forEach(b => b.classList.remove('active'));
-        // Zaznacz kliknięty przycisk
-        answerBtn.classList.add('active');
-        // Zapisz wybór użytkownika
-        userAnswers[idx] = answerIdx;
+        // 1. Toggle klasy wizualnej
+        answerBtn.classList.toggle('active');
+        
+        // Zaznaczamy/odznaczamy checkbox w środku (dla efektu wizualnego)
+        const checkbox = answerBtn.querySelector('input');
+        checkbox.checked = answerBtn.classList.contains('active');
+
+        // 2. Aktualizacja tablicy odpowiedzi użytkownika
+        const currentAnswers = userAnswers[idx];
+        
+        if (answerBtn.classList.contains('active')) {
+            // Dodaj indeks, jeśli go nie ma
+            if (!currentAnswers.includes(answerIdx)) {
+                currentAnswers.push(answerIdx);
+            }
+        } else {
+            // Usuń indeks
+            const i = currentAnswers.indexOf(answerIdx);
+            if (i > -1) {
+                currentAnswers.splice(i, 1);
+            }
+        }
       };
       answersDiv.appendChild(answerBtn);
     });
     
     questionCard.innerHTML = `
       <div class="card-body">
-        <h5 class="card-title">
-          <span data-translate="question">${t("question")}</span>
-          <span class="questionCount"> ${idx+1}</span>
+        <h5 class="card-title d-flex justify-content-between align-items-center">
+          <div>
+              <span data-translate="question">${t("question")}</span>
+              <span class="questionCount"> ${idx+1}</span>
+          </div>
+          ${hintText}
         </h5>
-        <p class="card-text">${q.question}</p>
+        <p class="card-text fw-bold mt-2">${q.question}</p>
       </div>
     `;
     questionCard.querySelector('.card-body').appendChild(answersDiv);
     container.appendChild(questionCard);
   });
+  
   document.getElementById('userFeedback').classList.add('d-none');
   document.getElementById('resultArea').classList.add('d-none');
 }
@@ -347,17 +404,26 @@ function checkResults() {
   let correct = 0;
   
   testData.questions.forEach((q, idx) => {
-    const userAnswerIndex = userAnswers[idx];
-    const isCorrect = userAnswerIndex !== undefined && q.answers[userAnswerIndex].isCorrect;
-    
-    if (isCorrect) {
+    const userIndices = userAnswers[idx] || [];
+    const correctIndices = q.answers
+        .map((a, i) => a.isCorrect ? i : -1)
+        .filter(i => i !== -1);
+
+    const userString = JSON.stringify(userIndices.sort());
+    const correctString = JSON.stringify(correctIndices.sort());
+
+    if (userString === correctString) {
       correct++;
     }
   });
   
   const total = testData.questions.length;
-  const percent = Math.round((correct / total) * 100);
+  // Zabezpieczenie przed dzieleniem przez zero
+  const percent = total > 0 ? Math.round((correct / total) * 100) : 0;
+  
   console.log(`Wynik: ${correct} / ${total} (${percent}%)`);
+  
+  // Zwracamy obiekt z wynikami
   return {
     correct,
     total,
@@ -365,101 +431,210 @@ function checkResults() {
   };
 }
 
+// Funkcja pomocnicza do fetchowania 
+async function saveTestResultAPI(data) {
+    const token = localStorage.getItem("token");
+    if(!token) return { pointsAdded: 0, alreadyPassed: false };
+
+    const res = await fetch("/api/tests/save-result", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + token
+        },
+        body: JSON.stringify(data)
+    });
+    
+    if (!res.ok) throw new Error("Błąd sieci");
+    return await res.json();
+}
+
 // Pokazanie wyników
-function showResults() {
-  const result = checkResults();
-  const container = document.getElementById('questionsContainer');
+async function showResults() {
+    // 1. Obliczamy wynik (funkcja checkResults powinna być synchroniczna i zwracać obiekt)
+    const result = checkResults(); 
+    const container = document.getElementById('questionsContainer');
 
-  if (!container) {
-    console.error('Nie znaleziono kontenera pytań');
-    return;
-  }
-
-  container.innerHTML = '';
-  
-  testData.questions.forEach((q, idx)=>{
-    const questionCard = document.createElement('div');
-    questionCard.className = 'card mb-4';
-    
-    const userAnswerIndex = userAnswers[idx];
-    const userAnswerText = userAnswerIndex !== undefined 
-      ? q.answers[userAnswerIndex].text 
-      : t('noAnswer');
-    const isCorrect = userAnswerIndex !== undefined && q.answers[userAnswerIndex].isCorrect;
-    
-    // Znajdź poprawną odpowiedź
-    const correctAnswer = q.answers.find(a => a.isCorrect);
-    
-    questionCard.innerHTML = `
-      <div class="card-body">
-        <h5 class="card-title" data-translate="question">${t("question")} ${idx+1}</h5>
-        <p class="card-text">${q.question}</p>
-        
-        <div class="mt-3">
-          <p class="mb-1"><strong>${t('yourAnswer')}:</strong> ${userAnswerText}</p>
-          <p class="mb-1 ${isCorrect ? 'text-success' : 'text-danger'}">
-            <strong>${isCorrect ? '✅ ' + t('correct') : '❌ ' + t('incorrect')}</strong>
-          </p>
-          <p class="mb-0"><strong>${t('correctAnswer')}:</strong> ${correctAnswer ? correctAnswer.text : 'Brak poprawnej odpowiedzi'}</p>        </div>
-      </div>
-    `;
-    container.appendChild(questionCard);
-  });
-  
-// DEBUG: Sprawdź wszystkie elementy przed aktualizacją
-  console.log('DEBUG - Wszystkie elementy wyników:');
-  console.log('correctCount:', document.getElementById('correctCount'));
-  console.log('totalCount:', document.getElementById('totalCount'));
-  console.log('percentResult:', document.getElementById('percentResult'));
-  console.log('resultArea:', document.getElementById('resultArea'));
-
-  // Aktualizacja i pokazanie wyniku
-  const resultAreaElem = document.getElementById('resultArea'); 
-  
-  if (resultAreaElem) {
-    // Próbuj różne sposoby znalezienia elementów
-    const correctCountElem = document.getElementById('correctCount') || 
-                            resultAreaElem.querySelector('#correctCount');
-    const totalCountElem = document.getElementById('totalCount') || 
-                          resultAreaElem.querySelector('#totalCount');
-    const percentResultElem = document.getElementById('percentResult') || 
-                             resultAreaElem.querySelector('#percentResult');
-    
-    console.log('Po poprawkach - correctCountElem:', correctCountElem);
-    console.log('Po poprawkach - totalCountElem:', totalCountElem);
-    console.log('Po poprawkach - percentResultElem:', percentResultElem);
-    
-    if (correctCountElem && totalCountElem && percentResultElem) {
-      correctCountElem.textContent = result.correct;
-      totalCountElem.textContent = result.total;
-      percentResultElem.textContent = `${result.percent}%`;
-      resultAreaElem.classList.remove('d-none');
-      console.log('Wyniki zostały pomyślnie zaktualizowane');
-    } else {
-      console.error('Nie znaleziono elementów wyników nawet po poprawkach');
-      // AWARYJNE: Stwórz wynik od nowa
-      createFallbackResults(result);
+    if (!container) {
+        console.error('Nie znaleziono kontenera pytań');
+        return;
     }
-  } else {
-    console.error('Nie znaleziono resultArea');
-    // AWARYJNE: Stwórz wynik od nowa
-    createFallbackResults(result);
-  }
 
-  // Pokazanie sekcji oceny i komentarzy
-  const userFeedbackElem = document.getElementById('userFeedback');
-  const checkResultsBtnElem = document.getElementById('checkResultsBtn');
-  
-  if (userFeedbackElem) {
-    userFeedbackElem.classList.remove('d-none');
-    renderComments(testData.comments);
+    container.innerHTML = '';
+
+    // --- RENDEROWANIE ODPOWIEDZI ---
+    testData.questions.forEach((q, idx) => {
+        const questionCard = document.createElement('div');
+        questionCard.className = 'card mb-4';
+
+        // Odpowiedzi użytkownika
+        const userIndices = userAnswers[idx] || []; 
+        const userAnswerText = userIndices.length > 0
+            ? userIndices.map(i => q.answers[i].text).join('<br>') 
+            : t('noAnswer');
+
+        // Poprawne odpowiedzi
+        const correctIndices = q.answers
+            .map((a, i) => a.isCorrect ? i : -1)
+            .filter(i => i !== -1);
+
+        const correctAnswerText = q.answers
+            .filter(a => a.isCorrect)
+            .map(a => a.text)
+            .join('<br>');
+
+        // Sprawdzanie poprawności
+        const userString = JSON.stringify(userIndices.sort());
+        const correctString = JSON.stringify(correctIndices.sort());
+        const isCorrect = userString === correctString;
+
+        // Wyjaśnienie
+        let explanationHtml = '';
+        if (q.explanation && q.explanation.trim() !== "") {
+            explanationHtml = `
+                <div class="mt-3 p-3 alert alert-warning">
+                    <div class="d-flex align-items-start gap-2">
+                        <span class="fs-5">💡</span>
+                        <div>
+                            <strong data-translate="explanationLabel">${t('explanationLabel') || 'Wyjaśnienie'}:</strong><br>
+                            <span class="text-muted">${q.explanation}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        questionCard.innerHTML = `
+          <div class="card-body">
+            <h5 class="card-title">
+                <span data-translate="question">${t("question")}</span> ${idx + 1}
+            </h5>
+            <p class="card-text fw-bold">${q.question}</p>
+            
+            <div class="mt-3">
+              <div class="mb-2">
+                  <strong data-translate="yourAnswer">${t('yourAnswer') || 'Your answer'}:</strong>
+                  <div class="p-2 border rounded ${isCorrect ? 'bg-success bg-opacity-10 border-success' : 'bg-danger bg-opacity-10 border-danger'}">
+                    ${userAnswerText}
+                  </div>
+              </div>
+
+            <p class="mb-2 ${isCorrect ? 'text-success' : 'text-danger'}">
+              <strong>
+                ${isCorrect ? '✅ ' : '❌ '}
+                <span data-translate="${isCorrect ? 'correct' : 'incorrect'}">
+                  ${isCorrect ? t('correct') : t('incorrect')}
+                </span>
+              </strong>
+            </p>
+
+              ${!isCorrect ? `
+              <div class="mb-2">
+                  <strong data-translate="correctAnswers">${t('correctAnswers')}:</strong>
+                  <div class="p-2 border rounded bg-success bg-opacity-10 border-success">
+                    ${correctAnswerText}
+                  </div>
+              </div>` : ''}
+              
+              ${explanationHtml}
+            </div>
+          </div>
+        `;
+        container.appendChild(questionCard);
+    });
+
+    // --- AKTUALIZACJA STATYSTYK ---
+    const resultAreaElem = document.getElementById('resultArea');
+    if (resultAreaElem) {
+        const correctCountElem = document.getElementById('correctCount') || resultAreaElem.querySelector('#correctCount');
+        const totalCountElem = document.getElementById('totalCount') || resultAreaElem.querySelector('#totalCount');
+        const percentResultElem = document.getElementById('percentResult') || resultAreaElem.querySelector('#percentResult');
+
+        if (correctCountElem && totalCountElem && percentResultElem) {
+            correctCountElem.textContent = result.correct;
+            totalCountElem.textContent = result.total;
+            percentResultElem.textContent = `${result.percent}%`;
+            resultAreaElem.classList.remove('d-none');
+        }
+    }
+
+    // Pokaż sekcję komentarzy
+    const userFeedbackElem = document.getElementById('userFeedback');
+    if (userFeedbackElem) {
+        userFeedbackElem.classList.remove('d-none');
+        if(typeof renderComments === 'function') renderComments(testData.comments);
+    }
+
+    // Ukryj przycisk
+    const checkResultsBtnElem = document.getElementById('checkResultsBtn');
+    if (checkResultsBtnElem) {
+        checkResultsBtnElem.classList.add('d-none');
+    }
+
+    // --- 2. LOGIKA PUNKTÓW (API) ---
     
-  } else {
-    console.error('Nie znaleziono sekcji komentarzy');
-  }
-  
-  if (checkResultsBtnElem) {
-    checkResultsBtnElem.classList.add('d-none');
+    const feedbackArea = document.getElementById('resultArea');
+
+    const resultData = {
+      testId: testData._id,         
+      testTitle: testData.title,    
+      authorName: testData.user,    
+      score: result.percent,        
+      totalQuestions: result.total, 
+      correctAnswers: result.correct 
+    };
+
+    try {
+      const response = await saveTestResultAPI(resultData);
+      const feedbackArea = document.getElementById('resultArea');
+
+    // 1. Sukces z punktami
+      if (response.pointsAdded > 0) {
+          if (typeof updateUserPointsUI === 'function') updateUserPointsUI(response.pointsAdded);
+
+          const paramsObj = { 
+              title: testData.title, 
+              points: response.pointsAdded 
+          };
+          
+          const message = t('test_success_points', paramsObj);
+          
+          const paramsString = JSON.stringify(paramsObj).replace(/'/g, "&apos;");
+
+          feedbackArea.innerHTML += `
+              <div class="alert alert-success text-center mt-3" 
+                  data-translate="test_success_points" 
+                  data-params='${paramsString}'>
+                  ${message}
+              </div>`;
+
+      // 2. Sukces bez punktów (już zaliczone)
+      } else if (result.percent >= 50 && response.alreadyPassed) {
+          const message = t('test_passed_again');
+
+          feedbackArea.innerHTML += `
+              <div class="alert alert-info text-center mt-3" 
+                  data-translate="test_passed_again">
+                  ${message}
+              </div>`;
+
+      // 3. Porażka
+      } else if (result.percent < 50) {
+          
+          const paramsObj = { percent: result.percent };
+          const message = t('test_failed_score', paramsObj);
+          const paramsString = JSON.stringify(paramsObj);
+
+          feedbackArea.innerHTML += `
+              <div class="alert alert-secondary text-center mt-3" 
+                  data-translate="test_failed_score"
+                  data-params='${paramsString}'>
+                  ${message}
+              </div>`;
+      }
+
+  } catch (err) {
+      console.error("Błąd zapisu:", err);
   }
 }
 
@@ -662,15 +837,22 @@ function attachCommentEvents() {
             rating: raw.rating || {},
             difficultyRating: raw.difficultiyRating || {},
             comments: raw.comments || [],
-            questions: raw.questions.map(q => ({
-              question: q.question,
-              answers: [
-                { text: q.answerA, isCorrect: q.correct === "A" },
-                { text: q.answerB, isCorrect: q.correct === "B" },
-                { text: q.answerC, isCorrect: q.correct === "C" },
-                { text: q.answerD, isCorrect: q.correct === "D" }
-              ]
-            }))
+            questions: raw.questions.map(q => {
+              // Zabezpieczenie: correct może być stringiem ("A") lub tablicą (["A", "C"])
+              const correctArr = Array.isArray(q.correct) ? q.correct : [q.correct];
+              
+              return {
+                  question: q.question,
+                  explanation: q.explanation || "", 
+                  answers: [
+                    // Sprawdzamy czy "A" jest w tablicy poprawnych odpowiedzi
+                    { text: q.answers[0] || q.answerA, isCorrect: correctArr.includes("A") },
+                    { text: q.answers[1] || q.answerB, isCorrect: correctArr.includes("B") },
+                    { text: q.answers[2] || q.answerC, isCorrect: correctArr.includes("C") },
+                    { text: q.answers[3] || q.answerD, isCorrect: correctArr.includes("D") }
+                  ].filter(a => a.text) // Filtrujemy puste, jeśli np. są tylko 2 odpowiedzi
+              };
+            })
           };
 
           commentsMock = testData.comments;
@@ -757,15 +939,22 @@ function attachCommentEvents() {
             rating: raw.rating || {},
             difficultyRating: raw.difficultiyRating || {},
             comments: raw.comments || [],
-            questions: raw.questions.map(q => ({
-              question: q.question,
-              answers: [
-                { text: q.answerA, isCorrect: q.correct === "A" },
-                { text: q.answerB, isCorrect: q.correct === "B" },
-                { text: q.answerC, isCorrect: q.correct === "C" },
-                { text: q.answerD, isCorrect: q.correct === "D" }
-              ]
-            }))
+            questions: raw.questions.map(q => {
+              // Zabezpieczenie: correct może być stringiem ("A") lub tablicą (["A", "C"])
+              const correctArr = Array.isArray(q.correct) ? q.correct : [q.correct];
+              
+              return {
+                  question: q.question,
+                  explanation: q.explanation || "", // <--- NOWE POLE
+                  answers: [
+                    // Sprawdzamy czy "A" jest w tablicy poprawnych odpowiedzi
+                    { text: q.answers[0] || q.answerA, isCorrect: correctArr.includes("A") },
+                    { text: q.answers[1] || q.answerB, isCorrect: correctArr.includes("B") },
+                    { text: q.answers[2] || q.answerC, isCorrect: correctArr.includes("C") },
+                    { text: q.answers[3] || q.answerD, isCorrect: correctArr.includes("D") }
+                  ].filter(a => a.text) // Filtrujemy puste, jeśli np. są tylko 2 odpowiedzi
+              };
+            })
           };
 
           commentsMock = testData.comments;
@@ -839,15 +1028,22 @@ function attachCommentEvents() {
             rating: raw.rating || {},
             difficultyRating: raw.difficultiyRating || {},
             comments: raw.comments || [],
-            questions: raw.questions.map(q => ({
-              question: q.question,
-              answers: [
-                { text: q.answerA, isCorrect: q.correct === "A" },
-                { text: q.answerB, isCorrect: q.correct === "B" },
-                { text: q.answerC, isCorrect: q.correct === "C" },
-                { text: q.answerD, isCorrect: q.correct === "D" }
-              ]
-            }))
+            questions: raw.questions.map(q => {
+              // Zabezpieczenie: correct może być stringiem ("A") lub tablicą (["A", "C"])
+              const correctArr = Array.isArray(q.correct) ? q.correct : [q.correct];
+              
+              return {
+                  question: q.question,
+                  explanation: q.explanation || "", 
+                  answers: [
+                    // Sprawdzamy czy "A" jest w tablicy poprawnych odpowiedzi
+                    { text: q.answers[0] || q.answerA, isCorrect: correctArr.includes("A") },
+                    { text: q.answers[1] || q.answerB, isCorrect: correctArr.includes("B") },
+                    { text: q.answers[2] || q.answerC, isCorrect: correctArr.includes("C") },
+                    { text: q.answers[3] || q.answerD, isCorrect: correctArr.includes("D") }
+                  ].filter(a => a.text) // Filtrujemy puste, jeśli np. są tylko 2 odpowiedzi
+              };
+            })
           };
 
           commentsMock = testData.comments;
@@ -947,42 +1143,57 @@ function showUserDifficulty() {
 
 
 function updateRatingDisplay() {
-  const ratings = testData.rating ? Object.values(testData.rating) : [];
-  console.log(testData)
+  // 1. Obliczamy średnie
   const avgRating = calculateAverageFromObject(testData.rating);
-  const count = ratings.length;
+  const avgDifficulty = calculateAverageFromObject(testData.difficultyRating);
   
+  const ratingCount = testData.rating ? testData.rating.length : 0;
+
+  // 2. Pobieramy elementy DOM
   const averageStars = document.getElementById('averageStars');
+  const avgDifficultyStars = document.getElementById('avgDifficultyStars');
   const averageText = document.getElementById('averageText');
   const ratingsCount = document.getElementById('ratingsCount');
-  
-  if (averageStars && averageText && ratingsCount) {
-    if (count > 0 && avgRating > 0) {
-      // Użyj HTML z różnymi klasami dla pełnych i pustych gwiazdek
-      const fullStarsCount = Math.round(avgRating);
-      const emptyStarsCount = 5 - fullStarsCount;
-      
-      let starsHTML = '';
-      
-      // Pełne gwiazdki
-      for (let i = 0; i < fullStarsCount; i++) {
-        starsHTML += '<span class="star-filled">★</span>';
-      }
-      
-      // Puste gwiazdki
-      for (let i = 0; i < emptyStarsCount; i++) {
-        starsHTML += '<span class="star-empty">☆</span>';
-      }
-      
-      averageStars.innerHTML = starsHTML;
-      averageText.textContent = `${avgRating} (`;
-      ratingsCountValue.textContent = `${count})`;
-    } else {
-      // Brak ocen - wszystkie gwiazdki puste
-      averageStars.innerHTML = '<span class="star-empty">☆</span>'.repeat(5);
-      averageText.textContent = t('noRatings');
-      ratingsCount.textContent = '';
+
+  // --- FUNKCJA POMOCNICZA DO GENEROWANIA HTML GWIAZDEK ---
+  const generateStars = (value, maxStars) => {
+    const fullStarsCount = Math.round(value || 0);
+    const emptyStarsCount = Math.max(0, maxStars - fullStarsCount);
+    
+    let starsHTML = '';
+    
+    // Pełne gwiazdki
+    for (let i = 0; i < fullStarsCount; i++) {
+      starsHTML += '<span class="star-filled">★</span>';
     }
+    
+    // Puste gwiazdki
+    for (let i = 0; i < emptyStarsCount; i++) {
+      starsHTML += '<span class="star-empty">☆</span>';
+    }
+    
+    return starsHTML;
+  };
+
+  // 3. Renderowanie Głównej Oceny (Skala 5)
+  if (averageStars) {
+    averageStars.innerHTML = generateStars(avgRating, 5);
+
+    // Obsługa tekstu obok gwiazdek (np. "4.5 (12)")
+    if (averageText && ratingsCount) {
+      if (ratingCount > 0 && avgRating > 0) {
+        averageText.textContent = `${avgRating}`;
+        ratingsCount.textContent = ` (${ratingCount})`;
+      } else {
+        averageText.textContent = t('noRatings'); // "Brak ocen"
+        ratingsCount.textContent = '';
+      }
+    }
+  }
+
+  // 4. Renderowanie Poziomu Trudności (Skala 3)
+  if (avgDifficultyStars) {
+    avgDifficultyStars.innerHTML = generateStars(avgDifficulty, 3);
   }
 }
 
@@ -1045,15 +1256,22 @@ async function saveRating(rating) {
       rating: raw.rating || {},
       difficultyRating: raw.difficultiyRating || {},
       comments: raw.comments || [],
-      questions: raw.questions.map(q => ({
-        question: q.question,
-        answers: [
-          { text: q.answerA, isCorrect: q.correct === "A" },
-          { text: q.answerB, isCorrect: q.correct === "B" },
-          { text: q.answerC, isCorrect: q.correct === "C" },
-          { text: q.answerD, isCorrect: q.correct === "D" }
-        ]
-      }))
+      questions: raw.questions.map(q => {
+        // Zabezpieczenie: correct może być stringiem ("A") lub tablicą (["A", "C"])
+        const correctArr = Array.isArray(q.correct) ? q.correct : [q.correct];
+        
+        return {
+            question: q.question,
+            explanation: q.explanation || "", 
+            answers: [
+              // Sprawdzamy czy "A" jest w tablicy poprawnych odpowiedzi
+              { text: q.answers[0] || q.answerA, isCorrect: correctArr.includes("A") },
+              { text: q.answers[1] || q.answerB, isCorrect: correctArr.includes("B") },
+              { text: q.answers[2] || q.answerC, isCorrect: correctArr.includes("C") },
+              { text: q.answers[3] || q.answerD, isCorrect: correctArr.includes("D") }
+            ].filter(a => a.text) // Filtrujemy puste, jeśli np. są tylko 2 odpowiedzi
+        };
+      })
     };
 
     commentsMock = testData.comments;
@@ -1140,15 +1358,22 @@ document.getElementById('submitCommentBtn').addEventListener('click', async () =
             rating: raw.rating || {},
             difficultyRating: raw.difficultiyRating || {},
             comments: raw.comments || [],
-            questions: raw.questions.map(q => ({
-              question: q.question,
-              answers: [
-                { text: q.answerA, isCorrect: q.correct === "A" },
-                { text: q.answerB, isCorrect: q.correct === "B" },
-                { text: q.answerC, isCorrect: q.correct === "C" },
-                { text: q.answerD, isCorrect: q.correct === "D" }
-              ]
-            }))
+            questions: raw.questions.map(q => {
+              // Zabezpieczenie: correct może być stringiem ("A") lub tablicą (["A", "C"])
+              const correctArr = Array.isArray(q.correct) ? q.correct : [q.correct];
+              
+              return {
+                  question: q.question,
+                  explanation: q.explanation || "", 
+                  answers: [
+                    // Sprawdzamy czy "A" jest w tablicy poprawnych odpowiedzi
+                    { text: q.answers[0] || q.answerA, isCorrect: correctArr.includes("A") },
+                    { text: q.answers[1] || q.answerB, isCorrect: correctArr.includes("B") },
+                    { text: q.answers[2] || q.answerC, isCorrect: correctArr.includes("C") },
+                    { text: q.answers[3] || q.answerD, isCorrect: correctArr.includes("D") }
+                  ].filter(a => a.text) // Filtrujemy puste, jeśli np. są tylko 2 odpowiedzi
+              };
+            })
           };
 
           commentsMock = testData.comments;

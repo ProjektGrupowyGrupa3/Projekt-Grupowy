@@ -14,16 +14,23 @@ CommentSchema.add({
 
 const QuestionSchema = new mongoose.Schema({
   question: { type: String, required: true },
-  answerA: { type: String, required: true },
-  answerB: { type: String, required: true },
-  answerC: { type: String, required: true },
-  answerD: { type: String, required: true },
-  correct: {
-    type: String,
-    enum: ["A", "B", "C", "D"],
-    required: true
+  answers: { 
+      type: [String], 
+      required: true,
+      validate: [arrayLimit, '{PATH} musi mieć od 2 do 8 odpowiedzi']
+  },
+  correct: { type: [String], required: true },
+  
+  // Wyjaśnienie (opcjonalne)
+  explanation: { 
+      type: String, 
+      default: "" 
   }
 });
+
+function arrayLimit(val) {
+  return val.length >= 2 && val.length <= 8;
+}
 
 const RatingSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
@@ -60,7 +67,7 @@ const UserTestSchema = new mongoose.Schema(
 
     language: {
       type: String,
-      enum: ["pl", "eng"],
+      enum: ["pl", "en"],
       required: true
     },
 

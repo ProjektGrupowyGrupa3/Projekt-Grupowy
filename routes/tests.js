@@ -5,6 +5,8 @@ const User = require("../models/User");
 const auth = require("../middleware/auth");
 const adminAuth = require("../middleware/adminAuth");
 const UserTest = require("../models/UserTest");
+const UserTestResult = require("../models/UserTestResult");
+const UserEarnedAction = require("../models/UserEarnedActions");
 
 function calcAverage(arr) {
   if (!arr || arr.length === 0) return null;
@@ -98,7 +100,7 @@ router.get("/all", adminAuth(0), async (req, res) => {
     };
 
     if(q){
-      filter.$or [
+      filter.$or = [
             { title: { $regex: q, $options: "i" } }, // priority
             { tags: { $in: [new RegExp(q, "i")] } }
           ];
@@ -117,6 +119,8 @@ router.get("/all", adminAuth(0), async (req, res) => {
         name: t.creatorId?.name,
         email: t.creatorId?.email
       },
+      tags: t.tags ,
+      language: t.language,
       numberOfQuestions: t.questions.length,
       averageDifficultyRating: calcAverage(t.difficultiyRating),
       averageRating: calcAverage(t.rating),
@@ -513,6 +517,74 @@ router.patch('/:id', adminAuth(0), async (req, res) => {
         }
         res.status(500).send("Błąd serwera");
     }
+});
+
+router.post("/save-result", auth, async (req, res) => {
+  try {
+    const { 
+      testId, score, totalQuestions, correctAnswers, 
+      testTitle, authorName 
+    } = req.body;
+    
+    const userId = req.user._id;
+    const PASS_THRESHOLD = 50; 
+    const POINTS_REWARD = 20;
+
+    // 1. Sprawdzenie czy użytkownik zdał i czy nie dostał wcześniej punktów
+    let pointsToAdd = 0;
+    let isPointsAwarded = false; 
+    let alreadyRewarded = false; 
+
+    if (score >= PASS_THRESHOLD) {
+      const existingAction = await UserEarnedAction.findOne({
+        userId: userId,
+        actionType: "user_test_passed",
+        targetId: testId
+      });
+
+      if (existingAction) {
+        alreadyRewarded = true; // Już kiedyś zdał
+      } else {
+          // Zdaje pierwszy raz
+          pointsToAdd = POINTS_REWARD;
+          isPointsAwarded = true; 
+
+          // Aktualizacja punktów 
+          await User.findByIdAndUpdate(userId, { $inc: { points: POINTS_REWARD } });
+
+          await new UserEarnedAction({
+            userId,
+            actionType: "user_test_passed",
+            targetId: testId,
+            points: POINTS_REWARD
+          }).save();
+        }
+    }
+
+    const historyEntry = new UserTestResult({
+      userId,
+      testId,
+      testTitle: testTitle || "Nieznany test", 
+      authorName: authorName || "Anonim",
+      score,
+      totalQuestions,
+      correctAnswers,
+      passed: score >= PASS_THRESHOLD,
+      pointsAwarded: isPointsAwarded 
+    });
+    
+    await historyEntry.save();
+
+    res.json({
+      success: true,
+      pointsAdded: pointsToAdd,
+      alreadyPassed: alreadyRewarded
+    });
+
+  } catch (err) {
+    console.error("Błąd zapisu:", err);
+    res.status(500).json({ message: "Błąd serwera" });
+  }
 });
 
 module.exports = router;

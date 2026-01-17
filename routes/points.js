@@ -3,25 +3,25 @@ const router = express.Router();
 const { addPoints } = require('../services/pointsService');
 const auth = require('../middleware/auth');
 
-
 router.post('/add', auth, async (req, res) => {
     try {
         const { type, amount, questionId } = req.body;
         const userId = req.user._id;
 
-        // addPoints zwraca TRUE (dodano) 
-        // lub FALSE (zabezpieczenie aby użytkownik za pytanie w trybie nauki dostał punkty tylko 1 raz)
-        const wasAdded = await addPoints(userId, type, amount, questionId);
+        // addPoints zwraca obiekt { success: true, pointsAdded: X }  lub FALSE (jeśli błąd/zablokowane)
+        const result = await addPoints(userId, type, amount, questionId);
 
-        if (wasAdded) {
+        if (result && result.success) {
             res.json({ 
                 success: true, 
-                message: "Punkty zostały przyznane." 
+                pointsAdded: result.pointsAdded, 
+                message: "Operacja zakończona." 
             });
         } else {
+            // Sytuacja gdy addPoints zwróciło false (np. duplikat logowania)
             res.json({ 
                 success: false, 
-                message: "Punkty za tę akcję zostały już przyznane wcześniej." 
+                message: "Punkty za tę akcję zostały już przyznane wcześniej lub wystąpił błąd." 
             });
         }
 
@@ -30,6 +30,5 @@ router.post('/add', auth, async (req, res) => {
         res.status(500).json({ success: false, error: "Błąd serwera." });
     }
 });
-
 
 module.exports = router;

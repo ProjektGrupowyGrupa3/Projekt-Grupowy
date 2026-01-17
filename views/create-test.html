@@ -67,31 +67,24 @@
                             <textarea class="form-control" id="inputQuestion" rows="2" data-placeholder="qPlaceholder" placeholder="Wpisz treść pytania..." required></textarea>
                         </div>
                         
-                        <div class="mb-2 input-group">
-                            <span class="input-group-text bg-transparent text-light border-secondary">A</span>
-                            <input type="text" class="form-control" id="inputA" data-placeholder="answerPlaceholder" placeholder="Odpowiedź A" required>
-                        </div>
-                        <div class="mb-2 input-group">
-                            <span class="input-group-text bg-transparent text-light border-secondary">B</span>
-                            <input type="text" class="form-control" id="inputB" data-placeholder="answerPlaceholder" placeholder="Odpowiedź B" required>
-                        </div>
-                        <div class="mb-2 input-group">
-                            <span class="input-group-text bg-transparent text-light border-secondary">C</span>
-                            <input type="text" class="form-control" id="inputC" data-placeholder="answerPlaceholder" placeholder="Odpowiedź C" required>
-                        </div>
-                        <div class="mb-3 input-group">
-                            <span class="input-group-text bg-transparent text-light border-secondary">D</span>
-                            <input type="text" class="form-control" id="inputD" data-placeholder="answerPlaceholder" placeholder="Odpowiedź D" required>
+                        <div id="answers-container" class="row g-2 mb-3">
+                            </div>
+
+                        <div class="d-flex justify-content-center gap-2 mb-4">
+                            <button type="button" class="btn btn-outline-danger btn-sm" data-t="delOpt" onclick="removeAnswerOption()">- Usuń opcję</button>
+                            <button type="button" class="btn btn-outline-success btn-sm" data-t="addOpt" onclick="addAnswerOption()">+ Dodaj opcję</button>
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label" data-t="correctAnswerLabel">Poprawna odpowiedź:</label>
-                            <select class="form-select" id="correctSelect">
-                                <option value="A">A</option>
-                                <option value="B">B</option>
-                                <option value="C">C</option>
-                                <option value="D">D</option>
-                            </select>
+                            <label class="form-label fw-bold" data-t="correctAnswerLabel">Poprawne odpowiedzi:</label>
+                            <div id="correct-answers-container" class="d-flex flex-wrap gap-3">
+                                </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label" data-t="explanationLabel">Wyjaśnienie (opcjonalne)</label>
+                            <textarea class="form-control" id="inputExplanation" rows="2" data-placeholder="explanation"
+                                placeholder="Explain why each answer is correct..."></textarea>
                         </div>
 
                         <button type="submit" class="btn btn-primary w-100" id="add-q-btn" data-t="btnAddQuestion">Dodaj pytanie</button>
@@ -118,7 +111,7 @@
                         <button class="btn btn-sm btn-outline-info" onclick="renderSavedTestsList()" data-t="btnRefresh">Odśwież 🔄</button>
                     </div>
                     <div id="saved-tests-list" class="list-group list-group-flush" style="max-height: 600px; overflow-y: auto;"></div>
-                    <p id="no-saved-tests-msg" class="text-center text-muted mt-5" data-t="noSavedTests">Brak zapisanych testów.</p>
+                    <p id="no-saved-tests-msg" class="text-center mt-5" data-t="noSavedTests">Brak zapisanych testów.</p>
                 </div>
             </div>
         </div>
@@ -189,7 +182,7 @@
         qContentLabel: "Treść pytania",
         qPlaceholder: "Wpisz treść pytania...",
         answerPlaceholder: "Odpowiedź",
-        correctAnswerLabel: "Poprawna odpowiedź:",
+        correctAnswerLabel: "Poprawne odpowiedzi:",
         btnAddQuestion: "Dodaj pytanie",     
         btnSaveChanges: "Zapisz zmiany",     
         btnEdit: "Edytuj",
@@ -228,7 +221,12 @@
         publicTitle: "Publiczny",
         privateTitle: "Prywatny",
         testStatusName: "Prywatny",
-        testStatusDesc: "Wpisz tytuł, aby odblokować"
+        testStatusDesc: "Wpisz tytuł, aby odblokować",
+        hintMultiple: "Pytanie wielokrotnego wyboru (zaznacz wszystkie poprawne)",
+        explanationLabel: "Wyjaśnienie (opcjonalne)",
+        explanation: "Wyjaśnij dlaczego dana odpowiedź jest poprawna...",
+        addOpt: "Dodaj opcję",
+        delOpt: "Usuń opcję"
       },
       en: {
         headerTitle: "Create Your Own Test",
@@ -247,7 +245,7 @@
         qContentLabel: "Question Content",
         qPlaceholder: "Enter question text...",
         answerPlaceholder: "Answer",
-        correctAnswerLabel: "Correct Answer:",
+        correctAnswerLabel: "Correct Answers:",
         btnAddQuestion: "Add Question",
         btnSaveChanges: "Save Changes",
         btnEdit: "Edit",
@@ -286,8 +284,13 @@
         publicTitle: "Public",
         privateTitle: "Private",
         testStatusName: "Private",
-        testStatusDesc: "Enter title to unlock"
-      }
+        testStatusDesc: "Enter title to unlock",
+        hintMultiple: "Multiple choice question (select all correct)",
+        explanationLabel: "Explanation (optional)",
+        explanation: "Explain why each answer is correct...",
+        addOpt: "Add option",
+        delOpt: "Delete option"
+        }
     };
 
     // --- 2. SYSTEM TŁUMACZEŃ ---
@@ -382,6 +385,7 @@
         applyTranslations();
         renderSavedTestsList();
         updatePrivacyUI();
+        renderAnswerInputs();
     });
 
     document.getElementById('publicSwitch').addEventListener('change', updatePrivacyUI);
@@ -389,27 +393,56 @@
     // --- LOGIKA KREATORA ---
     form.addEventListener('submit', function(e) {
         e.preventDefault();
+        
+        // Blokada dodawania nowych jeśli limit osiągnięty (chyba że edytujemy)
         if (questions.length >= MAX_QUESTIONS && editingIndex === null) return;
+
+        // 1. Pobieramy wartości tekstowe
+        const answerInputs = document.querySelectorAll('.answer-input');
+        const answersArray = Array.from(answerInputs).map(input => input.value);
+
+        // 2. Pobieramy zaznaczone poprawne odpowiedzi
+        const checkboxes = document.querySelectorAll('.correct-checkbox:checked');
+        const selectedCorrect = Array.from(checkboxes).map(cb => cb.value);
+
+        // Walidacja
+        if (selectedCorrect.length === 0) {
+            if(typeof showToast === 'function') showToast("Zaznacz przynajmniej jedną poprawną odpowiedź", "warning");
+            else alert("Zaznacz poprawną odpowiedź");
+            return;
+        }
 
         const newQ = {
             question: document.getElementById('inputQuestion').value,
-            answerA: document.getElementById('inputA').value,
-            answerB: document.getElementById('inputB').value,
-            answerC: document.getElementById('inputC').value,
-            answerD: document.getElementById('inputD').value,
-            correct: document.getElementById('correctSelect').value
+            answers: answersArray, 
+            correct: selectedCorrect,
+            // 👇 NOWE: Pobieramy wyjaśnienie i usuwamy białe znaki z początku/końca
+            explanation: document.getElementById('inputExplanation').value.trim() 
         };
 
+        // 3. Logika Zapisywania
         if (editingIndex !== null) {
+            // EDYCJA: Nadpisujemy istniejące
             questions[editingIndex] = newQ;
+            
+            // Czyścimy flagę edycji
             editingIndex = null;
             addQBtn.innerText = t('btnAddQuestion'); 
         } else {
+            // NOWE: Dodajemy na koniec
             questions.push(newQ);
         }
 
+        // 4. Odświeżenie widoku
         renderQuestionsList();
+        
+        // 5. Reset formularza
         form.reset();
+        
+        // WAŻNE: Przywracamy domyślny stan formularza (4 odpowiedzi)
+        currentAnswerCount = 4;
+        renderAnswerInputs(); 
+        
         checkLimits();
     });
 
@@ -432,6 +465,88 @@
             addQBtn.disabled = false;
         }
     }
+
+    const LETTERS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+    let currentAnswerCount = 4; // Domyślnie startujemy z 4
+    const MIN_ANSWERS = 2;
+    const MAX_ANSWERS = 8;
+
+    // --- 1. FUNKCJA RENDERUJĄCA ODPOWIEDZI ---
+    function renderAnswerInputs() {
+        const container = document.getElementById('answers-container');
+        const existingValues = [];
+        document.querySelectorAll('.answer-input').forEach(input => existingValues.push(input.value));
+
+        container.innerHTML = ''; 
+
+        for (let i = 0; i < currentAnswerCount; i++) {
+            const letter = LETTERS[i];
+            const val = existingValues[i] || '';
+
+            const colDiv = document.createElement('div');
+            colDiv.className = 'col-12 col-md-6'; 
+            
+            colDiv.innerHTML = `
+                <div class="input-group">
+                    <span class="input-group-text bg-transparent text-light border-secondary fw-bold" style="width: 40px; justify-content: center;">${letter}</span>
+                    <input type="text" class="form-control answer-input" 
+                        id="input${letter}" 
+                        data-letter="${letter}" 
+                        value="${val}"
+                        data-placeholder="answerPlaceholder" 
+                        placeholder="Answer ${letter}" required>
+                </div>
+            `;
+            container.appendChild(colDiv);
+        }
+
+        renderCorrectCheckboxes(); 
+    }
+
+    // --- 2. FUNKCJA RENDERUJĄCA CHECKBOXY ---
+    function renderCorrectCheckboxes() {
+        const container = document.getElementById('correct-answers-container');
+        
+        // Zapamiętujemy, co jest zaznaczone
+        const checkedValues = [];
+        document.querySelectorAll('.correct-checkbox:checked').forEach(cb => checkedValues.push(cb.value));
+
+        container.innerHTML = '';
+
+        for (let i = 0; i < currentAnswerCount; i++) {
+            const letter = LETTERS[i];
+            const isChecked = checkedValues.includes(letter) ? 'checked' : '';
+
+            const uniqueId = `correct-check-${letter}`;
+
+            const wrapper = document.createElement('div');
+            wrapper.className = 'form-check';
+            wrapper.innerHTML = `
+                <input class="form-check-input correct-checkbox" type="checkbox" value="${letter}" id="${uniqueId}" ${isChecked}>
+                <label class="form-check-label" style="cursor: pointer" for="${uniqueId}">${letter}</label>
+            `;
+            container.appendChild(wrapper);
+        }
+    }
+
+    // --- 3. OBSŁUGA PRZYCISKÓW +/- ---
+    window.addAnswerOption = function() {
+        if (currentAnswerCount < MAX_ANSWERS) {
+            currentAnswerCount++;
+            renderAnswerInputs();
+        } else {
+            showToast("Maksymalnie 8 odpowiedzi", "warning");
+        }
+    };
+
+    window.removeAnswerOption = function() {
+        if (currentAnswerCount > MIN_ANSWERS) {
+            currentAnswerCount--;
+            renderAnswerInputs();
+        } else {
+            showToast("Minimum 2 odpowiedzi", "warning");
+        }
+    };
 
     function renderQuestionsList() {
         questionsListEl.innerHTML = '';
@@ -459,16 +574,58 @@
 
     window.editQuestion = function (index) {
         const q = questions[index];
-        document.getElementById('inputQuestion').value = q.question;
-        document.getElementById('inputA').value = q.answerA;
-        document.getElementById('inputB').value = q.answerB;
-        document.getElementById('inputC').value = q.answerC;
-        document.getElementById('inputD').value = q.answerD;
-        document.getElementById('correctSelect').value = q.correct;
+
+        // --- 1. ADAPTER (Naprawa starych danych) ---
+        if (!q.answers) {
+            q.answers = [];
+            if (q.answerA) q.answers.push(q.answerA);
+            if (q.answerB) q.answers.push(q.answerB);
+            if (q.answerC) q.answers.push(q.answerC);
+            if (q.answerD) q.answers.push(q.answerD);
+            
+            if (q.answers.length < 2) {
+                q.answers = ["", "", "", ""]; 
+            }
+        }
         
+        if (!Array.isArray(q.correct)) {
+            q.correct = [q.correct];
+        }
+
+        document.getElementById('inputQuestion').value = q.question;
+        
+        document.getElementById('inputExplanation').value = q.explanation || "";
+
+        currentAnswerCount = q.answers.length;
+        
+        renderAnswerInputs();
+
+        const inputs = document.querySelectorAll('.answer-input');
+        q.answers.forEach((ans, i) => {
+            if(inputs[i]) inputs[i].value = ans;
+        });
+
+        document.querySelectorAll('.correct-checkbox').forEach(cb => cb.checked = false);
+
+        q.correct.forEach(val => {
+            const cb = document.querySelector(`.correct-checkbox[value="${val}"]`);
+            if(cb) cb.checked = true;
+        });
+
         editingIndex = index;
         addQBtn.innerText = t('btnSaveChanges'); 
-        document.getElementById('inputQuestion').focus();
+        
+        document.getElementById('creator-section').scrollIntoView({ behavior: 'smooth' });
+    };
+
+    window.selectAnswer = function(letter, inputElement) {
+        const label = inputElement.closest('label');
+
+        if (inputElement.checked) {
+            label.classList.add('active');
+        } else {
+            label.classList.remove('active');
+        }
     };
 
     window.removeQuestion = function(index) {
@@ -511,10 +668,6 @@
         let url = "/api/tests/create";
         let method = "POST";
 
-        if (testID) {
-            url = `/api/tests/${testID}`;
-            method = "PATCH"; 
-        }
 
         try {
             const res = await fetch(url, {
@@ -828,6 +981,25 @@
 
     function renderQuizQuestion() {
         const q = questions[currentQuestionIndex];
+
+        // --- 1. ADAPTER DANYCH (Naprawa starych pytań) ---
+        // Naprawa odpowiedzi (A, B...)
+        if (!q.answers) {
+            q.answers = [];
+            if (q.answerA) q.answers.push(q.answerA);
+            if (q.answerB) q.answers.push(q.answerB);
+            if (q.answerC) q.answers.push(q.answerC);
+            if (q.answerD) q.answers.push(q.answerD);
+        }
+        
+        // Naprawa poprawnych odpowiedzi (String -> Array)
+        // To nam pozwoli sprawdzić, ile jest poprawnych odpowiedzi
+        let correctArr = q.correct;
+        if (!Array.isArray(correctArr)) {
+            correctArr = [correctArr];
+        }
+        // ------------------------------------------------
+
         progressBadge.innerText = `${t('questionProgress')} ${currentQuestionIndex + 1} / ${questions.length}`;
         prevBtn.style.visibility = currentQuestionIndex === 0 ? 'hidden' : 'visible';
         
@@ -839,25 +1011,71 @@
             finishBtn.classList.add('d-none');
         }
 
+        // --- 2. GENEROWANIE WSKAZÓWKI (HINT) ---
+        let hintHtml = '';
+        
+        if (correctArr.length > 1) {
+            // WIELOKROTNY WYBÓR: Wyraźny niebieski pasek (alert)
+            hintHtml = `
+                <div class="quiz-hint quiz-hint--multi">
+                    <span class="quiz-hint-icon">✔✔</span>
+                    <span class="quiz-hint-text">${t('hintMultiple')}</span>
+                </div>
+            `;
+        } 
+
         let optionsHtml = '';
-        ['A', 'B', 'C', 'D'].forEach(opt => {
-            const isChecked = userAnswers[currentQuestionIndex] === opt ? 'checked' : '';
+        const currentAns = userAnswers[currentQuestionIndex] || [];
+
+        q.answers.forEach((ansText, index) => {
+            const letter = LETTERS[index];
+            const isChecked = currentAns.includes(letter) ? 'checked' : '';
+            const checkedAttr = isChecked ? 'checked' : '';
+            const activeClass = currentAns.includes(letter) ? 'active' : '';
+
             optionsHtml += `
-                <label class="list-group-item d-flex gap-3 align-items-center ${isChecked ? 'active' : ''}" style="cursor: pointer;">
-                    <input class="form-check-input" type="radio" name="qOption" value="${opt}" ${isChecked} 
-                    onchange="selectAnswer('${opt}', this)">
-                    <span><strong>${opt}.</strong> ${q['answer' + opt]}</span>
+                <label class="list-group-item d-flex gap-3 align-items-center ${activeClass}" style="cursor: pointer;">
+                    <input class="form-check-input" type="checkbox" 
+                        value="${letter}" 
+                        ${checkedAttr} 
+                        onchange="selectAnswer('${letter}', this)">
+                    <span><strong>${letter}.</strong> ${ansText}</span>
                 </label>`;
         });
 
-        quizContainer.innerHTML = `<h5 class="mb-4">${q.question}</h5><div class="list-group">${optionsHtml}</div>`;
+        quizContainer.innerHTML = `
+            <h5 class="mb-2">${q.question}</h5>
+            ${hintHtml}
+            <div class="list-group">${optionsHtml}</div>
+        `;
     }
 
-    window.selectAnswer = function(value, radioElement) {
-        userAnswers[currentQuestionIndex] = value;
-        const labels = radioElement.closest('.list-group').querySelectorAll('.list-group-item');
-        labels.forEach(l => l.classList.remove('active'));
-        radioElement.closest('label').classList.add('active');
+    window.selectAnswer = function(value, inputElement) {
+        // 1. Inicjalizacja: Upewnij się, że mamy tablicę dla tego pytania
+        if (!Array.isArray(userAnswers[currentQuestionIndex])) {
+            userAnswers[currentQuestionIndex] = [];
+        }
+
+        // 2. Logika dodawania/usuwania
+        if (inputElement.checked) {
+            
+            // Dodaj wartość do tablicy (jeśli jeszcze jej tam nie ma)
+            if (!userAnswers[currentQuestionIndex].includes(value)) {
+                userAnswers[currentQuestionIndex].push(value);
+            }
+            
+            // Dodaj klasę wizualną 'active' do klikniętego elementu
+            inputElement.closest('label').classList.add('active');
+            
+        } else {
+            // Znajdź indeks wartości i usuń ją z tablicy
+            const index = userAnswers[currentQuestionIndex].indexOf(value);
+            if (index > -1) {
+                userAnswers[currentQuestionIndex].splice(index, 1);
+            }
+            
+            inputElement.closest('label').classList.remove('active');
+        }
     };
 
     nextBtn.addEventListener('click', () => { currentQuestionIndex++; renderQuizQuestion(); });
@@ -873,13 +1091,58 @@
         resultsList.innerHTML = '';
 
         questions.forEach((q, index) => {
-            const userChoice = userAnswers[index];
-            const isCorrect = userChoice === q.correct;
+            // 1. Normalizacja danych
+            const userChoiceArr = userAnswers[index] || [];
+            const correctArr = Array.isArray(q.correct) ? q.correct : [q.correct];
+
+            // --- ADAPTER DLA STARYCH TESTÓW ---
+            if (!q.answers || q.answers.length === 0) {
+                q.answers = [];
+                if (q.answerA) q.answers.push(q.answerA);
+                if (q.answerB) q.answers.push(q.answerB);
+                if (q.answerC) q.answers.push(q.answerC);
+                if (q.answerD) q.answers.push(q.answerD);
+            }
+            // ----------------------------------
+
+            // 2. Logika porównania
+            const userString = JSON.stringify([...userChoiceArr].sort());
+            const correctString = JSON.stringify([...correctArr].sort());
+            const isCorrect = userString === correctString;
+
             if (isCorrect) score++;
 
-            const userText = userChoice ? `${userChoice}: ${q['answer' + userChoice]}` : t('noAnswer');
-            const correctText = `${q.correct}: ${q['answer' + q.correct]}`;
+            // 3. Funkcja pomocnicza do tekstu
+            const getText = (letter) => {
+                if (!letter) return "";
+                const idx = letter.charCodeAt(0) - 65; 
+                return q.answers[idx] || "Brak treści";
+            };
 
+            // 4. Formatowanie tekstu
+            const userText = userChoiceArr.length > 0 
+                ? userChoiceArr.map(opt => `<strong>${opt}</strong>: ${getText(opt)}`).join('<br>') 
+                : t('noAnswer');
+                
+            const correctText = correctArr.map(opt => `<strong>${opt}</strong>: ${getText(opt)}`).join('<br>');
+
+            // Generowanie HTML dla wyjaśnienia
+            let explanationHtml = '';
+            if (q.explanation && q.explanation.trim() !== "") {
+                explanationHtml = `
+                    <div class="mt-3 pt-3 border-top">
+                        <div class="d-flex gap-2">
+                            <span class="fs-5">💡</span>
+                            <div>
+                                <strong class="text-secondary">Wyjaśnienie:</strong><br>
+                                <span class="fst-italic">${q.explanation}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 5. Generowanie HTML wyniku
             resultsList.insertAdjacentHTML('beforeend', `
                 <div class="card mb-3 result-card ${isCorrect ? 'correct' : 'wrong'}">
                     <div class="card-body">
@@ -887,13 +1150,30 @@
                             <span>${index + 1}. ${q.question}</span>
                             <span>${isCorrect ? '✔️' : '❌'}</span>
                         </h5>
-                        <p class="mb-1 ${isCorrect ? 'text-success' : 'text-danger'}">${t('yourAnswer')}: ${userText}</p>
-                        ${!isCorrect ? `<p class="mb-0 text-success opacity-75">${t('correctAnswer')}: ${correctText}</p>` : ''}
-                    </div>
+                        
+                        <div class="row mt-3">
+                            <div class="col-md-6 mb-2">
+                                <div class="p-2 border rounded ${isCorrect ? 'bg-success bg-opacity-10 border-success' : 'bg-danger bg-opacity-10 border-danger'}">
+                                    <small class="text-uppercase fw-bold" style="font-size: 0.75rem;">${t('yourAnswer')}</small>
+                                    <div class="mt-1">${userText}</div>
+                                </div>
+                            </div>
+                            
+                            ${!isCorrect ? `
+                            <div class="col-md-6 mb-2">
+                                <div class="p-2 border rounded bg-success bg-opacity-10 border-success">
+                                    <small class="text-uppercase fw-bold" style="font-size: 0.75rem;">${t('correctAnswer')}</small>
+                                    <div class="mt-1">${correctText}</div>
+                                </div>
+                            </div>` : ''}
+                        </div>
+
+                        ${explanationHtml} </div>
                 </div>`);
         });
 
-        const percentage = Math.round((score / questions.length) * 100);
+        // Obliczanie wyniku końcowego
+        const percentage = questions.length > 0 ? Math.round((score / questions.length) * 100) : 0;
         scoreDisplay.innerText = `${percentage}%`;
         scoreDetails.innerText = `${score} z ${questions.length} ${t('correctInfo')}`;
     }

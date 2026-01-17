@@ -42,15 +42,26 @@ const translations = {
       nextQuest: "Następne pytanie",
       quiz_progress: "Pytanie nr",
       quiz_finished: "Zakończono!",
-      quiz_btn_show_answer: "👀 Pokaż poprawną odpowiedź",
-      quiz_header_correct: "💡 Poprawna odpowiedź:",
+      quiz_btn_show_answer: "Pokaż poprawną odpowiedź",
+      quiz_header_correct: "Poprawna odpowiedź:",
       quiz_btn_save: "💾 Zapamiętaj pytanie",
       quiz_btn_saved: "✅ Zapamiętano",
       quiz_feedback_correct: "✅ Dobrze!",
       quiz_feedback_wrong: "Niepoprawna odpowiedź.",
       quiz_alert_select: "❗ Wybierz przedmiot.",
       quiz_alert_empty: "Brak pytań.",
-      quiz_congrats: "🎉 Brawo — przerobione wszystkie pytania!"
+      quiz_congrats: "🎉 Brawo — przerobione wszystkie pytania!",
+      howItWorks: "Jak to działa?",
+      modes_info_title: "Szczegóły trybów nauki",
+      info_desc_all: "Inteligentny tryb domyślny. Najpierw wyświetla pytania, na które nigdy nie odpowiedziałeś. Następnie te na które odpowiedziałeś błędnie, później te z najmniejszą liczbą odpowiedzi, a na końcu najstarsze.",
+      info_desc_unanswered: "Wyświetla wyłącznie nowe pytania, których jeszcze nie rozwiązywałeś. Idealne do poznawania nowego materiału.",
+      info_desc_incorrect: "Tryb poprawkowy. Skupia się tylko na pytaniach, w których popełniłeś błąd w przeszłości.",
+      info_desc_saved: "Twój prywatny schowek. Pytania, które oznaczyłeś ręcznie ikoną zakładki/gwiazdki.",
+      info_desc_random: "Całkowita losowość. Pytania są losowane z całej puli bez względu na historię odpowiedzi.",
+      close: "Zamknij",
+      resetProgress: "Resetuj postęp",
+      reset_progress_tooltip: "Przerobiłeś już wszystkie pytania z tego przedmiotu! Kliknij, aby zresetować postęp i uczyć się od nowa.",
+      completed_desc: "Ukończyłeś wszystkie pytania z tego przedmiotu. Możesz zresetować postęp."
     },
     quizTest: {
       title: "Tryb testu",
@@ -62,7 +73,13 @@ const translations = {
       question: "Pytanie",
       previousQuestion: "Poprzednie pytanie",
       nextQuestion: "Następne pytanie",
-      subject: "Przedmiot"
+      subject: "Przedmiot",
+      testResultTitle: "Wynik testu",
+      correctAnswers: "Poprawne odpowiedzi",
+      percentResult: "Wynik procentowy",
+      passedReward: "Gratulacje! Zdobywasz <strong>20 punktów</strong> za zaliczenie testu!",
+      failedNoPoints: "Wynik poniżej 50% — punkty nie zostały przyznane. Spróbuj ponownie!",
+      pointsError: "Wynik zapisany, ale wystąpił problem z naliczeniem punktów."
     },
     index: {
       welcome: "Witaj w LearnIt",
@@ -155,11 +172,13 @@ const translations = {
       correctAnswers: "Poprawne odpowiedzi",
       percentageResult: "Wynik procentowy",
       currentRating: "Aktualna ocena testu",
+      difficultyRating: "Ocena trudności",
       rateTest: "Ocena testu",
       saveRating: "Zapisz ocenę",
       updateRating: "Zaktualizuj ocenę",
       comments: "Komentarze",
       question: "Pytanie",
+      multipleAnsInfo: "Pytanie wielokrotnego wyboru (zaznacz wszystkie poprawne)",
       yourAnswer: "Twoja odpowiedź",
       correctAnswer: "Poprawna odpowiedź!",
       addComment: "Dodaj komentarz",
@@ -189,7 +208,11 @@ const translations = {
       selectDifficulty: "Wybierz trudność",
       reportSubmitted: "Dziękujemy! Zgłoszenie zostało przesłane do moderacji.",
       selectRating: "Wybierz ocenę",
-      notAllAnswered: "Nie wszystkie pytania zostały odpowiedziane. Czy na pewno chcesz sprawdzić wynik?"
+      notAllAnswered: "Nie wszystkie pytania zostały odpowiedziane. Czy na pewno chcesz sprawdzić wynik?",
+      test_success_points: " Brawo! Zaliczyłeś test \"{title}\" i zdobywasz <strong>{points} pkt</strong>!",
+      test_passed_again: " Test zaliczony ponownie. Punkty zostały już przyznane wcześniej.",
+      test_failed_score: "Wynik {percent}% to za mało na punkty. Spróbuj jeszcze raz!",
+      explanationLabel: "Wyjaśnienie"
     },
     rank: {
       rank_title: "Ranking",
@@ -260,7 +283,9 @@ const translations = {
       stats_history_title: "Historia Aktywności",
       stats_col_date: "Data",
       stats_col_category: "Kategoria",
-      stats_col_score: "Wynik"
+      stats_col_score: "Wynik",
+      test_community_auth: "Autor",
+      questions: "pytań"
     },
     toast_points_gained: "Zdobyłeś +{points} pkt!",
     alert_auth_required: "Musisz się zalogować, aby uzyskać dostęp do tej sekcji!",
@@ -320,7 +345,17 @@ const translations = {
       quiz_feedback_wrong: "Incorrect answer.",
       quiz_alert_select: "❗ Select a subject.",
       quiz_alert_empty: "No questions available.",
-      quiz_congrats: "🎉 Bravo — all questions completed!"
+      quiz_congrats: "🎉 Bravo — all questions completed!",
+      howItWorks: "How it works?",
+      modes_info_title: "Learning Modes Details",
+      info_desc_all: "Smart default mode. First, it displays questions you have never answered. Then, those with the fewest answers, and finally the oldest ones.",
+      info_desc_unanswered: "Displays only new questions you haven't solved yet. Perfect for learning new material.",
+      info_desc_incorrect: "Review mode. Focuses only on questions where you made a mistake in the past.",
+      info_desc_saved: "Your private stash. Questions you manually marked with the bookmark/star icon.",
+      info_desc_random: "Total randomness. Questions are drawn from the entire pool regardless of answer history.",
+      close: "Close",
+      resetProgress: "Reset progress",
+      completed_desc: "You have completed all questions for this subject. You can reset progress."
     },
     quizTest: {
       title: "Test mode",
@@ -342,7 +377,13 @@ const translations = {
       quiz_feedback_wrong: "Incorrect answer.",
       quiz_alert_select: "❗ Select a subject.",
       quiz_alert_empty: "No questions available.",
-      quiz_congrats: "🎉 Bravo — all questions completed!"
+      quiz_congrats: "🎉 Bravo — all questions completed!",
+      testResultTitle: "🎓 Test result",
+      correctAnswers: "Correct answers",
+      percentResult: "Score percentage",
+      passedReward: "🎉 Congratulations! You earned <strong>20 points</strong> for passing the test!",
+      failedNoPoints: "😞 Score below 50% — no points were awarded. Try again!",
+      pointsError: "⚠️ Result saved, but there was a problem awarding points."
     },
     index: {
       welcome: "Welcome to LearnIt",
@@ -435,11 +476,13 @@ const translations = {
       correctAnswers: "Correct Answers",
       percentageResult: "Percentage Result", 
       currentRating: "Current Test Rating",
+      difficultyRating: "Difficulty rating",
       rateTest: "Rate Test",
       saveRating: "Save Rating",
       updateRating: "Update Rating",
       comments: "Comments",
       question: "Question",
+      multipleAnsInfo: "Multiple choice question (select all correct)",
       correctAnswer: "Correct answer!",
       addComment: "Add Comment",
       yourAnswer: "Your answer",
@@ -469,7 +512,11 @@ const translations = {
       selectDifficulty: "Select Difficulty",
       reportSubmitted: "Thank you! The report has been submitted for moderation.",
       selectRating: "Select Rating",
-      notAllAnswered: "Not all questions have been answered. Are you sure you want to check results?"
+      notAllAnswered: "Not all questions have been answered. Are you sure you want to check results?",
+      test_success_points: "Bravo! You passed \"{title}\" and earned <strong>{points} pts</strong>!",
+      test_passed_again: "Test passed again. Points were already awarded previously.",
+      test_failed_score: "Score {percent}% is too low for points. Try again!",
+      explanationLabel: "Explanation"
     },
     rank: {
       rank_title: "Leaderboard",
@@ -540,7 +587,9 @@ const translations = {
       stats_history_title: "Activity History",
       stats_col_date: "Date",
       stats_col_category: "Category",
-      stats_col_score: "Score"
+      stats_col_score: "Score",
+      test_community_auth: "Author",
+      questions: "questions"
     },
     toast_points_gained: "You gained +{points} pts!",
     alert_auth_required: "You must log in to access this section!",

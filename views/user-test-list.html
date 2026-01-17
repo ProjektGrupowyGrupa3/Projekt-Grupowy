@@ -127,7 +127,8 @@
 
 
                 const apiLang = t.language || 'pl'; 
-                const displayLang = apiLang === 'en' ? 'English' : 'Polski';
+                console.log(t.language)
+                const displayLang = apiLang === "en" ? 'English' : 'Polski';
 
                 a.innerHTML = `
           <div class="flex-grow-1">
