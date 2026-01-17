@@ -49,48 +49,28 @@ body.light-mode .avgRaitingValue{
 }
 
 /* Style dla gwiazdek oceny (średnia ocena) */
-#averageStars .star-filled{
+.stars .star-filled{
   color: var(--col-accent);
   letter-spacing: 2px;
 }
 
 
-#averageStars .star-empty {
+.stars .star-empty {
   color: var(--col-contrast);
   opacity: 0.8;
 }
 
-body.light-mode #averageStars {
+body.light-mode .stars {
   color: var(--col-accent-light);
 }
 
-body.light-mode #averageStars .star-filled {
+body.light-mode .stars .star-filled {
   color: var(--col-accent-light);
 }
 
-body.light-mode #averageStars .star-empty {
+body.light-mode .stars .star-empty {
   color: var(--col-contrast-light);
   opacity: 0.5;
-}
-
-#difficultyStars {
-  font-size: 1.6rem;
-}
-
-#difficultyStars span {
-  color: var(--col-contrast);
-}
-
-#difficultyStars span.active {
-  color: var(--col-accent);
-}
-
-body.light-mode #difficultyStars span {
-  color: var(--col-highlight-light);
-}
-
-body.light-mode #difficultyStars span.active {
-  color: var(--col-accent-light);
 }
 
 

@@ -1,0 +1,103 @@
+#modeInfoModal .modal-content {
+    background-color: var(--col-dark);
+    border-radius: 14px;
+    border: 1px solid var(--col-accent);
+    box-shadow: 0 0 18px 4px rgba(0,0,0,0.3);
+    color: var(--text-light); /* Domyślny tekst jasny */
+}
+
+
+#modeInfoModal .modal-header {
+    background-color: var(--col-contrast);
+    color: var(--text-light);
+    border-bottom: 2px solid var(--col-accent);
+    border-top-left-radius: 14px; 
+    border-top-right-radius: 14px;
+}
+
+#modeInfoModal .btn-close {
+    filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+
+#modeInfoModal .modal-footer {
+    border-top: 1px solid var(--col-contrast);
+    border-bottom-left-radius: 14px;
+    border-bottom-right-radius: 14px;
+}
+
+
+#modeInfoModal .list-group-item {
+    background-color: var(--col-base);
+    color: var(--text-light);
+    border: 1px solid var(--col-contrast); 
+    margin-bottom: 6px; 
+    border-radius: 8px; 
+    transition: all 0.25s ease;
+}
+
+#modeInfoModal .list-group-item .text-muted {
+    color: rgba(255, 255, 255, 0.6) !important; 
+}
+
+#modeInfoModal .list-group-item:hover {
+    background-color: var(--col-highlight);
+    color: var(--text-dark);
+    transform: scale(1.02); 
+    box-shadow: 0 0 12px 2px var(--col-accent);
+    border-color: var(--col-accent);
+    z-index: 2;
+    cursor: default;
+}
+
+#modeInfoModal .list-group-item:hover h6,
+#modeInfoModal .list-group-item:hover p,
+#modeInfoModal .list-group-item:hover i {
+    color: var(--text-dark) !important;
+}
+
+/* === LIGHT MODE (Dla Modala) === */
+
+body.light-mode #modeInfoModal .modal-content {
+    background-color: var(--col-base-light);
+    border-color: var(--col-accent-light);
+    box-shadow: 0 0 18px 4px rgba(120, 90, 200, 0.25);
+    color: var(--text-dark);
+}
+
+body.light-mode #modeInfoModal .modal-header {
+    background-color: var(--col-contrast-light);
+    color: var(--text-light); 
+    border-bottom-color: var(--col-accent-light);
+}
+
+body.light-mode #modeInfoModal .btn-close {
+    filter: none; 
+}
+
+body.light-mode #modeInfoModal .list-group-item {
+    background-color: white; 
+    color: var(--text-dark);
+    border-color: rgba(0,0,0,0.1);
+}
+
+body.light-mode #modeInfoModal .list-group-item .text-muted {
+    color: #6c757d !important; 
+}
+
+body.light-mode #modeInfoModal .list-group-item:hover {
+    background-color: var(--col-accent-light);
+    color: white; 
+    box-shadow: 0 0 12px 3px var(--col-accent-light);
+    transform: scale(1.02);
+}
+
+body.light-mode #modeInfoModal .list-group-item:hover h6,
+body.light-mode #modeInfoModal .list-group-item:hover p,
+body.light-mode #modeInfoModal .list-group-item:hover i {
+    color: white !important;
+}
+
+body.light-mode #modeInfoModal .modal-footer {
+    border-top-color: rgba(0,0,0,0.1);
+}

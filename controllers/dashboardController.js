@@ -3,6 +3,7 @@ const Subject = require('../models/Subject');
 const UserEarnedActions = require('../models/UserEarnedActions'); 
 const UserProgress = require('../models/UserProgress');
 const TestResult = require('../models/TestResult');
+const UserTestResult = require('../models/UserTestResult');
 const mongoose = require('mongoose');
 
 exports.getDashboardStats = async (req, res) => {
@@ -131,11 +132,17 @@ exports.getDashboardStats = async (req, res) => {
         .populate('subjectId', 'name') 
         .lean();
 
-    // B. Pobieramy inne akcje punktowe (Logowania, Rejestracja, Pojedyncze pytania)
+    // B. [NOWE] Pobieranie wyników testów SPOŁECZNOŚCI (Tytuł + Autor)
+    const communityTestsPromise = UserTestResult.find({ userId })
+        .sort({ createdAt: -1 })
+        .limit(10)
+        .lean();
+
+    // C. Pobieramy inne akcje punktowe (Logowania, Rejestracja, Pojedyncze pytania)
     const actionsPromise = UserEarnedActions.aggregate([
         { $match: { 
             userId: new mongoose.Types.ObjectId(userId),
-            actionType: { $ne: 'test_passed' } 
+            actionType: { $nin: ['test_passed', 'user_test_passed'] } 
         }},
         { $sort: { createdAt: -1 } },
         { $limit: 10 },
@@ -168,7 +175,7 @@ exports.getDashboardStats = async (req, res) => {
         }
     ]);
 
-    const [tests, actions] = await Promise.all([testsPromise, actionsPromise]);
+    const [tests, communityTests, actions] = await Promise.all([testsPromise, communityTestsPromise, actionsPromise]);
 
     // C. Formatowanie i Łączenie danych
         const formattedTests = tests.map(t => ({
@@ -178,6 +185,18 @@ exports.getDashboardStats = async (req, res) => {
         score: t.score, 
         subjectName: t.subjectId ? t.subjectId.name : null,
         isSuccess: t.score > 50
+    }));
+
+    // 2. Formatowanie testów społeczności
+    const formattedCommunityTests = communityTests.map(t => ({
+        type: 'user_test_passed', 
+        date: t.createdAt,
+        points: t.pointsAwarded ? 20 : 0, 
+        score: t.score,
+        passed: t.passed,
+        testTitle: t.testTitle,   
+        authorName: t.authorName, 
+        isSuccess: t.passed
     }));
 
     const formattedActions = actions.map(a => ({
@@ -190,7 +209,7 @@ exports.getDashboardStats = async (req, res) => {
         isSuccess: a.points > 0 
     }));
 
-    let combinedActivity = [...formattedTests, ...formattedActions];
+    let combinedActivity = [...formattedTests, ...formattedCommunityTests, ...formattedActions];
     
     combinedActivity.sort((a, b) => new Date(b.date) - new Date(a.date));
     

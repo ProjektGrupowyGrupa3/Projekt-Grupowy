@@ -55,8 +55,8 @@
     </div>
   </div>
 </main>
-
-
+<script src="/static/javascripts/translations.js"></script>
+<script src="/static/javascripts/script.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', initQuizTest);
 
@@ -67,6 +67,10 @@ document.addEventListener('languageChanged', (e) => {
     loadAndRenderSubjects(newLang);
     resetQuizState();
 });
+
+function getLang() {
+  return localStorage.getItem('language') === 'en' ? 'en' : 'pl';
+}
 
 async function loadAndRenderSubjects(lang) {
     const subjectSelect = document.getElementById('subject');
@@ -173,6 +177,8 @@ async function initQuizTest() {
     state.cur = 0;
     state.timeLeft = mins * 60;
 
+    console.log("RAW QUESTION:", state.questions[0]);
+
     document.getElementById('quizArea').classList.remove('d-none');
     document.getElementById('resultArea').classList.add('d-none');
     document.getElementById('total').textContent = pool.length;
@@ -191,6 +197,7 @@ async function initQuizTest() {
   });
 
   
+
   prevBtn.addEventListener('click', () => {
     if (state.cur > 0) {
       state.cur--;
@@ -218,6 +225,42 @@ function updateTimer(state) {
   document.getElementById('timer').textContent = `${m}:${s}`;
 }
 
+function resetQuizState() {
+    // 1. Wyczyść stan
+    if (window.quizState && window.quizState.timer) {
+        clearInterval(window.quizState.timer);
+    }
+
+    window.quizState = {
+        questions: [],
+        answers: [],
+        cur: 0,
+        timer: null,
+        timeLeft: 0,
+        testId: null,
+        subjectId: null
+    };
+
+    // 2. Ukryj sekcje quizu i wyniku
+    const quizArea = document.getElementById("quizArea");
+    const resultArea = document.getElementById("resultArea");
+    if (quizArea) quizArea.classList.add("d-none");
+    if (resultArea) resultArea.classList.add("d-none");
+
+    // 3. Wyczyść dynamiczne pola UI
+    const questionText = document.getElementById("questionText");
+    const answersDiv = document.getElementById("answers");
+    const totalCount = document.getElementById("total");
+    const timerElement = document.getElementById("timer");
+
+    if (questionText) questionText.innerHTML = "";
+    if (answersDiv) answersDiv.innerHTML = "";
+    if (totalCount) totalCount.textContent = "0";
+    if (timerElement) timerElement.textContent = "--:--";
+
+    console.log("Stan quizu został zresetowany po zmianie języka.");
+}
+
 async function addPointsAPI(type, amount, questionId) {
       try {
           const token = localStorage.getItem("token");
@@ -242,20 +285,35 @@ async function addPointsAPI(type, amount, questionId) {
 
 function renderQuestion(state) {
   const q = state.questions[state.cur];
-  document.getElementById('questionText').textContent = q.question || 'Brak pytania';
+  const lang = localStorage.getItem('language') === 'en' ? 'en' : 'pl';
+
+  const questionText =
+    q._full?.question?.[lang] ||
+    q.question ||
+    'Brak pytania';
+
+  document.getElementById('questionText').textContent = questionText;
+
+  
   const answers = document.getElementById('answers');
   answers.innerHTML = '';
 
-  const opts = q.answers?.map(a => a.text) || [];
-  opts.forEach((opt, i) => {
+  q.answers?.forEach((a, i) => {
+    const answerText =
+      a._full?.text?.[lang] ||
+      a.text ||
+      '';
+
     const btn = document.createElement('button');
     btn.className = 'list-group-item list-group-item-action';
-    btn.textContent = opt;
+    btn.textContent = answerText;
+
     btn.onclick = () => {
       state.answers[state.cur] = i;
       [...answers.children].forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
     };
+
     answers.appendChild(btn);
   });
 
@@ -263,11 +321,15 @@ function renderQuestion(state) {
 }
 
 
+
+
 function highlightSelected(state) {
   const selected = state.answers[state.cur];
   const btns = document.getElementById('answers').children;
   if (selected !== null && btns[selected]) btns[selected].classList.add('active');
 }
+
+
 
 // Wysyłanie wyniku do bazy (statystyki) 
 async function saveTestResultAPI(data) {
@@ -320,15 +382,15 @@ async function finishTest(state) {
   let alertClass = percent > 50 ? 'alert-info' : 'alert-warning';
   
   res.innerHTML = `
-    <div class="alert ${alertClass} text-center">
-      <h4>🎓 Wynik testu</h4>
-      <p>Poprawne odpowiedzi: <strong>${correct}</strong> / ${state.questions.length}</p>
-      <p>Wynik procentowy: <strong>${percent}%</strong></p>
-    </div>
-  `;
+  <div class="alert ${alertClass} text-center">
+    <h4>${t('testResultTitle')}</h4>
+    <p>${t('correctAnswers')}: <strong>${correct}</strong> / ${state.questions.length}</p>
+    <p>${t('percentResult')}: <strong>${percent}%</strong></p>
+  </div>
+`;
 
 
-  // 4. Naliczanie punktów (UserEarnedAction) - tylko gdy > 50%
+  // Naliczanie punktów (UserEarnedAction) - tylko gdy > 50%
   try {
     if (percent > 50) {
       await addPointsAPI("test_passed", 20, resultId);
@@ -340,13 +402,14 @@ async function finishTest(state) {
       
       res.innerHTML += `
         <div class="alert alert-success text-center mt-3">
-          🎉 Gratulacje! Zdobywasz <strong>20 punktów</strong> za zaliczenie testu!
+          ${t('passedReward')}
         </div>
       `;
+
     } else {
       res.innerHTML += `
         <div class="alert alert-secondary text-center mt-3">
-          😞 Wynik poniżej 50% — punkty nie zostały przyznane. Spróbuj ponownie!
+          ${t('failedNoPoints')}
         </div>
       `;
     }
@@ -354,7 +417,7 @@ async function finishTest(state) {
     console.error("Błąd naliczania punktów:", err);
     res.innerHTML += `
       <div class="alert alert-danger text-center mt-3">
-        ⚠️ Wynik zapisany, ale wystąpił problem z naliczeniem punktów.
+        ${t('pointsError')}
       </div>
     `;
   }
@@ -362,10 +425,7 @@ async function finishTest(state) {
   document.getElementById('quizArea').classList.add('d-none');
 }
 
-setupThemeToggle('toggleTheme');
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-<script src="/static/javascripts/translations.js"></script>
-<script src="/static/javascripts/script.js"></script>
 </body>
 </html>

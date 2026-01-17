@@ -125,11 +125,27 @@ function updatePageContent(lang) {
 
     document.querySelectorAll('[data-translate]').forEach(element => {
         const key = element.getAttribute('data-translate');
-        const text =
+        
+        // Surowy tekst tłumaczenia 
+        let text =
             (pageTranslations && pageTranslations[key]) ||
             (layoutTranslations && layoutTranslations[key]);
 
         if (text) {
+            const paramsAttr = element.getAttribute('data-params');
+            
+            if (paramsAttr) {
+                try {
+                    const params = JSON.parse(paramsAttr);
+                    
+                    Object.keys(params).forEach(paramKey => {
+                        text = text.replace(new RegExp(`{${paramKey}}`, 'g'), params[paramKey]);
+                    });
+                } catch (e) {
+                    console.error('Błąd parsowania data-params dla klucza:', key, e);
+                }
+            }
+
             if (element.tagName === 'INPUT') {
                 if (element.type === 'submit' || element.type === 'button') {
                     element.value = text;
@@ -139,10 +155,10 @@ function updatePageContent(lang) {
             } else if (element.tagName === 'TEXTAREA') {
                 element.placeholder = text;
             } else {
-                element.textContent = text;
+                element.innerHTML = text;
             }
         }
-  });  
+    });
 }
 
 // Funkcje Globalne (Wymagane przez inne skrypty) 
@@ -158,6 +174,15 @@ window.t = function(key, params = {}) {
     const path = window.location.pathname;
     let currentPage = 'index';
 
+    console.log('t()', {
+        path,
+        currentPage,
+        currentLang,
+        key
+        });
+
+    if (path.includes('dashboard')) currentPage = 'dashboard';
+    if (path.includes('quiz/test')) currentPage = 'quizTest';
     if (path.includes('user-test-list')) currentPage = 'userTestList';
     else if (path.includes('user-test-details')) currentPage = 'userTestDetails';
 
@@ -224,6 +249,26 @@ function renderSubjectsCommon(containerId, mode, lang) {
         container.appendChild(card);
     });
 }
+
+async function addPointsAPI(type, amount, questionId) {
+      try {
+          const token = localStorage.getItem("token");
+
+          const res = await fetch("/api/points/add", {
+              method: "POST",
+              headers: {
+                  "Content-Type": "application/json",
+                  "Authorization": "Bearer " + token
+              },
+              body: JSON.stringify({ type, amount, questionId })
+          });
+
+          return await res.json();
+          
+      } catch (err) {
+          console.error("❌ Błąd API:", err);
+      }
+  }
 
 // Obsługa Sesji i Bezpieczeństwa (Użytkownik niezalogowany nie ma dostępu do podstrony)
 

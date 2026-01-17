@@ -6,6 +6,7 @@
   <title>Tryb nauki — LearnIt</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="/static/stylesheets/style.css">
+  <link rel="stylesheet" href="/static/stylesheets/quizLearn.css">
 </head>
 
 <body>
@@ -16,28 +17,57 @@
         <h3 class="mb-4 text-center" data-translate="title">🧠 Tryb nauki</h3>
 
         <div class="card p-4">
-        <div class="mb-3">
-          <label class="form-label fw-semibold" data-translate="subject">Przedmiot</label>
-          <select id="subject" class="form-select">
-            <option disabled selected data-translate="loading">Wczytywanie...</option>
-          </select>
-        </div>
 
-        <div class="mb-3">
-          <label class="form-label fw-semibold" data-translate="questionMode">Tryb pytań</label>
-          <select id="mode" class="form-select">
-            <option value="all" selected data-translate="all">Wszystkie pytania</option>
-            <option value="unanswered" data-translate="unanswered">Nieodpowiedziane</option>
-            <option value="incorrect" data-translate="incorrect">Błędne odpowiedzi</option>
-            <option value="saved" data-translate="saved">Zapisane pytania</option>
-            <option value="random" data-translate="random">Losowe pytania</option>
+            <!-- PRZEDMIOT -->
+            <div class="mb-3">
+                <label class="form-label fw-semibold" data-translate="subject">Przedmiot</label>
+                <select id="subject" class="form-select">
+                    <option disabled selected data-translate="loading">Wczytywanie...</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <label class="form-label fw-semibold mb-0" data-translate="questionMode">Tryb pytań</label>
 
-          </select>
-        </div>
+                    <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none" 
+                            data-bs-toggle="modal" data-bs-target="#modeInfoModal">
+                        <i class="bi bi-info-circle me-1"></i>
+                        <span class="small" data-translate="howItWorks">Jak to działa?</span>
+                    </button>
+                </div>
 
-          <div class="d-flex justify-content-center">
-            <button id="start" class="btn btn-primary btn-lg mt-2" data-translate="startButton">Rozpocznij naukę</button>
-          </div>
+                <select id="mode" class="form-select">
+                    <option value="all" selected data-translate="all">Wszystkie pytania</option>
+                    <option value="unanswered" data-translate="unanswered">Nieodpowiedziane</option>
+                    <option value="incorrect" data-translate="incorrect">Błędne odpowiedzi</option>
+                    <option value="saved" data-translate="saved">Zapisane pytania</option>
+                    <option value="random" data-translate="random">Losowe pytania</option>
+                </select>
+
+                <div id="modeDescription" class="form-text mt-2 small fst-italic"></div>
+            </div>
+            <div id="completedPanel" class="d-none w-100 mt-2">
+                <div class="d-flex flex-wrap justify-content-between align-items-center w-100">
+
+                    <p data-translate="completed_desc"
+                    class="mb-0 flex-grow-1 me-3 small">
+                        Ukończyłeś wszystkie pytania z tego przedmiotu. Możesz zresetować postęp.
+                    </p>
+
+                    <button id="resetProgressBtn"
+                            class="btn btn-outline-danger btn-sm mt-2 mt-md-0"
+                            data-translate="resetProgress">
+                        Resetuj
+                    </button>
+                </div>
+
+            </div>
+            <div class="d-flex justify-content-center mt-4">
+                <button id="start" class="btn btn-primary btn-lg px-4" data-translate="startButton">
+                    Rozpocznij naukę
+                </button>
+            </div>
+
         </div>
         <div id="cardArea" class="d-none mt-4">     
             <div class="mb-3 d-flex justify-content-end">
@@ -45,7 +75,7 @@
                     </span>
             </div>
 
-            <div class="card shadow-sm">
+            <div class="card shadow-sm" id="quizArea">
                 <div class="card-body">
                     <h5 class="card-title mb-4" id="qText">Treść pytania...</h5>
                     <div id="opts" class="list-group">
@@ -61,6 +91,77 @@
 
       </div>
     </div>
+    <div class="modal fade" id="modeInfoModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-gear-wide-connected me-2"></i>
+                    <span data-translate="modes_info_title">Szczegóły trybów nauki</span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="list-group list-group-flush">
+                    
+                <div class="list-group-item">
+                    <div class="d-flex w-100 justify-content-between">
+                    <h6 class="mb-1 fw-bold text-primary" data-translate="all">Wszystkie pytania</h6>
+                    <i class="bi bi-collection"></i>
+                    </div>
+                    <p class="mb-1 small" data-translate="info_desc_all">
+                    Inteligentny tryb domyślny. Najpierw wyświetla pytania, na które nigdy nie odpowiedziałeś. Następnie te na które odpowiedziałeś błędnie, później te z najmniejszą liczbą odpowiedzi, a na końcu najstarsze.
+                    </p>
+                </div>
+
+                <div class="list-group-item">
+                    <div class="d-flex w-100 justify-content-between">
+                    <h6 class="mb-1 fw-bold text-primary" data-translate="unanswered">Nieodpowiedziane</h6>
+                    <i class="bi bi-circle"></i>
+                    </div>
+                    <p class="mb-1 small" data-translate="info_desc_unanswered">
+                    Wyświetla wyłącznie nowe pytania, których jeszcze nie rozwiązywałeś. Idealne do poznawania nowego materiału.
+                    </p>
+                </div>
+
+                <div class="list-group-item">
+                    <div class="d-flex w-100 justify-content-between">
+                    <h6 class="mb-1 fw-bold text-danger" data-translate="incorrect">Błędne odpowiedzi</h6>
+                    <i class="bi bi-x-circle"></i>
+                    </div>
+                    <p class="mb-1 small" data-translate="info_desc_incorrect">
+                    Tryb poprawkowy. Skupia się tylko na pytaniach, w których popełniłeś błąd w przeszłości.
+                    </p>
+                </div>
+
+                <div class="list-group-item">
+                    <div class="d-flex w-100 justify-content-between">
+                    <h6 class="mb-1 fw-bold text-warning" data-translate="saved">Zapisane pytania</h6>
+                    <i class="bi bi-bookmark-star"></i>
+                    </div>
+                    <p class="mb-1 small" data-translate="info_desc_saved">
+                    Twój prywatny schowek. Pytania, które oznaczyłeś ręcznie ikoną zakładki/gwiazdki.
+                    </p>
+                </div>
+
+                <div class="list-group-item">
+                    <div class="d-flex w-100 justify-content-between">
+                    <h6 class="mb-1 fw-bold text-info" data-translate="random">Losowe pytania</h6>
+                    <i class="bi bi-shuffle"></i>
+                    </div>
+                    <p class="mb-1 small" data-translate="info_desc_random">
+                    Całkowita losowość. Pytania są losowane z całej puli bez względu na historię odpowiedzi.
+                    </p>
+                </div>
+
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal" data-translate="close">Zamknij</button>
+            </div>
+            </div>
+        </div>
+        </div>
   </main>
   <script src="/static/javascripts/script.js"></script>
   <script src="/static/javascripts/translations.js"></script>
@@ -97,6 +198,45 @@
         return headers;
     }
 
+    async function resetSubjectProgress(subjectId) {
+        const t = getGlobalT();
+
+        if (!subjectId) return;
+
+        if (!confirm(t.confirm_reset || "Czy na pewno chcesz zresetować postęp?")) {
+            return;
+        }
+
+        try {
+            const res = await fetch('/api/user-progress/reset', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ subjectId })
+            });
+
+            const data = await res.json();
+
+            if (!data.success) {
+                alert(data.message || "Nie udało się zresetować postępu");
+                return;
+            }
+
+            alert(t.reset_success || "Postęp został zresetowany");
+
+            // Reset lokalnego stanu quizu
+            resetQuizState();
+
+            // Ukrywamy przycisk resetu
+            const resetBtn = document.getElementById('resetProgressBtn');
+            if (resetBtn) resetBtn.classList.add('d-none');
+
+        } catch (err) {
+            console.error(err);
+            alert("Błąd połączenia z serwerem");
+        }
+    }
+
+
     function resetQuizState() {
         console.log('Resetowanie stanu quizu...');
         queue = [];
@@ -115,6 +255,7 @@
         const subjectsContainer = document.getElementById('subjectsContainer');
         if(subjectsContainer) subjectsContainer.classList.remove('d-none');
     }
+
     function renderProgress(currentNumber) {
         const t = getGlobalT();
         const total = totalQuestions || 0;
@@ -125,6 +266,30 @@
 
     }
 
+    function clearQuestionUI() {
+        if (qText) qText.textContent = '';
+        if (opts) opts.innerHTML = '';
+        if (explain) {
+            explain.innerHTML = '';
+            explain.classList.add('d-none');
+        }
+        if (nextBtn) nextBtn.disabled = true;
+    }
+
+
+    function renderFinishPanel() {
+        const t = getGlobalT();
+
+        clearQuestionUI();
+        opts.innerHTML = `<div class="alert alert-success mt-3 text-center">
+            <h5>${t.quiz_congrats || '🎉 Brawo!'}</h5>
+            <p>${t.quiz_finished_desc || 'Ukończyłeś wszystkie pytania z tego przedmiotu.'}</p>
+        </div>`;
+
+        // pokaż reset
+        const resetBtn = document.getElementById('resetProgressBtn');
+        if (resetBtn) resetBtn.hidden = false;
+    }
 
     async function addPointsAPI(type, amount, questionId) {
         try {
@@ -188,9 +353,15 @@
             const { totalCount, questions } = await res.json();
             
             totalQuestions = totalCount; 
+            console.log("RAW questions from backend:", questions);
+            return questions.map(q => ({
+                ...q,
+                _base: {
+                    question: q.question,
+                    answers: JSON.parse(JSON.stringify(q.answers))
+                }
+            }));
             
-            return questions;
-
         } catch (e) {
             console.error('Błąd pobierania pytań:', e);
             return [];
@@ -288,8 +459,6 @@
         explain.classList.add('d-none');
         if(nextBtn) nextBtn.disabled = true;
         
-        // WAŻNE: Resetujemy stan odpowiedzi dla bieżącego widoku,
-        // aby przyciski i logika kliknięć odświeżyły się w nowym języku
         answered = false;
         correct = false;
 
@@ -321,8 +490,23 @@
                 await saveAnswerToDB(q._id, true);
                 const apiResult = await addPointsAPI("quiz_correct", 5, q._id);
 
+                console.log("Otrzymano z API:", apiResult);
+
                 if (apiResult && apiResult.success) {
-                    if (typeof updateUserPointsUI === 'function') updateUserPointsUI(5);
+                    const pointsReceived = (apiResult.pointsAdded !== undefined) ? apiResult.pointsAdded : 5;
+
+                    if (pointsReceived > 0) {
+                        console.log("Przyznano nowe punkty:", pointsReceived);
+                        
+                        // Wywołujemy aktualizację UI tylko gdy punkty > 0
+                        if (typeof updateUserPointsUI === 'function') {
+                            updateUserPointsUI(pointsReceived); 
+                        }
+                    } else {
+                        console.log("Odpowiedź poprawna, ale punkty już były przyznane wcześniej (0 pkt). UI bez zmian.");
+                    }
+                } else {
+                    console.log("Błąd lub brak odpowiedzi z API punktów");
                 }
             } else {
                 await addPointsAPI("quiz_wrong", 0, q._id);
@@ -346,6 +530,28 @@
         explain.classList.remove('d-none');
         if(nextBtn) nextBtn.disabled = false;
     }
+
+    async function checkSubjectCompletion(subjectId) {
+        try {
+            const res = await fetch(`/api/user-progress/subject/${subjectId}/status`, {
+                headers: getAuthHeaders()
+            });
+
+            if (!res.ok) {
+                console.warn('Status quizu niedostępny:', res.status);
+                return false;
+            }
+
+            const data = await res.json();
+            console.log('📊 Status przedmiotu:', data);
+
+            return data.isCompleted === true;
+        } catch (err) {
+            console.error('❌ Błąd sprawdzania statusu:', err);
+            return false;
+        }
+    }
+
 
     document.addEventListener('DOMContentLoaded', () => {
         const token = localStorage.getItem('token');
@@ -376,6 +582,19 @@
                 
                 if (!subj) return alert(t.quiz_alert_select || "Wybierz przedmiot");
 
+                const isCompleted = await checkSubjectCompletion(subj);
+                const completedPanel = document.getElementById("completedPanel");
+
+                if (isCompleted) {
+                    completedPanel.classList.remove("d-none");
+                } else {
+                    completedPanel.classList.add("d-none");
+                }
+                const resetBtn = document.getElementById('resetProgressBtn');
+                if (resetBtn) {
+                    resetBtn.hidden = !isCompleted;
+                }
+
                 queue = await loadQuestions(subj, mode);
                 if (!queue.length) return alert(t.quiz_alert_empty || "Brak pytań");
 
@@ -388,76 +607,90 @@
             });
         }
 
+        document.getElementById('resetProgressBtn')?.addEventListener('click', async () => {
+            const subjectId = subjectSelect.value;
+            if (!subjectId) return;
+
+            if (!confirm('Czy na pewno chcesz zresetować postęp?')) return;
+
+            await fetch('/api/user-progress/reset', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ subjectId })
+            });
+
+            document.getElementById('resetProgressBtn').hidden = true;
+            resetQuizState();
+        });
+
+
         // DALEJ 
         if (nextBtn) {
             nextBtn.addEventListener('click', () => {
-                const t = getGlobalT();
                 if (!answered) return;
 
-                const current = queue.shift();
+                const current = queue[0]; 
+                
+                console.log('QUEUE LENGTH:', queue.length);
 
-                // Jeśli błędna odpowiedź -> wraca na koniec kolejki
-                if (!correct) {
-                    queue.push(current);
-                }
+                // usuwamy aktualne pytanie
+                queue.shift();
 
-                // Sprawdzamy czy koniec
+
                 if (queue.length === 0) {
-                    qText.textContent = t.quiz_congrats || "Brawo!";
-                    qText.setAttribute('data-translate', 'quiz_congrats');
-                    
-                    opts.innerHTML = '';
-                    explain.classList.add('d-none');
-                    nextBtn.disabled = true;
-                    
-                    progressLabel.textContent = t.quiz_finished || "Zakończono!";
-                    progressLabel.setAttribute('data-translate', 'quiz_finished');
-                    
-                    if(progressBar) {
+                    const t = getGlobalT();
+
+                    if (progressLabel) {
+                        progressLabel.textContent = t.quiz_finished || "Zakończono!";
+                    }
+
+                    if (progressBar) {
                         progressBar.style.width = '100%';
                         progressBar.classList.add('bg-success');
                     }
+
+                    renderFinishPanel();          
+                    nextBtn.disabled = true;
+
+                    const resetBtn = document.getElementById('resetProgressBtn');
+                    if (resetBtn) resetBtn.hidden = false;
+
                     return;
                 }
+
                 renderQuestion(queue[0]);
             });
         }
     });
 
-    async function handleLanguageChange(lang) {
-        const savedSubjectId = subjectSelect ? subjectSelect.value : null;
-        // Odświeżanie listy przedmiotów w tle
-        loadAndRenderSubjects(lang);
+    async function handleLanguageChange(newLang) {
+    localStorage.setItem("language", newLang);
 
-        // Stan quizu
-        const cardArea = document.getElementById('cardArea');
-        const isQuizActive = cardArea && !cardArea.classList.contains('d-none') && typeof queue !== 'undefined' && queue.length > 0;
+    if (!queue.length) {
+        console.warn("Brak aktywnego quizu – zmieniono tylko język interfejsu.");
+        return;
+    }
 
-        if (isQuizActive) {
-            console.log(`Język zmieniony na ${lang}. Quiz trwa - pobieram tłumaczenia pytań...`);
-            
-            const mode = document.getElementById('mode')?.value || 'all';
+    const subjectId = subjectSelect?.value;
+    const mode = document.getElementById('mode')?.value || 'all';
 
-            const newTranslatedQuestions = await loadQuestions(savedSubjectId, mode);
+    console.log("Zmiana języka aktywnego quizu na:", newLang);
 
-            // Aktualizujemy treści pytań w OBECNEJ kolejce (queue)
-            if (newTranslatedQuestions && newTranslatedQuestions.length > 0) {
-                queue.forEach(currentQ => {
-                    const translatedQ = newTranslatedQuestions.find(nq => nq._id === currentQ._id);
-                    if (translatedQ) {
-                        currentQ.question = translatedQ.question;
-                        currentQ.answers = translatedQ.answers;
-                    }
-                });
-                console.log("Kolejka zaktualizowana o nowe tłumaczenia.");
-            }
+    const translated = await loadQuestions(subjectId, mode);
 
-            renderQuestion(queue[0]);
-            
-        } else {
-            console.log(`Język zmieniony na ${lang}. Resetuję stan...`);
-            resetQuizState();
-        }
+    if (!translated.length) {
+        console.error("Backend nie zwrócił pytań w nowym języku");
+        return;
+    }
+
+    queue = queue.map(q => {
+        const match = translated.find(t => t._id === q._id);
+        return match ? match : q;
+    });
+
+    console.log("QUEUE AFTER LANGUAGE CHANGE:", queue);
+
+    renderQuestion(queue[0]);
     }
 
     // Listener zdarzenia
