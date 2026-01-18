@@ -39,8 +39,6 @@ router.post("/register", async (req, res) => {
     // Create user
     const user = await User.create({ name, email, password, points: 0 });
 
-    // --- TWOJA ZMIANA: Przyznajemy punkt na start (10pkt za rejestracje) ---
-    // Zakładam, że funkcja addPoints jest dostępna w tym pliku lub zaimportowana
     await addPoints(user._id, 'registration', 10);
 
     // Generate JWT
@@ -50,22 +48,20 @@ router.post("/register", async (req, res) => {
       { expiresIn: "7d" }
     );
 
-    // --- ZMIANA Z GITHUB (UPSTREAM): Obsługa Cookies ---
     res.cookie("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       maxAge: 3600000 // 1 hour
     });
 
-    // --- POŁĄCZENIE: Struktura z GitHuba + Twoje punkty ---
     res.status(201).json({
       message: "User registered successfully",
       user: {
         id: user._id,
         name: user.name,
         email: user.email,
-        userType: user.accessLvl, // Pole wymagane przez script.js (z main)
-        points: 10                // Twoje punkty (skoro to rejestracja, wiemy że jest 10)
+        userType: user.accessLvl, 
+        points: 10                
       },
       token
     });

@@ -98,8 +98,12 @@
                             </div>
                             
                             <div class="mb-2">
-                                <label data-translate="difficulty">Trudność (1-5)</label>
-                                <input type="number" class="form-control" name="difficulty" min="1" max="5" required>
+                                <label data-translate="difficulty">Trudność [easy,medium,hard]</label>
+                                <select class="form-control" name="difficulty" value="easy" required>
+                                        <option value="easy">easy</option>
+                                        <option value="medium">medium</option>
+                                        <option value="hard">hard</option>
+                                </select>
                             </div>
                             <div class="mb-2">
                                 <label data-translate="tags">Tagi (oddzielone przecinkami)</label>
