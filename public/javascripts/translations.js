@@ -136,7 +136,8 @@ const translations = {
       deleteSetConfirm: "Usunąć trwale zestaw \"{name}\"?",
       stateInfo: "Pozostało: {n}",
       editBtn: "Edytuj",
-      deleteBtn: "Usuń"
+      deleteBtn: "Usuń",
+      saveChangesBtn: "Zapisz zmiany"
     },
     userTestList: {
       language: "Język",
@@ -440,7 +441,8 @@ const translations = {
       deleteSetConfirm: "Permanently delete set \"{name}\"?",
       stateInfo: "Left: {n}",
       editBtn: "Edit",
-      deleteBtn: "Delete"
+      deleteBtn: "Delete",
+      saveChangesBtn: "Save changes"
     },
     userTestList: {
       language: "Language",
