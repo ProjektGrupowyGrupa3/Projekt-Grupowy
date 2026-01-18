@@ -397,11 +397,9 @@
         // Blokada dodawania nowych jeśli limit osiągnięty (chyba że edytujemy)
         if (questions.length >= MAX_QUESTIONS && editingIndex === null) return;
 
-        // 1. Pobieramy wartości tekstowe
         const answerInputs = document.querySelectorAll('.answer-input');
         const answersArray = Array.from(answerInputs).map(input => input.value);
 
-        // 2. Pobieramy zaznaczone poprawne odpowiedzi
         const checkboxes = document.querySelectorAll('.correct-checkbox:checked');
         const selectedCorrect = Array.from(checkboxes).map(cb => cb.value);
 
@@ -416,20 +414,16 @@
             question: document.getElementById('inputQuestion').value,
             answers: answersArray, 
             correct: selectedCorrect,
-            // 👇 NOWE: Pobieramy wyjaśnienie i usuwamy białe znaki z początku/końca
             explanation: document.getElementById('inputExplanation').value.trim() 
         };
 
         // 3. Logika Zapisywania
         if (editingIndex !== null) {
-            // EDYCJA: Nadpisujemy istniejące
             questions[editingIndex] = newQ;
             
-            // Czyścimy flagę edycji
             editingIndex = null;
             addQBtn.innerText = t('btnAddQuestion'); 
         } else {
-            // NOWE: Dodajemy na koniec
             questions.push(newQ);
         }
 
@@ -439,7 +433,6 @@
         // 5. Reset formularza
         form.reset();
         
-        // WAŻNE: Przywracamy domyślny stan formularza (4 odpowiedzi)
         currentAnswerCount = 4;
         renderAnswerInputs(); 
         
@@ -467,7 +460,7 @@
     }
 
     const LETTERS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
-    let currentAnswerCount = 4; // Domyślnie startujemy z 4
+    let currentAnswerCount = 4;
     const MIN_ANSWERS = 2;
     const MAX_ANSWERS = 8;
 
@@ -507,7 +500,6 @@
     function renderCorrectCheckboxes() {
         const container = document.getElementById('correct-answers-container');
         
-        // Zapamiętujemy, co jest zaznaczone
         const checkedValues = [];
         document.querySelectorAll('.correct-checkbox:checked').forEach(cb => checkedValues.push(cb.value));
 
@@ -575,7 +567,7 @@
     window.editQuestion = function (index) {
         const q = questions[index];
 
-        // --- 1. ADAPTER (Naprawa starych danych) ---
+        // --- 1. ADAPTER ---
         if (!q.answers) {
             q.answers = [];
             if (q.answerA) q.answers.push(q.answerA);
@@ -664,7 +656,6 @@
 
         const isNewTest = !testID;
         
-        // Sprawdzenie czy jest to nowy test, czy już istniejący w bazie którego chcemy zmodyfikować
         let url = "/api/tests/create";
         let method = "POST";
 
@@ -982,8 +973,7 @@
     function renderQuizQuestion() {
         const q = questions[currentQuestionIndex];
 
-        // --- 1. ADAPTER DANYCH (Naprawa starych pytań) ---
-        // Naprawa odpowiedzi (A, B...)
+        // --- 1. ADAPTER DANYCH ---
         if (!q.answers) {
             q.answers = [];
             if (q.answerA) q.answers.push(q.answerA);
@@ -992,13 +982,10 @@
             if (q.answerD) q.answers.push(q.answerD);
         }
         
-        // Naprawa poprawnych odpowiedzi (String -> Array)
-        // To nam pozwoli sprawdzić, ile jest poprawnych odpowiedzi
         let correctArr = q.correct;
         if (!Array.isArray(correctArr)) {
             correctArr = [correctArr];
         }
-        // ------------------------------------------------
 
         progressBadge.innerText = `${t('questionProgress')} ${currentQuestionIndex + 1} / ${questions.length}`;
         prevBtn.style.visibility = currentQuestionIndex === 0 ? 'hidden' : 'visible';
@@ -1015,7 +1002,6 @@
         let hintHtml = '';
         
         if (correctArr.length > 1) {
-            // WIELOKROTNY WYBÓR: Wyraźny niebieski pasek (alert)
             hintHtml = `
                 <div class="quiz-hint quiz-hint--multi">
                     <span class="quiz-hint-icon">✔✔</span>
@@ -1051,7 +1037,7 @@
     }
 
     window.selectAnswer = function(value, inputElement) {
-        // 1. Inicjalizacja: Upewnij się, że mamy tablicę dla tego pytania
+        // 1. Inicjalizacja
         if (!Array.isArray(userAnswers[currentQuestionIndex])) {
             userAnswers[currentQuestionIndex] = [];
         }
@@ -1059,16 +1045,13 @@
         // 2. Logika dodawania/usuwania
         if (inputElement.checked) {
             
-            // Dodaj wartość do tablicy (jeśli jeszcze jej tam nie ma)
             if (!userAnswers[currentQuestionIndex].includes(value)) {
                 userAnswers[currentQuestionIndex].push(value);
             }
             
-            // Dodaj klasę wizualną 'active' do klikniętego elementu
             inputElement.closest('label').classList.add('active');
             
         } else {
-            // Znajdź indeks wartości i usuń ją z tablicy
             const index = userAnswers[currentQuestionIndex].indexOf(value);
             if (index > -1) {
                 userAnswers[currentQuestionIndex].splice(index, 1);

@@ -17,7 +17,6 @@
     return (s || '').replace(/\{(\w+)\}/g, (_, k) => (vars[k] !== undefined ? vars[k] : ''));
   }
 
-  
   const BackendService = {
     API_URL: '/flashcards/api',
 
@@ -45,9 +44,6 @@
           body: JSON.stringify({ name, cards })
         });
 
-        if(response.status === 409) {
-
-        }
 
         if(!response.ok) throw new Error('Błąd zapisu');
         return await response.json();
@@ -71,7 +67,7 @@
     }
   };
 
-  // Główna logika aplikacji, koniec symulacji backendu
+  // Główna logika aplikacji
 
   window.addEventListener('DOMContentLoaded', () => {
     const $ = sel => document.querySelector(sel);
@@ -83,14 +79,15 @@
     let studyStats = { remembered: 0, repeated: 0 };
     let currentStudyCard = null;
 
+    let editingId = null;
+
     // --- Elementy DOM ---
     const els = {
-      // NOWE: Kontener przycisków w nagłówku
       headerActions: $('#headerActions'),
-
       cardsColumn: $('#cardsColumn'),
       studyColumn: $('#studyColumn'),
       addForm: $('#addForm'),
+      addBtn: $('#addBtn'),
       qInput: $('#q'),
       aInput: $('#a'),
       cardsList: $('#cardsList'),
@@ -118,23 +115,51 @@
 
     function init() {
       stopStudySession(); 
+      resetEditMode();
       renderEditorList();
       loadAndRenderDecks();
       attachEvents();
     }
 
+    // Funkcja resetująca formularz do trybu dodawania
+    function resetEditMode() {
+      editingId = null;
+      if(els.qInput) els.qInput.value = '';
+      if(els.aInput) els.aInput.value = '';
+      
+      if(els.addBtn) {
+        els.addBtn.textContent = tJS('addBtn', 'Dodaj fiszkę');
+        els.addBtn.classList.remove('btn-warning');
+        els.addBtn.classList.add('btn-success');
+      }
+    }
+
     function attachEvents() {
+      // Obsługa formularza (Dodawanie LUB Edycja)
       els.addForm?.addEventListener('submit', e => {
         e.preventDefault();
         const q = els.qInput.value.trim();
         const a = els.aInput.value.trim();
         if (!q || !a) return;
-        currentCards.push({ id: Date.now().toString(36), q, a });
+
+        if (editingId) {
+          // --- TRYB EDYCJI ---
+          const cardIndex = currentCards.findIndex(c => c.id === editingId);
+          if (cardIndex > -1) {
+            currentCards[cardIndex].q = q;
+            currentCards[cardIndex].a = a;
+          }
+          resetEditMode();
+        } else {
+          // --- TRYB DODAWANIA ---
+          currentCards.push({ id: Date.now().toString(36), q, a });
+          els.qInput.value = '';
+          els.aInput.value = '';
+          els.qInput.focus();
+        }
+        
         saveCurrentDraft();
         renderEditorList();
-        els.qInput.value = '';
-        els.aInput.value = '';
-        els.qInput.focus();
       });
 
       els.saveSetBtn?.addEventListener('click', async () => {
@@ -156,6 +181,7 @@
 
       els.startBtn?.addEventListener('click', () => {
         if (!currentCards.length) return alert(tJS('noCardsMessage', 'Brak fiszek.'));
+        resetEditMode();
         startStudySession();
       });
 
@@ -178,6 +204,7 @@
         if(confirm(tJS('confirmClearEditorFull', 'Wyczyścić edytor?'))) {
           currentCards = [];
           els.activeSetName.innerText = tJS('newSetLabel', 'Nowy zestaw');
+          resetEditMode();
           saveCurrentDraft();
           renderEditorList();
         }
@@ -213,6 +240,7 @@
           
           currentCards = JSON.parse(JSON.stringify(deck.cards));
           els.activeSetName.innerText = deck.name;
+          resetEditMode();
           saveCurrentDraft();
           renderEditorList();
         });
@@ -223,8 +251,6 @@
           const msg = formatTpl(tJS('deleteSetConfirm', 'Usunąć zestaw "{name}"?'), { name: deck.name });
           if (confirm(msg)) {
             const idToDelete = deck._id || deck.id;
-
-            console.log("Próba usunięcia ID:", idToDelete);
             await BackendService.deleteDeck(idToDelete);
             loadAndRenderDecks();
           }
@@ -247,20 +273,50 @@
         const col = document.createElement('div'); col.className = 'col-12';
         col.innerHTML = `
           <div class="card p-2 bg-transparent border-secondary border-opacity-25">
-            <div class="d-flex justify-content-between">
-              <div class="me-2 text-truncate">
+            <div class="d-flex justify-content-between align-items-start">
+              <div class="me-2 text-truncate" style="max-width: 80%;">
                 <span class="fw-bold">${escapeHtml(card.q)}</span>
                 <br><span class="small text-muted">${escapeHtml(card.a)}</span>
               </div>
-              <button class="btn btn-sm btn-link text-danger p-0" style="text-decoration:none">×</button>
+              <div class="d-flex gap-1">
+                <button class="btn btn-sm btn-link text-primary p-0 btn-edit" title="${tJS('editBtn', 'Edytuj')}" style="text-decoration:none">✎</button>
+                <button class="btn btn-sm btn-link text-danger p-0 btn-del" title="${tJS('deleteBtn', 'Usuń')}" style="text-decoration:none">×</button>
+              </div>
             </div>
           </div>
         `;
-        col.querySelector('button').addEventListener('click', () => {
+
+        // Obsługa USUWANIA
+        col.querySelector('.btn-del').addEventListener('click', () => {
+          // Jeśli usuwamy kartę, która jest aktualnie edytowana, resetujemy formularz
+          if (editingId === card.id) resetEditMode();
+          
           currentCards = currentCards.filter(c => c.id !== card.id);
           saveCurrentDraft();
           renderEditorList();
         });
+
+        // Obsługa EDYCJI
+        col.querySelector('.btn-edit').addEventListener('click', () => {
+            // Wypełnij formularz danymi z karty
+            els.qInput.value = card.q;
+            els.aInput.value = card.a;
+            
+            // Ustaw flagę edycji
+            editingId = card.id;
+
+            // Zmień wygląd przycisku
+            if(els.addBtn) {
+              els.addBtn.textContent = tJS('saveChangesBtn', 'Zapisz zmiany');
+              els.addBtn.classList.remove('btn-success');
+              els.addBtn.classList.add('btn-warning');
+            }
+
+            // Przewiń do formularza i ustaw fokus
+            els.qInput.focus();
+            els.addForm.scrollIntoView({ behavior: 'smooth' });
+        });
+
         els.cardsList.appendChild(col);
       });
     }
