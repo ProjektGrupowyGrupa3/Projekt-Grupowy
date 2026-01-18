@@ -671,7 +671,7 @@
             new bootstrap.Modal(document.getElementById('reportModal')).show();
         }
         document.getElementById('dismissReportBtn').onclick = async () => {
-            await fetch(`/api/admin/reports/${currentReport._id}/dismiss`, {
+            await fetch(`/api/reports/${currentReport._id}/dismiss`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -686,7 +686,7 @@
             loadUserReports();
         };
         document.getElementById('deleteReportBtn').onclick = async () => {
-            await fetch(`/api/admin/reports/${currentReport._id}/delete`, {
+            await fetch(`/api/reports/${currentReport._id}/delete`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -704,7 +704,7 @@
         document.getElementById('banReportBtn').onclick = async () => {
             if (!confirm('Czy na pewno zbanować użytkownika?')) return;
 
-            await fetch(`/api/admin/reports/${currentReport._id}/ban`, {
+            await fetch(`/api/reports/${currentReport._id}/ban`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

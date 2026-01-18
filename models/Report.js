@@ -46,7 +46,13 @@ const ReportSchema = new mongoose.Schema(
       type: String,
       enum: ["active", "resolved"],
       default: "active"
-    }
+    },
+    resolution: {
+      type: String,
+      enum: ["dismissed", "deleted", "banned"]
+    },
+    resolvedAt: Date,
+    adminReason: String
   },
   { timestamps: true }
 );
