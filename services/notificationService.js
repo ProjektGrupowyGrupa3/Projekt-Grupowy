@@ -8,6 +8,9 @@ async function createNotification({
   userId,
   type,
   messageKey,
+  targetId = null,
+  contentId = null,
+  data,
   forced = false
 }) {
   let settings = await NotificationSettings.findOne({ userId });
@@ -21,7 +24,10 @@ async function createNotification({
   const notif = await Notification.create({
     userId,
     type,
-    messageKey
+    messageKey,
+    targetId,
+    contentId,
+    data
   });
 
   // 📧 MAIL

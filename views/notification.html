@@ -36,101 +36,88 @@
   </h1>
 
   <div class="row g-4">
-    <!-- USTAWIENIA -->
-    <div class="col-lg-6">
-      <div class="card h-100">
+    
+    <div class="col-lg-4 order-2 order-lg-1">
+      <div class="card h-100 border-0 shadow-sm settings-card">
         <div class="card-body">
-          <h4 class="mb-3" data-translate="notificationSettings">Ustawienia powiadomień</h4>
+          <h5 class="mb-3 fw-bold text-uppercase small settings-header" data-translate="notificationSettings">
+            Konfiguracja
+          </h5>
           
           <div id="settingsAlert" class="alert d-none"></div>
           
           <form id="notificationSettingsForm">
-            <div class="form-check mb-3">
-              <input class="form-check-input" type="checkbox" id="notifCommentTest" 
-                     data-setting="comment_test" name="comment_test">
-              <label class="form-check-label" for="notifCommentTest" data-translate="notifCommentTest">
-                Nowy komentarz pod Twoim testem
-              </label>
-            </div>
+            <div class="vstack gap-2">
+                <div class="form-check form-switch">
+                  <input class="form-check-input" type="checkbox" id="notifCommentTest" data-setting="comment_test">
+                  <label class="form-check-label small" for="notifCommentTest">Komentarze pod testami</label>
+                </div>
 
-            <div class="form-check mb-3">
-              <input class="form-check-input" type="checkbox" id="notifTestRated" 
-                     data-setting="test_rated" name="test_rated">
-              <label class="form-check-label" for="notifTestRated" data-translate="notifTestRated">
-                Twój test został oceniony
-              </label>
-            </div>
+                <div class="form-check form-switch">
+                  <input class="form-check-input" type="checkbox" id="notifTestRated" data-setting="test_rated">
+                  <label class="form-check-label small" for="notifTestRated">Oceny testów</label>
+                </div>
 
-            <div class="form-check mb-3">
-              <input class="form-check-input" type="checkbox" id="notifRanking" 
-                     data-setting="ranking" name="ranking">
-              <label class="form-check-label" for="notifRanking" data-translate="notifRanking">
-                Aktualizacja rankingu tygodniowego
-              </label>
-            </div>
+                <div class="form-check form-switch">
+                  <input class="form-check-input" type="checkbox" id="notifDifficultyRated" data-setting="difficulty_rated">
+                  <label class="form-check-label small" for="notifDifficultyRated">Oceny trudności</label>
+                </div>
 
-            <div class="form-check mb-3">
-              <input class="form-check-input" type="checkbox" id="notifCommentReply" 
-                     data-setting="comment_reply" name="comment_reply">
-              <label class="form-check-label" for="notifCommentReply" data-translate="notifCommentReply">
-                Odpowiedź na Twój komentarz
-              </label>
-            </div>
+                <div class="form-check form-switch">
+                  <input class="form-check-input" type="checkbox" id="notifCommentReply" data-setting="comment_reply">
+                  <label class="form-check-label small" for="notifCommentReply">Odpowiedzi na komentarze</label>
+                </div>
+                
+                <hr class="my-2" style="border-color: var(--col-contrast);">
 
-            <div class="form-check mb-3">
-              <input class="form-check-input" type="checkbox" id="emailEnabled" 
-                     data-setting="emailEnabled" name="emailEnabled">
-              <label class="form-check-label" for="emailEnabled">
-                Powiadomienia email
-              </label>
+                <div class="form-check form-switch">
+                  <input class="form-check-input" type="checkbox" id="emailEnabled" data-setting="emailEnabled">
+                  <label class="form-check-label small fw-bold" for="emailEnabled">Powiadomienia Email</label>
+                </div>
             </div>
-
-            <hr>
-            <button type="submit" class="btn btn-primary mt-3 w-100" id="saveNotificationSettings"
-                    data-translate="saveSettings">
-              Zapisz ustawienia
+            
+            <button type="submit" class="btn btn-primary btn-sm w-100 mt-4" data-translate="saveSettings">
+              Zapisz zmiany
             </button>
           </form>
         </div>
       </div>
     </div>
 
-    <!-- HISTORIA POWIADOMIEŃ -->
-    <div class="col-lg-6">
-      <div class="card h-100">
+    <div class="col-lg-8 order-1 order-lg-2">
+      <div class="card h-100 border-0 shadow-sm settings-card">
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-center mb-3">
-            <h4 class="mb-0" data-translate="notificationHistory">Historia powiadomień</h4>
-            <span id="notificationCount" class="badge bg-primary">0</span>
+            <h4 class="mb-0" data-translate="notificationHistory">Ostatnie powiadomienia</h4>
+            <span id="notificationCount" class="badge bg-primary rounded-pill">0</span>
           </div>
 
-          <div id="loadingNotifications" class="text-center py-4">
+          <div id="loadingNotifications" class="text-center py-5">
             <div class="spinner-border text-primary" role="status">
               <span class="visually-hidden">Ładowanie...</span>
             </div>
-            <p class="mt-2 text-muted">Ładowanie powiadomień...</p>
+            <p class="mt-2 text-muted small">Pobieranie danych...</p>
           </div>
 
           <div id="notificationsContainer" class="d-none">
-            <div id="notificationsList" class="list-group mb-3"></div>
+            <div id="notificationsList" class="list-group list-group-flush mb-4"></div>
             
-            <div class="d-flex justify-content-between">
-              <button id="markAllAsRead" class="btn btn-secondary"
-                      data-translate="markAllAsRead">
-                Oznacz wszystkie jako przeczytane
+            <div class="d-flex gap-2">
+              <button id="markAllAsRead" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-check-all"></i> <span data-translate="markAllAsRead">Oznacz wszystkie</span>
               </button>
-              <button id="refreshNotifications" class="btn btn-outline-primary">
+              <button id="refreshNotifications" class="btn btn-sm btn-outline-primary ms-auto">
                 <i class="bi bi-arrow-clockwise"></i> Odśwież
               </button>
             </div>
           </div>
           
-          <div id="emptyNotifications" class="d-none text-center py-4">
-            <i class="bi bi-bell-slash fs-1 text-muted"></i>
-            <p class="mt-2" data-translate="noNotifications">Brak powiadomień</p>
+          <div id="emptyNotifications" class="d-none text-center py-5 text-muted">
+            <i class="bi bi-inbox fs-1 mb-2 d-block opacity-50"></i>
+            <span data-translate="noNotifications">Brak nowych powiadomień</span>
           </div>
           
-          <div id="errorContainer" class="d-none alert alert-danger"></div>
+          <div id="errorContainer" class="d-none alert alert-danger mt-3"></div>
         </div>
       </div>
     </div>
@@ -148,12 +135,12 @@
 <script src="/static/javascripts/script.js"></script>
 
 <script>
-
-// GLOBALNE ZMIENNE
-let currentNotifications = [];
-const notificationsContainer = document.querySelector('.list-group');
+// SELEKTORY (Używamy ID, jest bezpieczniej niż querySelector('.klasa'))
+const listElement = document.getElementById('notificationsList');
+const containerElement = document.getElementById('notificationsContainer');
+const emptyElement = document.getElementById('emptyNotifications');
+const loaderElement = document.getElementById('loadingNotifications');
 const token = localStorage.getItem('token');
-
 
 // SPRAWDŹ TOKEN
 function checkAuth() {
@@ -164,7 +151,6 @@ function checkAuth() {
   }
   return true;
 }
-
 
 // FORMATOWANIE DATY
 function formatDate(dateString) {
@@ -183,49 +169,150 @@ function formatDate(dateString) {
   return date.toLocaleString('pl-PL', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' });
 }
 
-
 // RENDER POWIADOMIEŃ
 function renderNotifications(notifications) {
-  notificationsContainer.innerHTML = '';
+  const listElement = document.getElementById('notificationsList');
+  listElement.innerHTML = '';
 
-  if (!notifications.length) {
-    notificationsContainer.innerHTML = `
-      <div class="list-group-item text-center text-muted" data-translate="noNotifications">
-        Brak powiadomień
-      </div>`;
-    return;
+  notifications.forEach(n => {
+    const item = document.createElement('div');
+    item.className = 'list-group-item list-group-item-action p-3';
+
+    // Logika stylów dla nieprzeczytanych 
+    if (!n.read) {
+        item.classList.add('notification-unread');
+    } else {
+        item.classList.add('opacity-75');
+    }
+
+    // --- Generowanie przycisku (bez zmian) ---
+    let actionButton = '';
+    let customContent = ''; 
+    const testTitle = (n.data && n.data.testTitle) ? `"${n.data.testTitle}"` : 'Twój test';
+
+    // 1. Logika dla oceny testu (Gwiazdki)
+    if (n.type === 'test_rated' && n.data && n.data.ratingValue) {
+        const stars = Array(5).fill(0).map((_, i) => 
+            `<i class="bi ${i < n.data.ratingValue ? 'bi-star-fill text-warning' : 'bi-star text-muted'}"></i>`
+        ).join('');
+
+        customContent = `
+            <div>
+                <span class="fw-bold text-primary">${n.data.raterName}</span> ocenił test 
+                <span class="fw-bold">${testTitle}</span>:
+                <div class="mt-1 fs-5">${stars}</div>
+            </div>
+        `;
+    } 
+    
+    // 2. Logika dla oceny trudności testu
+    else if (n.type === 'difficulty_rated' && n.data && n.data.ratingValue) {
+        const diffLabels = { 1: 'Łatwy', 2: 'Średni', 3: 'Trudny' };
+        const diffColors = { 1: 'text-success', 2: 'text-warning', 3: 'text-danger' };
+        
+        const label = diffLabels[n.data.ratingValue];
+        const color = diffColors[n.data.ratingValue];
+
+        customContent = `
+            <div>
+                <span class="fw-bold text-primary">${n.data.raterName}</span> ocenił trudność testu
+                <span class="fw-bold">${testTitle}</span> jako:
+                <span class="fw-bold ${color} ms-1 text-uppercase">${label}</span>
+            </div>
+        `;
+    }
+
+    
+    // 3. Standardowa logika dla reszty (Komentarze, Ranking)
+    
+    else if (n.targetId) { 
+      const lang = localStorage.getItem('language') || 'pl';
+      let url = `/user-test-details?testId=${n.targetId}&lang=${lang}`;
+      
+      if (!customContent) {
+        if (['comment_test', 'comment_reply'].includes(n.type)) {
+          url += '&showComments=true';
+          if (n.contentId) url += `&commentId=${n.contentId}`;
+        } else if (n.type === 'ranking') {
+          url = '/rank';
+        }
+        actionButton = `<a href="${url}" class="btn btn-sm btn-outline-primary ms-3">Zobacz</a>`;
+      }
+    }
+
+    let finalBody = '';
+    
+    if (customContent) {
+        finalBody = customContent;
+    } else {
+        const textStyle = n.read ? '' : 'fw-bold';
+        const texts = {
+          'comment_test': '💬 Nowy komentarz pod Twoim testem',
+          'ranking': '🏆 Aktualizacja rankingu tygodniowego',
+          'comment_reply': '↩️ Odpowiedź na Twój komentarz',
+          'test_rated': '⭐ Twój test został oceniony',
+          'difficulty_rated': '📊 Oceniono trudność Twojego testu'
+        };
+        finalBody = `<div class="mb-1 ${textStyle}">${texts[n.type] || 'Nowe powiadomienie'}</div>`;
+    }
+
+    // Czerwona kropka
+    const unreadIcon = !n.read ? `<i class="bi bi-circle-fill text-danger me-2 unread-dot"></i>` : '';
+
+    item.innerHTML = `
+      <div class="d-flex w-100 justify-content-between align-items-center">
+        <div>
+            <div class="d-flex align-items-center">
+                ${unreadIcon}
+                ${finalBody}
+            </div>
+            <small class="notification-time">${formatDate(n.createdAt)}</small>
+        </div>
+        ${actionButton}
+      </div>
+    `;
+
+    item.addEventListener('click', () => {
+        if (!n.read) markAsRead(n._id, item);
+    });
+
+    listElement.appendChild(item);
+  });
+}
+
+// OZNACZ JAKO PRZECZYTANE (pojedyncze)
+async function markAsRead(id, element) {
+  // Jeśli element nie ma klasy unread, to znaczy że już obsłużony
+  if (!element.classList.contains('notification-unread')) return;
+
+  try {
+    await fetch(`/api/notification/${id}/read`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    
+    // 1. Zdejmij klasę wizualną tła
+    element.classList.remove('notification-unread');
+    element.classList.add('opacity-75');
+    
+    // 2. Usuń pogrubienie tekstu
+    const textDiv = element.querySelector('.fw-bold');
+    if(textDiv) textDiv.classList.remove('fw-bold');
+
+    // 3. Usuń czerwoną kropkę
+    const dot = element.querySelector('.unread-dot');
+    if (dot) dot.remove();
+
+    // 4. Aktualizuj licznik (badge)
+    const countBadge = document.getElementById('notificationCount');
+    const currentCount = parseInt(countBadge.innerText) || 0;
+    if (currentCount > 0) countBadge.innerText = currentCount - 1;
+
+    updateUserMenuBadge();
+  } catch (err) {
+    console.error('Błąd:', err);
   }
-
-  notifications.forEach(n => addNotificationToDOM(n));
 }
-
-
-// DODAJ POWIADOMIENIE DO DOM
-function addNotificationToDOM(notification) {
-  const item = document.createElement('div');
-  item.className = 'list-group-item';
-  if (!notification.read) item.classList.add('fw-bold');
-  item.dataset.id = notification._id;
-
-  // Tekst powiadomienia bazowany na typie
-  const texts = {
-    'comment_test': 'Nowy komentarz pod Twoim testem',
-    'test_rated': 'Twój test został oceniony',
-    'ranking': 'Aktualizacja rankingu',
-    'comment_reply': 'Odpowiedź na Twój komentarz'
-  };
-  const text = texts[notification.type] || 'Nowe powiadomienie';
-
-  item.innerHTML = `
-    <strong>${text}</strong>
-    <div class="small text-muted">${formatDate(notification.createdAt)}</div>
-  `;
-
-  item.addEventListener('click', () => markAsRead(notification._id, item));
-
-  notificationsContainer.prepend(item);
-}
-
 
 // ZAŁADUJ POWIADOMIENIA
 async function loadNotifications() {
@@ -235,47 +322,86 @@ async function loadNotifications() {
     const res = await fetch('/api/notification', {
       headers: { Authorization: `Bearer ${token}`, 'Cache-Control': 'no-cache' }
     });
+    
     if (!res.ok) throw new Error('Błąd fetch');
 
-    currentNotifications = await res.json();
-    renderNotifications(currentNotifications);
+    let allNotifications = await res.json();
+    const limitedNotifications = allNotifications.slice(0, 10);
+    
+    // Ukryj loader
+    loaderElement.classList.add('d-none');
+
+    if (limitedNotifications.length > 0) {
+      containerElement.classList.remove('d-none');
+      emptyElement.classList.add('d-none');
+      renderNotifications(limitedNotifications);
+      
+      // Aktualizuj licznik
+      const unreadCount = allNotifications.filter(n => !n.read).length;
+      document.getElementById('notificationCount').innerText = unreadCount;
+    } else {
+      // BRAK powiadomień: Ukryj kontener, pokaż "pusty stan"
+      containerElement.classList.add('d-none');
+      emptyElement.classList.remove('d-none');
+    }
 
   } catch (err) {
     console.error('Błąd ładowania powiadomień:', err);
-    notificationsContainer.innerHTML = `
-      <div class="list-group-item text-center text-danger">
-        Nie udało się załadować powiadomień
-      </div>`;
-  } finally {
-    // ukryj loader
-    document.getElementById('loadingNotifications').classList.add('d-none');
+    loaderElement.classList.add('d-none');
+    const errCont = document.getElementById('errorContainer');
+    errCont.innerText = "Nie udało się pobrać danych.";
+    errCont.classList.remove('d-none');
   }
 }
 
-
 // OZNACZ JAKO PRZECZYTANE (pojedyncze)
 async function markAsRead(id, element) {
+  if (!element.classList.contains('notification-unread')) return;
+
   try {
     await fetch(`/api/notification/${id}/read`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}` }
     });
-    element.classList.remove('fw-bold');
+    
+    element.classList.remove('notification-unread');
+    element.classList.add('opacity-75'); 
 
+    const textDiv = element.querySelector('.fw-bold');
+    if(textDiv) textDiv.classList.remove('fw-bold');
+    
+    // Aktualizuj licznik
+    const countBadge = document.getElementById('notificationCount');
+    const currentCount = parseInt(countBadge.innerText) || 0;
+    if (currentCount > 0) countBadge.innerText = currentCount - 1;
+
+    updateUserMenuBadge();
   } catch (err) {
     console.error('Błąd oznaczania jako przeczytane:', err);
   }
 }
 
-
 // OZNACZ WSZYSTKIE JAKO PRZECZYTANE
-document.querySelector('[data-translate="markAllAsRead"]').addEventListener('click', async () => {
+document.getElementById('markAllAsRead').addEventListener('click', async () => {
   try {
     await fetch('/api/notification/read-all', { method: 'POST', headers: { Authorization: `Bearer ${token}` } });
-    document.querySelectorAll('.list-group-item.fw-bold').forEach(el => el.classList.remove('fw-bold'));
+    document.querySelectorAll('.list-group-item').forEach(el => el.classList.remove('fw-bold', 'bg-light'));
+    
+    // Wyzeruj licznik
+    document.getElementById('notificationCount').innerText = '0';
+    updateUserMenuBadge();
+    
   } catch (err) {
     console.error('Błąd oznaczania wszystkich jako przeczytane:', err);
   }
+});
+
+// Odświeżanie przyciskiem
+document.getElementById('refreshNotifications').addEventListener('click', () => {
+    loaderElement.classList.remove('d-none');
+    containerElement.classList.add('d-none');
+    emptyElement.classList.add('d-none');
+    loadNotifications();
 });
 
 
@@ -291,7 +417,9 @@ async function loadSettings() {
 
     const settings = await res.json();
     document.querySelectorAll('[data-setting]').forEach(cb => {
-      cb.checked = !!settings[cb.dataset.setting];
+      // Jeśli ustawienie istnieje w bazie, ustaw checkbox. Jeśli nie, uznaj true (domyślnie włączone)
+      const val = settings[cb.dataset.setting];
+      cb.checked = val !== undefined ? val : true;
     });
 
   } catch (err) {
@@ -302,25 +430,32 @@ async function loadSettings() {
 // ZAPIS USTAWIEŃ – przy zmianie checkboxa
 document.querySelectorAll('[data-setting]').forEach(cb => {
   cb.addEventListener('change', () => {
+    // Pokaż mały alert/feedback (opcjonalnie)
+    const alertBox = document.getElementById('settingsAlert');
+    
     fetch('/api/notification/settings', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       body: JSON.stringify({ [cb.dataset.setting]: cb.checked })
-    }).catch(err => console.error('Błąd zapisu ustawień:', err));
+    })
+    .then(() => {
+        // Feedback wizualny
+        alertBox.className = "alert alert-success py-2 mb-3";
+        alertBox.innerText = "Zapisano!";
+        setTimeout(() => alertBox.classList.add('d-none'), 2000);
+    })
+    .catch(err => {
+        console.error('Błąd zapisu ustawień:', err);
+        cb.checked = !cb.checked; 
+    });
   });
 });
 
-
+// INIT
 if (token) {
   loadSettings();
   loadNotifications();
-
-  // automatyczne odświeżanie co 30 sek
-  setInterval(() => {
-    if (document.visibilityState === 'visible') loadNotifications();
-  }, 30000);
 }
-
 </script>
 </body>
 </html>

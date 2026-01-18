@@ -241,3 +241,112 @@ body.light-mode .custom-alert-info {
   border-color: var(--col-accent-light);
   color: var(--col-neutral-light);
 }
+@keyframes themeHighlight {
+  0% {
+    border-color: var(--col-accent) !important;
+    background-color: var(--col-highlight) !important; /* Tło z Twojej palety */
+    box-shadow: 0 0 20px var(--col-accent); /* Świecenie kolorem akcentu */
+    transform: scale(1.02);
+  }
+  30% {
+    border-color: var(--col-accent) !important;
+    background-color: var(--col-highlight) !important;
+    transform: scale(1.02);
+  }
+  100% {
+    border-color: var(--col-contrast) !important; /* Powrót do normalnej ramki */
+    background-color: transparent !important;
+    box-shadow: none;
+    transform: scale(1);
+  }
+}
+
+.highlight-comment {
+  animation: themeHighlight 3s ease-out forwards;
+  z-index: 10;
+  position: relative; 
+}
+
+/* Karta ustawień i powiadomień*/
+.settings-card {
+  background-color: var(--col-dark) !important; 
+  color: var(--text-light); 
+}
+
+/* Fix dla Light Mode */
+body.light-mode .settings-card {
+  background-color: #fff !important; 
+  color: var(--text-dark);
+}
+
+/* Nagłówek w ustawieniach ("KONFIGURACJA") */
+.settings-header {
+  color: var(--col-accent);
+  opacity: 0.9;
+}
+
+/* Czas powiadomienia - */
+.notification-time {
+  color: var(--text-light) !important; 
+  opacity: 0.7; 
+  font-size: 0.85rem;
+}
+
+body.light-mode .notification-time {
+  color: var(--text-dark) !important;
+  opacity: 0.6;
+}
+
+/* Checkboxy i labele w ustawieniach */
+.form-check-label {
+  color: var(--text-light);
+}
+
+body.light-mode .form-check-label {
+  color: var(--text-dark);
+}
+
+/* Styl dla elementu listy */
+.list-group-item .items {
+  transition: all 0.2s ease;
+  border: none;
+  margin-bottom: 0.5rem;
+  border-radius: 0.5rem !important; 
+}
+
+/* === STYL DLA NIEPRZECZYTANYCH (Podświetlenie) === */
+.notification-unread {
+  background-color: var(--col-highlight) !important;
+  border-left: 5px solid var(--col-accent) !important;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+/* WYMUSZENIE KOLORÓW TEKSTU DLA NIEPRZECZYTANYCH */
+.notification-unread .fw-bold, 
+.notification-unread div {
+  color: var(--col-neutral-light) !important; /
+}
+
+/* Kolor daty w nieprzeczytanym */
+.notification-unread .notification-time {
+  color: var(--col-accent-dark) !important; 
+  opacity: 1 !important;
+  font-weight: 500;
+}
+
+/* Kolor przycisku "Zobacz" w nieprzeczytanym */
+.notification-unread .btn-outline-primary {
+  color: var(--col-accent-dark) !important;
+  border-color: var(--col-accent-dark) !important;
+}
+
+.notification-unread .btn-outline-primary:hover {
+  background-color: var(--col-accent-dark) !important;
+  color: white !important;
+}
+
+/* Styl dla czerwonej kropki */
+.unread-dot {
+    font-size: 0.6rem; 
+    vertical-align: middle;
+}

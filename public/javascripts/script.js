@@ -169,17 +169,59 @@ function updateDynamicContent(lang, currentPage) {
     }
 }
 
+// Funkcja sprawdzająca powiadomienia w pasku nawigacji
+async function updateUserMenuBadge() {
+  const token = localStorage.getItem('token');
+  if (!token) return;
+
+  try {
+    const res = await fetch('/api/notification', {
+      headers: { Authorization: `Bearer ${token}`, 'Cache-Control': 'no-cache' }
+    });
+
+    if (res.ok) {
+      const notifications = await res.json();
+      const unreadCount = notifications.filter(n => !n.read).length;
+
+      const dot = document.getElementById('userUnreadDot');
+      if (dot) {
+         if (unreadCount > 0) dot.classList.remove('d-none');
+         else dot.classList.add('d-none');
+      }
+
+      let attempts = 0;
+      const interval = setInterval(() => {
+          const badge = document.getElementById('dropdownNotifBadge');
+          
+          if (badge) {
+              clearInterval(interval);
+              
+              if (unreadCount > 0) {
+                  badge.innerText = unreadCount > 99 ? '99+' : unreadCount;
+                  badge.classList.remove('d-none');
+              } else {
+                  badge.classList.add('d-none');
+              }
+          } else {
+              attempts++;
+              if (attempts > 10) {
+                  clearInterval(interval);
+                  console.warn('❌ [JS] Nie udało się znaleźć #dropdownNotifBadge po 2 sekundach.');
+              }
+          }
+      }, 200);
+      
+    }
+  } catch (err) {
+    console.error('Błąd badge:', err);
+  }
+}
+
+
 window.t = function(key, params = {}) {
     const currentLang = localStorage.getItem('language') || 'pl';
     const path = window.location.pathname;
     let currentPage = 'index';
-
-    console.log('t()', {
-        path,
-        currentPage,
-        currentLang,
-        key
-        });
 
     if (path.includes('dashboard')) currentPage = 'dashboard';
     if (path.includes('quiz/test')) currentPage = 'quizTest';
@@ -464,7 +506,6 @@ function checkUrlAlerts() {
 }
 
 // Główna Inicjalizacja 
-
 document.addEventListener('DOMContentLoaded', () => {
     if (requireAuth() === false) return;
     
@@ -477,6 +518,9 @@ document.addEventListener('DOMContentLoaded', () => {
     updateLangButtonUI(currentLang);
     updatePageContent(currentLang);
     
+    updateUserMenuBadge();
+    setInterval(updateUserMenuBadge, 60000);
+
     const langContainer = document.querySelector('.lang-dropdown-container');
     const langBtn = document.getElementById('langDropdown');
     
