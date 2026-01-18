@@ -6,6 +6,17 @@ const notificationSchema = new mongoose.Schema({
     ref: 'User',
     required: true
   },
+  
+  // ID obiektu docelowego (np. ID testu)
+  targetId: {
+    type: mongoose.Schema.Types.ObjectId,
+    default: null
+  },
+
+  contentId: { 
+    type: mongoose.Schema.Types.ObjectId, 
+    default: null 
+  },
 
   type: {
     type: String,
@@ -17,7 +28,8 @@ const notificationSchema = new mongoose.Schema({
       'moderation_decision',
       'content_reported',
       'password_change',
-      'comment_removed'
+      'comment_removed',
+      'difficulty_rated'
     ],
     required: true
   },
@@ -30,9 +42,13 @@ const notificationSchema = new mongoose.Schema({
   read: {
     type: Boolean,
     default: false
+  },
+  data: { 
+    type: Object, 
+    default: {} 
   }
 }, {
   timestamps: true
 });
 
-module.exports = mongoose.model('Notifications', notificationSchema);
+module.exports = mongoose.model('Notification', notificationSchema);

@@ -290,7 +290,7 @@ const translations = {
     },
     toast_points_gained: "Zdobyłeś +{points} pkt!",
     alert_auth_required: "Musisz się zalogować, aby uzyskać dostęp do tej sekcji!",
-    alert_registered: "Rejestracja udana! Otrzymujesz 100 pkt na start! 🎉",
+    alert_registered: "Rejestracja udana! Otrzymujesz 10 pkt na start! 🎉",
     alert_login_success: "Witaj z powrotem! 👋",
     alert_login_bonus: "Witaj! Otrzymujesz +2 pkt za codzienne logowanie! 🎉",
     alert_login_failure: "Nieprawidłowy e-mail lub hasło."

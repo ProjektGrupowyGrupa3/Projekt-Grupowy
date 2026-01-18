@@ -2,6 +2,9 @@ const UserTest = require('../models/UserTest.js');
 const notificationService = require('../services/notificationService.js');
 
 async function addComment(req, res) {
+
+  console.log('🔥 addComment HIT', req.user.id);
+
   const { testId, content } = req.body;
 
   const test = await UserTest.findById(testId);
@@ -15,6 +18,7 @@ async function addComment(req, res) {
   await test.save();
 
   if (test.creatorId.toString() !== req.user.id) {
+    
     await notificationService.createNotification({
       userId: test.creatorId,
       type: 'comment_test',

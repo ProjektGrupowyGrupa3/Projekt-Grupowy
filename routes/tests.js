@@ -299,6 +299,26 @@ router.post("/:id/rating", adminAuth(0), async (req, res) => {
 
     await test.save();
 
+    if (test.creatorId.toString() !== userId.toString()) {
+      try {
+        const notificationService = require('../services/notificationService');
+        await notificationService.createNotification({
+          userId: test.creatorId,
+          type: 'test_rated',
+          messageKey: 'notifTestRated',
+          targetId: test._id,
+          data: {
+            raterName: req.user.name || 'Użytkownik', 
+            ratingValue: rating,
+            testTitle: test.title
+          }
+          
+        });
+      } catch (err) {
+        console.error("Błąd powiadomienia (rating):", err);
+      }
+    }
+
     res.json({ message: "Rating saved" });
   } catch (err) {
     console.error(err);
@@ -330,38 +350,90 @@ router.post("/:id/difficulty-rating", adminAuth(0), async (req, res) => {
 
     await test.save();
 
+    if (test.creatorId.toString() !== userId.toString()) {
+      try {
+        const notificationService = require('../services/notificationService');
+        await notificationService.createNotification({
+          userId: test.creatorId,
+          type: 'difficulty_rated',
+          messageKey: 'notifDifficultyRated',
+          targetId: test._id,
+          data: {
+            raterName: req.user.name || 'Użytkownik',
+            ratingValue: rating,
+            testTitle: test.title
+          }
+        });
+      } catch (err) {
+        console.error("Błąd powiadomienia (difficulty):", err);
+      }
+    }
+
     res.json({ message: "Difficulty rating saved" });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });
   }
 });
-router.post("/:id/comments", adminAuth(0), async (req, res) => {
+router.post("/:testId/comments", adminAuth(0), async (req, res) => {
   try {
     const { content } = req.body;
-    const userId = req.user._id;
+    const { testId } = req.params;
+    const userId = req.user._id; 
 
+    // Walidacja treści
     if (!content || !content.trim()) {
-      return res.status(400).json({ message: "Comment content required" });
+      return res.status(400).json({ message: "Treść komentarza jest wymagana" });
     }
 
-    const test = await UserTest.findById(req.params.id);
-    if (!test) return res.status(404).json({ message: "Test not found" });
+    // Pobranie testu
+    const test = await UserTest.findById(testId);
+    if (!test) {
+      return res.status(404).json({ message: "Test nie znaleziony" });
+    }
 
-    test.comments.push({
+    const newCommentId = new mongoose.Types.ObjectId();
+
+    // Utworzenie obiektu komentarza
+    const newComment = {
+      _id: newCommentId,
       userId,
       content,
-      replies: []
-    });
+      replies: [],
+      createdAt: new Date() 
+    };
 
+    // Dodanie do tablicy
+    test.comments.push(newComment);
     await test.save();
 
-    res.status(201).json({ message: "Comment added" });
+    
+    // SYSTEM POWIADOMIEŃ
+    if (test.creatorId.toString() !== userId.toString()) {
+      try {
+        const notificationService = require('../services/notificationService');
+
+        await notificationService.createNotification({
+          userId: test.creatorId,
+          type: 'comment_test',       
+          messageKey: 'notifCommentTest', 
+          targetId: test._id,
+          forced: false, 
+          contentId: newCommentId
+        });
+      } catch (notifErr) {
+        console.error("Błąd systemu powiadomień:", notifErr);
+      }
+    }
+
+    res.status(201).json(newComment);
+
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Server error" });
+    console.error("Add comment error:", err);
+    res.status(500).json({ message: "Błąd serwera" });
   }
 });
+
 // Find comment by id recursively
 function findCommentById(comments, commentId) {
   for (const comment of comments) {
@@ -411,13 +483,35 @@ router.post("/:testId/comments/:commentId/reply", adminAuth(0), async (req, res)
         return res.status(404).json({ message: "Comment not found" });
       }
 
-      parentComment.replies.push({
+      const newReplyId = new mongoose.Types.ObjectId();
+  
+      const newReply = {
+        _id: newReplyId,
         userId,
         content,
-        replies: []
-      });
+        replies: [],
+        createdAt: new Date()
+      };
+
+      parentComment.replies.push(newReply);
 
       await test.save();
+
+      if (parentComment.userId.toString() !== userId.toString()) {
+        try {
+            const notificationService = require('../services/notificationService');
+            
+            await notificationService.createNotification({
+                userId: parentComment.userId, // Autor oryginalnego komentarza
+                type: 'comment_reply',
+                messageKey: 'notifCommentReply',
+                targetId: test._id,    // ID Testu (do linku)
+                contentId: newReplyId  // ID Odpowiedzi (do podświetlenia)
+            });
+        } catch (err) {
+            console.error("Błąd powiadomienia (reply):", err);
+        }
+      }
 
       res.status(201).json({ message: "Reply added" });
     } catch (err) {
