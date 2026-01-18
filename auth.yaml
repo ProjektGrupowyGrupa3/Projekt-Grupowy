@@ -15,6 +15,58 @@ components:
       scheme: bearer
       bearerFormat: JWT
   schemas:
+    UserRef:
+      type: object
+      properties:
+        id:
+          type: string
+          example: 64f1a8e8c9a123456789abcd
+        name:
+          type: string
+          example: John Doe
+        email:
+          type: string
+          example: john@example.com
+    Report:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 650aa111bb222cc333dd4444
+        type:
+          type: string
+          enum: [user, comment, userTest]
+        status:
+          type: string
+          enum: [active, resolved]
+        reporter:
+          $ref: '#/components/schemas/UserRef'
+        reportedUser:
+          $ref: '#/components/schemas/UserRef'
+        testId:
+          type: string
+          nullable: true
+          example: 64f9caaa1111222233334444
+        testTitle:
+          type: string
+          nullable: true
+          example: JavaScript Basics
+        commentId:
+          type: string
+          nullable: true
+          example: 650bbcccaaa1112223334444
+        commentContent:
+          type: string
+          nullable: true
+          example: "This comment contains offensive language"
+        commentNickname:
+          type: string
+          nullable: true
+          example: BadUser123
+        createdAt:
+          type: string
+          format: date-time
+          example: 2025-01-15T14:33:21.000Z
 
     LocalizedString:
       type: object
@@ -99,9 +151,6 @@ components:
           example: 101
           
 paths:
-  ############################################################
-  # USER REGISTER
-  ############################################################
   /auth/register:
     post:
       summary: Register a new user
@@ -149,9 +198,6 @@ paths:
                     example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
         '400': { description: Invalid input or user already exists }
         '500': { description: Server error }
-  ############################################################
-  # USER LOGIN
-  ############################################################
   /auth/login:
     post:
       summary: Log in an existing user
@@ -192,10 +238,6 @@ paths:
                     example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
         '400': { description: Invalid credentials }
         '500': { description: Server error }
-  ############################################################
-  # USER RESET PASSWORD
-  ############################################################
-
   /auth/reset-password:
     post:
       summary: Request a password reset link
@@ -228,9 +270,6 @@ paths:
           description: No user found with that email
         '500':
           description: Server error
-  ############################################################
-  # USER PASSWORD RESERT CONFIRM
-  ############################################################
   /auth/reset-password-confirm:
     post:
       summary: Confirm password reset and set new password
@@ -268,9 +307,6 @@ paths:
           description: Invalid or expired token / weak password
         '500':
           description: Server error
-  ############################################################
-  # ADMIN USER MANAGEMENT
-  ############################################################
 
   /adminPanel/users:
     get:
@@ -288,7 +324,6 @@ paths:
       responses:
         '200': { description: List of matching users }
         '500': { description: Server error }
-
   /adminPanel/users/{id}:
     get:
       summary: Get user by ID
@@ -329,7 +364,6 @@ paths:
         '200': { description: User updated }
         '404': { description: User not found }
         '500': { description: Server error }
-
   /adminPanel/users/{id}/ban:
     post:
       summary: Ban a user and send email notification
@@ -355,7 +389,6 @@ paths:
         '200': { description: User banned & email sent }
         '404': { description: User not found }
         '500': { description: Server error }
-
   /adminPanel/users/{id}/delete:
     post:
       summary: Delete user (requires admin accessLvl > 2) and send email with note
@@ -382,11 +415,6 @@ paths:
         '403': { description: Insufficient permissions }
         '404': { description: User not found }
         '500': { description: Server error }
-
-  ############################################################
-  # QUESTIONS
-  ############################################################
-
   /adminPanel/questions/search:
     get:
       summary: Search questions (optional query)
@@ -402,7 +430,6 @@ paths:
       responses:
         '200': { description: List of matching questions }
         '500': { description: Server error }
-
   /adminPanel/questions/{id}:
     get:
       summary: Get question by ID
@@ -479,7 +506,6 @@ paths:
         '200': { description: Question deleted }
         '404': { description: Question not found }
         '500': { description: Server error }
-
   /adminPanel/questions:
     post:
       summary: Create a new question
@@ -521,12 +547,6 @@ paths:
           description: Question created
         '500':
           description: Server error
-
-
-  ############################################################
-  # SUBJECTS
-  ############################################################
-
   /adminPanel/subjects/search:
     get:
       summary: Search subjects (optional query)
@@ -542,7 +562,6 @@ paths:
       responses:
         '200': { description: List of matching subjects }
         '500': { description: Server error }
-
   /adminPanel/subjects/{id}:
     get:
       summary: Get subject by ID
@@ -605,7 +624,6 @@ paths:
         '200': { description: Subject deleted }
         '404': { description: Subject not found }
         '500': { description: Server error }
-
   /adminPanel/subjects:
     post:
       summary: Create a new subject
@@ -634,3 +652,436 @@ paths:
           description: Subject created
         '500':
           description: Server error
+
+  /api/reports:
+    post:
+      summary: Create a report
+      tags: [Reports]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            examples:
+              commentReport:
+                summary: Report a comment
+                value:
+                  type: comment
+                  reportedUserId: 64faaaa1111222233334444
+                  testId: 64f9caaa1111222233334444
+                  commentId: 650bbcccaaa1112223334444
+              userReport:
+                summary: Report a user
+                value:
+                  type: user
+                  reportedUserId: 64fbbbb1111222233334444
+              userTestReport:
+                summary: Report a user test
+                value:
+                  type: userTest
+                  reportedUserId: 64fcccc1111222233334444
+                  userTestId: 64fdddd1111222233334444
+      responses:
+        "201":
+          description: Report created
+          content:
+            application/json:
+              example:
+                _id: 650aa111bb222cc333dd4444
+                type: comment
+                status: active
+                reporterId: 64f11112222333344445555
+                reportedUserId: 64faaaa1111222233334444
+                testId: 64f9caaa1111222233334444
+                commentId: 650bbcccaaa1112223334444
+                createdAt: 2025-01-15T14:33:21.000Z
+        "400":
+          description: Invalid payload
+          content:
+            application/json:
+              example:
+                message: "reportedUserId, testId and commentId required"
+
+    get:
+      summary: List active reports (admin/moderator)
+      tags: [Reports]
+      responses:
+        "200":
+          description: Active reports list
+          content:
+            application/json:
+              example:
+                - _id: 650aa111bb222cc333dd4444
+                  type: comment
+                  status: active
+                  reporter:
+                    id: 64f11112222333344445555
+                    name: Alice Reporter
+                    email: alice@example.com
+                  reportedUser:
+                    id: 64faaaa1111222233334444
+                    name: ToxicUser
+                    email: toxic@example.com
+                  testId: 64f9caaa1111222233334444
+                  testTitle: JavaScript Basics
+                  commentId: 650bbcccaaa1112223334444
+                  commentContent: "You are stupid"
+                  commentNickname: ToxicUser
+                  createdAt: 2025-01-15T14:33:21.000Z
+  /api/reports/{id}/dismiss:
+    post:
+      summary: Dismiss a report
+      tags: [Reports]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          example: 650aa111bb222cc333dd4444
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            example:
+              reason: "No violation found"
+      responses:
+        "200":
+          description: Report dismissed
+          content:
+            application/json:
+              example:
+                message: Report dismissed
+  /api/reports/{id}/delete:
+    post:
+      summary: Delete reported content and warn user
+      tags: [Reports]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            example:
+              reason: "Hate speech"
+      responses:
+        "200":
+          description: Content deleted
+          content:
+            application/json:
+              example:
+                message: Content deleted and user warned
+  /api/reports/{id}/ban:
+    post:
+      summary: Ban reported user and delete content
+      tags: [Reports]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            example:
+              reason: "Repeated harassment"
+      responses:
+        "200":
+          description: User banned
+          content:
+            application/json:
+              example:
+                message: User banned and content removed
+  /api/tests/{testId}/comments/{commentId}:
+    put:
+      summary: Edit a comment
+      tags: [Comments]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example:
+              content: "Updated comment text"
+      responses:
+        "200":
+          description: Comment updated
+          content:
+            application/json:
+              example:
+                message: Comment updated
+                comment:
+                  _id: 650bbcccaaa1112223334444
+                  content: "Updated comment text"
+                  edited: true
+
+    delete:
+      summary: Delete a comment
+      tags: [Comments]
+      responses:
+        "200":
+          description: Comment deleted
+          content:
+            application/json:
+              example:
+                message: Comment deleted
+  /api/tests/create:
+    post:
+      summary: Create or edit a user test
+      tags: [Tests]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            examples:
+              create:
+                summary: Create new test
+                value:
+                  title: JavaScript Basics
+                  tags: ["js", "programming"]
+                  questions:
+                    - question: What is closure?
+                      answers: ["Scope", "Function", "Variable"]
+                      correctAnswer: 0
+                  isPublic: true
+              edit:
+                summary: Edit existing test
+                value:
+                  testID: 64f9caaa1111222233334444
+                  title: JavaScript Advanced
+                  tags: ["js", "advanced"]
+                  questions:
+                    - question: Explain hoisting
+                      answers: ["Concept", "Bug", "Feature"]
+                      correctAnswer: 0
+                  isPublic: false
+      responses:
+        "201":
+          description: Test created
+          content:
+            application/json:
+              example:
+                _id: 64f9caaa1111222233334444
+                title: JavaScript Basics
+                isPublic: true
+        "200":
+          description: Test updated
+        "403":
+          description: Not authorized
+        "400":
+          description: Validation error
+  /api/tests/all:
+    get:
+      summary: List all public tests
+      tags: [Tests]
+      parameters:
+        - in: query
+          name: q
+          schema:
+            type: string
+          example: javascript
+      responses:
+        "200":
+          description: Tests list
+          content:
+            application/json:
+              example:
+                - testId: 64f9caaa1111222233334444
+                  title: JavaScript Basics
+                  owner:
+                    id: 64faaaa1111222233334444
+                    name: John Author
+                    email: author@example.com
+                  tags: ["js"]
+                  language: EN
+                  numberOfQuestions: 10
+                  averageRating: 4.2
+                  numberOfComments: 5
+  /api/tests/userTest:
+    get:
+      summary: List tests created by logged-in user
+      tags: [Tests]
+      parameters:
+        - in: query
+          name: q
+          schema:
+            type: string
+          example: basics
+      responses:
+        "200":
+          description: User tests
+          content:
+            application/json:
+              example:
+                - testId: 64f9caaa1111222233334444
+                  title: My Test
+                  isPublic: true
+                  numberOfQuestions: 8
+                  averageRating: 4.5
+  /api/tests/{testId}:
+    get:
+      summary: Get single test with comments
+      tags: [Tests]
+      parameters:
+        - name: testId
+          in: path
+          required: true
+          example: 64f9caaa1111222233334444
+      responses:
+        "200":
+          description: Test data
+          content:
+            application/json:
+              example:
+                _id: 64f9caaa1111222233334444
+                title: JavaScript Basics
+                comments:
+                  - _id: 650bbcccaaa1112223334444
+                    content: Great test!
+                    nickname: Alice
+                    replies: []
+        "403":
+          description: User banned
+        "404":
+          description: Test not found
+
+    delete:
+      summary: Delete a test
+      tags: [Tests]
+      responses:
+        "200":
+          description: Test deleted
+          content:
+            application/json:
+              example:
+                message: Test deleted successfully
+  /api/tests/{id}/rating:
+    post:
+      summary: Rate a test
+      tags: [Ratings]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example:
+              rating: 5
+      responses:
+        "200":
+          description: Rating saved
+          content:
+            application/json:
+              example:
+                message: Rating saved
+  /api/tests/{id}/difficulty-rating:
+    post:
+      summary: Rate test difficulty
+      tags: [Ratings]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example:
+              rating: 2
+      responses:
+        "200":
+          description: Difficulty rating saved
+  /api/tests/{id}/comments:
+    post:
+      summary: Add comment to test
+      tags: [Comments]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example:
+              content: This test was very helpful
+      responses:
+        "201":
+          description: Comment added
+          content:
+            application/json:
+              example:
+                message: Comment added
+  /api/tests/{testId}/comments/{commentId}/reply:
+    post:
+      summary: Reply to a comment
+      tags: [Comments]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example:
+              content: Thanks for the feedback!
+      responses:
+        "201":
+          description: Reply added
+          content:
+            application/json:
+              example:
+                message: Reply added
+  /api/tests/{testId}/comments/{commentId}:
+    put:
+      summary: Edit a comment
+      tags: [Comments]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example:
+              content: Updated comment text
+      responses:
+        "200":
+          description: Comment updated
+          content:
+            application/json:
+              example:
+                message: Comment updated
+
+    delete:
+      summary: Delete a comment
+      tags: [Comments]
+      responses:
+        "200":
+          description: Comment deleted
+          content:
+            application/json:
+              example:
+                message: Comment deleted
+  /api/tests/{id}:
+    patch:
+      summary: Change test public status
+      tags: [Tests]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example:
+              isPublic: false
+      responses:
+        "200":
+          description: Test updated
+  /api/tests/save-result:
+    post:
+      summary: Save test result and award points
+      tags: [Results]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example:
+              testId: 64f9caaa1111222233334444
+              score: 80
+              totalQuestions: 10
+              correctAnswers: 8
+              testTitle: JavaScript Basics
+              authorName: John Author
+      responses:
+        "200":
+          description: Result saved
+          content:
+            application/json:
+              example:
+                success: true
+                pointsAdded: 20
+                alreadyPassed: false
