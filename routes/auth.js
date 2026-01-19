@@ -105,27 +105,27 @@ router.post('/login', async (req, res) => {
       { expiresIn: '7d' }
     );
 
-    // --- ZMIANA Z GITHUB (UPSTREAM): Obsługa Cookies ---
+    
     res.cookie("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       maxAge: 3600000 // 1 hour
     });
 
-    // --- LOGIKA PUNKTÓW (Obliczamy, co wysłać) ---
+    
     const currentPoints = user.points || 0;
-    // Jeśli pointsAdded=true, to znaczy że baza ma już o 2 więcej niż obiekt 'user' pobrany wcześniej
+    
     const pointsToSend = pointsAdded ? currentPoints + 2 : currentPoints;
 
-    // --- POŁĄCZENIE ODPOWIEDZI ---
+   
     res.status(200).json({
       message: 'Login successful',
       user: { 
           id: user._id, 
           name: user.name, 
           email: user.email, 
-          userType: user.accessLvl, // Pole wymagane przez nowy layout
-          points: pointsToSend      // Twoje obliczone punkty
+          userType: user.accessLvl, 
+          points: pointsToSend      
       },
       token,
       pointsAdded: pointsAdded 
@@ -146,8 +146,8 @@ router.post('/reset-password', async (req, res) => {
       port:587,
       secure:false,
       auth: {
-        user: process.env.MAIL_USER,
-        pass: process.env.MAIL_PASS
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
       }
     });
     const { email } = req.body;
@@ -177,7 +177,7 @@ router.post('/reset-password', async (req, res) => {
 
     // Send email
     await transporter.sendMail({
-      from: `"Support" <${process.env.MAIL_USER}>`,
+      from: `"Support" <${process.env.EEUSER}>`,
       to: email,
       subject: "Password Reset Request",
       html: `

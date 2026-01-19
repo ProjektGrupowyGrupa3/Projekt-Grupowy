@@ -823,10 +823,10 @@ function createAnswerElement(index) {
     </div>
     <div class="row mt-2">
       <div class="col-md-6">
-        <input class="form-control ans-expl-pl" placeholder="Wyjaśnienie PL">
+        <input class="form-control ans-expl-pl" placeholder="Wyjaśnienie PL" required>
       </div>
       <div class="col-md-6">
-        <input class="form-control ans-expl-en" placeholder="Explanation EN">
+        <input class="form-control ans-expl-en" placeholder="Explanation EN" required>
       </div>
     </div>
   `;
@@ -882,7 +882,10 @@ function createAnswerElement(index) {
     alert('Zaznacz przynajmniej jedną poprawną odpowiedź');
     return;
   }
-
+  for(I= 0 ;I< answers.length;I++){
+    answers[I].explanation.pl = answers[I].explanation.pl == ""? "Brak" : answers[I].explanation.pl 
+    answers[I].explanation.en = answers[I].explanation.en == ""? "None" : answers[I].explanation.en 
+  }
   const payload = {
     subject: form.elements.subject.value,
     question: {
