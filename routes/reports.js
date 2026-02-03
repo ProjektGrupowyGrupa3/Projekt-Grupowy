@@ -299,7 +299,16 @@ router.post("/:id/ban",auth,adminAuth(1),async (req, res) => {
 
       await report.save();
 
-
+          const transporter = nodemailer.createTransport({
+            service: "gmail",
+            host:"pgpaigrupa@gmail.com",
+            port:587,
+            secure:false,
+            auth: {
+              user: process.env.MAIL_USER,
+              pass: process.env.MAIL_PASS
+            }
+          });
       await transporter.sendMail({
         from: process.env.MAIL_USER,
         to: report.reporterId.email,
